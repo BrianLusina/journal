@@ -6,8 +6,8 @@ import bugsnag from './bugsnag';
 
 export default {
   api,
-  name: process.env.NAME || 'Fenestra',
-  title: process.env.TITLE || 'Fenestra',
+  name: process.env.NAME || 'LJournal',
+  title: process.env.TITLE || 'LJournal',
   env,
   firebase,
   sentry,
