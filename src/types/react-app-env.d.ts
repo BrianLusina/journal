@@ -13,6 +13,9 @@ declare namespace NodeJS {
     readonly CMS_REST_API_URL: string;
     readonly CMS_TOKEN: string;
     readonly CMS_SPACE_ID: string;
+    readonly CMS_PREVIEW_REST_API_URL: string;
+    readonly CMS_ENVIRONMENT: string;
+    readonly CMS_PREVIEW: string;
     readonly NAME: string;
     readonly TITLE: string;
     readonly FIREBASE_API_KEY: string;
