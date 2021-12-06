@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link }from 'gatsby'
-import Navbar from '../navbar/Navbar'
+import Navbar from '../Navbar/Navbar'
 // import Search from '../search/Search';
 // import "./header.scss";
 

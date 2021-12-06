@@ -1,6 +1,6 @@
 import React from 'react'
 import { string, number } from 'prop-types'
-import ButtonLink from './buttons/ButtonLink';
+import ButtonLink from '../Button/ButtonLink';
 
 const Pagination = ({ previousUrl, nextUrl }) => {
 	return (

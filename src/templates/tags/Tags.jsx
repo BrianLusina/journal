@@ -2,8 +2,8 @@ import React from 'react';
 import { graphql } from "gatsby";
 import { shape, string, arrayOf, number} from "prop-types";
 import MainLayoutWrapper from '../../layouts/MainLayout';
-import PostItem from '../../components/posts/PostItem';
-import ButtonLink from '../../components/buttons/ButtonLink';
+import PostItem from '../../components/MiniPost/PostItem';
+import ButtonLink from '../../components/Button/ButtonLink';
 import "./tags.scss";
 
 export const TagsTemplate = ({ pageContext, data }) => {

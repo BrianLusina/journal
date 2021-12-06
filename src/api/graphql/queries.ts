@@ -1,58 +1,61 @@
 import { gql } from '@apollo/client';
 
-export const GET_REPOSITORIES = gql`
-  query GetRepositories(
-    $direction: OrderDirection
-    $field: RepositoryOrderField
-    $first: Int
-    $last: Int
-    $after: String
-    $before: String
+export const GET_ALL_BLOGS = gql`
+  query GetAllBlogs(
+    $skip: Int
+    $limit: Int
+    $preview: Boolean
+    $locale: String
+    $where: BlogPostFilter
+    $order: [BlogPostOrder]
   ) {
-    viewer {
-      login
-      avatarUrl
-      repositories(
-        orderBy: { direction: $direction, field: $field }
-        first: $first
-        last: $last
-        after: $after
-        before: $before
-      ) {
-        pageInfo {
-          startCursor
-          endCursor
-          hasNextPage
-        }
-        nodes {
-          name
-          description
+	  blogPostCollection {
+      total
+      limit
+      items {
+        heroImage {
+          title
           url
-          owner {
-            login
-            avatarUrl
-          }
         }
-      }
-    }
+        thumbnail {
+          title
+          url
+        }
+        title
+        subtitle
+        description
+        tags
+        category
+        slug
+        body
+        publishDate
+        sys {
+         id
+        }        
+		  }
+	  }
   }
 `;
 
-export const GET_REPOSITORY = gql`
-  query GetRepository($name: String!, $owner: String!) {
-    repository(name: $name, owner: $owner) {
-      name
+export const GET_BLOG = gql`
+  query GetBlog($id: String!, $preview: Boolean, $locale: String) {
+    blogPost(id: $id, preview: $preview, locale: $locale) {
+      heroImage {
+        title
+        url
+      }
+      thumbnail {
+        title
+        url
+      }
+      title
+      subtitle
       description
-      url
-      object(expression: "HEAD:README.md") {
-        ... on Blob {
-          text
-        }
-      }
-      owner {
-        login
-        avatarUrl
-      }
+      tags
+      category
+      slug
+      body
+      publishDate
     }
   }
 `;

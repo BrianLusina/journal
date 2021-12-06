@@ -4,7 +4,7 @@ import { string, shape, arrayOf } from 'prop-types'
 import kebabCase from "lodash/kebabCase";
 import defaultAvatar from '../../assets/images/avatar.jpg'
 import defaultFeature from '../../assets/images/default_feature_pic.jpg'
-import ButtonLink from '../buttons/ButtonLink';
+import ButtonLink from '../Button/ButtonLink';
 
 const PostItem = ({
 	title,

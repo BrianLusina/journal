@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import moment from "moment"
-import PostItem from '../posts/PostItem';
+import PostItem from '../MiniPost/PostItem';
 import MainLayoutWrapper from "../../layouts/MainLayout";
 
 export function withGraphQLSubscription(WrappedComponent, page){

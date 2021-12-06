@@ -3,9 +3,9 @@ import MainLayout from "../layouts/MainLayout";
 import {graphql } from 'gatsby'
 import { shape, arrayOf, string, number } from 'prop-types'
 import {locationPropType} from '../propTypes';
-import PostItem from '../components/posts/PostItem';
+import PostItem from '../components/MiniPost/PostItem';
 import moment from 'moment';
-import ButtonLink from '../components/buttons/ButtonLink';
+import ButtonLink from '../components/Button/ButtonLink';
 
 const IndexPage = ({ data: { allMarkdownRemark : {edges: posts}}}) => {
 	

@@ -1,9 +1,9 @@
 import React from "react"
 import PageLayout from "../../layouts/page/PageLayout";
 import { shape, string, number, arrayOf, bool } from 'prop-types'
-import PostItem from '../../components/posts/PostItem';
+import PostItem from '../../components/MiniPost/PostItem';
 import moment from 'moment';
-import Pagination from '../../components/Pagination';
+import Pagination from '../../components/Pagination/Pagination';
 
 const PageTemplate = ({ pageContext }) => {
 	const { posts, page, pagesSum, prevPath, nextPath } = pageContext;
