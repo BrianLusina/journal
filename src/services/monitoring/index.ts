@@ -3,9 +3,9 @@ import {
   captureAndLogError,
   captureException,
   captureScope,
-  Levels,
+  Severity
 } from './Monitoring';
 
 export { initializeMonitoring, captureAndLogError, captureException, captureScope };
 
-export type { Levels };
+export { Severity };

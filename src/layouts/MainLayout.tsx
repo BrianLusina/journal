@@ -6,7 +6,7 @@ import Intro from '@components/Intro';
 import Footer from '@components/Footer';
 import Contact from '@components/Contact';
 import MiniPosts from '@components/MiniPost';
-import AboutBlurb from '@components/AboutBlurb';
+import Blurb from '@components/Blurb';
 
 const MainLayout: FunctionComponent = ({ children }) => (
   <div id="wrapper">
@@ -16,7 +16,7 @@ const MainLayout: FunctionComponent = ({ children }) => (
     <Sidebar>
       <Intro />
       <MiniPosts posts={miniPosts} currentTag={tag} />
-      <AboutBlurb about={about} />
+      <Blurb />
       <Contact town={town} country={country} email={email} emailAlias={emailAlias} />
       <Footer socialLinks={socialLinks} />
     </Sidebar>

@@ -3,11 +3,12 @@ import {
   captureAndLogSentryError,
   captureSentryException,
   captureSentryScope,
-  SentryLevels,
+  Severity,
   SentryBreadcrumb,
   SentryScope,
 } from './Sentry';
 
 export { initializeSentry, captureAndLogSentryError, captureSentryException, captureSentryScope };
 
-export type { SentryLevels, SentryBreadcrumb, SentryScope };
+export type { SentryBreadcrumb, SentryScope };
+export { Severity };

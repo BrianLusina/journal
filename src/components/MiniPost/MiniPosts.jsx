@@ -1,4 +1,3 @@
-import React from 'react';
 import includes from 'lodash/includes';
 import MiniPostItem from './MiniPostItem';
 

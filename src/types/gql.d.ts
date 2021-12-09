@@ -41,7 +41,7 @@ declare type ContentfulMetadataTagsFilter = {
     id_contains_some: [string];   
 };
 
-declare type ContentfilMetadataFilter = {
+declare type ContentfulMetadataFilter = {
     tags: ContentfulMetadataTagsFilter;
     tags_exists: boolean;
 };
@@ -144,4 +144,15 @@ declare type GetBlogVariables = {
     id: string;
     preview?: boolean;
     local?: string;
+}
+
+declare type AboutPageData = {
+    title: string;
+    content: string;
+};
+
+declare type AboutPagesData = {
+    aboutCollection: {
+        items: AboutPageData[]
+    }
 }

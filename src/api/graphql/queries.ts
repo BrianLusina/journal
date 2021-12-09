@@ -9,7 +9,7 @@ export const GET_ALL_BLOGS = gql`
     $where: BlogPostFilter
     $order: [BlogPostOrder]
   ) {
-	  blogPostCollection {
+    blogPostCollection {
       total
       limit
       items {
@@ -24,16 +24,21 @@ export const GET_ALL_BLOGS = gql`
         title
         subtitle
         description
-        tags
         category
         slug
         body
         publishDate
         sys {
-         id
-        }        
-		  }
-	  }
+          id
+        }
+        contentfulMetadata {
+          tags {
+            id
+            name
+          }
+        }
+      }
+    }
   }
 `;
 
@@ -51,11 +56,27 @@ export const GET_BLOG = gql`
       title
       subtitle
       description
-      tags
       category
       slug
       body
       publishDate
+      contentfulMetadata {
+        tags {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+export const GET_ABOUT_PAGES = gql`
+  query GetAboutPages {
+    aboutCollection {
+      items {
+        title
+        content
+      }
     }
   }
 `;
