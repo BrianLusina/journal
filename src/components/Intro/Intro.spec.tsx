@@ -3,7 +3,7 @@ import faker from 'faker';
 import Intro from './Intro';
 
 describe('Intro', () => {
-  it('should render with default proos', () => {
+  it('should render with default props', () => {
     render(<Intro />);
   });
 
