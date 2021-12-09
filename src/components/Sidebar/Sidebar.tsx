@@ -14,7 +14,7 @@ const Sidebar: FunctionComponent = ({
   contact: { town, country, email, emailAlias },
 }) => (
   <section id="sidebar">
-    <Intro pageDesc={pageDesc} />
+    <Intro />
     <MiniPosts posts={miniPosts} currentTag={tag} />
     <AboutBlurb about={about} />
     <Contact town={town} country={country} email={email} emailAlias={emailAlias} />
