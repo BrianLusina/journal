@@ -27,7 +27,7 @@ const MainLayout: FunctionComponent = ({ children }) => (
         </ul>
       </nav>
     </Header>
-    <Menu />
+    <Menu searchBar={<Search className="visible" />} />
     <div id="main">{children}</div>
     <Sidebar>
       <Intro />
