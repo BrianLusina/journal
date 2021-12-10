@@ -3,7 +3,7 @@ import {
   captureAndLogError,
   captureException,
   captureScope,
-  Severity
+  Severity,
 } from './Monitoring';
 
 export { initializeMonitoring, captureAndLogError, captureException, captureScope };

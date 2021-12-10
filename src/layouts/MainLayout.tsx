@@ -4,7 +4,7 @@ import Menu from '@components/Menu';
 import Sidebar from '@components/Sidebar';
 import Intro from '@components/Intro';
 import Footer from '@components/Footer';
-import Contact from '@components/Contact';
+import SocialCard from '@components/SocialCard';
 import MiniPosts from '@components/MiniPost';
 import Blurb from '@components/Blurb';
 
@@ -17,8 +17,8 @@ const MainLayout: FunctionComponent = ({ children }) => (
       <Intro />
       <MiniPosts posts={miniPosts} currentTag={tag} />
       <Blurb />
-      <Contact town={town} country={country} email={email} emailAlias={emailAlias} />
-      <Footer socialLinks={socialLinks} />
+      <SocialCard />
+      <Footer />
     </Sidebar>
   </div>
 );
