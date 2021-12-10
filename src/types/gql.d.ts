@@ -156,3 +156,14 @@ declare type AboutPagesData = {
         items: AboutPageData[]
     }
 }
+
+declare type SocialItem = {
+    title: string;
+    link: string;
+}
+
+declare type SocialsData = {
+    socialCollection: {
+        items: SocialItem[]
+    }
+}

@@ -80,3 +80,14 @@ export const GET_ABOUT_PAGES = gql`
     }
   }
 `;
+
+export const GET_SOCIAL_INFO = gql`
+  query GetSocialInfo {
+    socialCollection {
+      items {
+        name
+        link
+      }
+    }
+  }
+`;
