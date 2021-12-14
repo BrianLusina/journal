@@ -1,7 +1,7 @@
 import React from "react"
 import PageLayout from "../../layouts/page/PageLayout";
 import { shape, string, number, arrayOf, bool } from 'prop-types'
-import PostItem from '../../components/MiniPost/PostItem';
+import PostItem from '../../components/PostItem/PostItem';
 import moment from 'moment';
 import Pagination from '../../components/Pagination/Pagination';
 

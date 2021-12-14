@@ -1,5 +1,5 @@
 import includes from 'lodash/includes';
-import MiniPostItem from './MiniPostItem';
+import MiniPostItem from '@components/MiniPost';
 
 const MiniPosts = ({ posts, currentTag }) => {
   return (
@@ -22,7 +22,7 @@ const MiniPosts = ({ posts, currentTag }) => {
               return (
                 <MiniPostItem
                   key={path}
-                  link={path}
+                  link={`${slug}?id=${id}`}
                   title={title}
                   author={{
                     link,

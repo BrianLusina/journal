@@ -132,6 +132,7 @@ module.exports = {
     '^@providers/(.*)$': '<rootDir>/src/providers/$1',
     '^@components/(.*)$': '<rootDir>/src/components/$1',
     '^@containers/(.*)$': '<rootDir>/src/containers/$1',
+    '^@features/(.*)$': '<rootDir>/src/features/$1',
     '^@pages/(.*)$': '<rootDir>/src/pages/$1',
     '^@layouts/(.*)$': '<rootDir>/src/layouts/$1',
     '^@routes': '<rootDir>/src/config/routes.ts',

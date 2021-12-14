@@ -2,7 +2,7 @@ import React from 'react';
 import { graphql } from 'gatsby';
 import { shape, string, arrayOf, number } from 'prop-types';
 import MainLayoutWrapper from '../../layouts/MainLayout';
-import PostItem from '../../components/MiniPost/PostItem';
+import PostItem from '../../components/PostItem/PostItem';
 import ButtonLink from '../../components/Elements/ButtonLink/ButtonLink';
 import './tags.scss';
 

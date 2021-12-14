@@ -7,7 +7,7 @@ import Sidebar from '@components/Sidebar';
 import Intro from '@components/Intro';
 import Footer from '@components/Footer';
 import SocialCard from '@components/SocialCard';
-import MiniPosts from '@components/MiniPost';
+import MiniPosts from '@features/MiniPosts';
 import Blurb from '@components/Blurb';
 
 const MainLayout: FunctionComponent = ({ children }) => (
@@ -31,7 +31,7 @@ const MainLayout: FunctionComponent = ({ children }) => (
     <div id="main">{children}</div>
     <Sidebar>
       <Intro />
-      <MiniPosts posts={miniPosts} currentTag={tag} />
+      <MiniPosts />
       <Blurb />
       <SocialCard />
       <Footer />
