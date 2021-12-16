@@ -1,3 +1,26 @@
+declare type Sys = {
+    environmentId: string;
+    id: string;
+    firstPublishedAt: string;
+    publishedAt: string;
+    publishedVersion: number;
+    spaceId: string;
+}
+
+declare type ContentfulTag = {
+    id: string;
+    name: string
+}
+
+declare type ContentfulMetadata = {
+    tags: ContentfulTag[];
+}
+
+declare type Entry = {
+    sys: Sys;
+    contentfulMetaData: ContentfulMetadata;
+};
+
 declare type SysFilter = {
     firstPublishedAt: DateTime
     firstPublishedAt_exists: boolean
@@ -165,5 +188,48 @@ declare type SocialItem = {
 declare type SocialsData = {
     socialCollection: {
         items: SocialItem[]
+    }
+}
+
+declare type Author = {
+    items: Entry[];
+    limit: number;
+    skip: number;
+    total: number  
+};
+
+declare type Asset = {
+    contentfulMetadata: ContentfulMetadata;
+    contentType: string;
+    description: string;
+    fileName: string;
+    height: number;
+    size: number;
+    sys: Sys;
+    title: string;
+    url: string;
+    width: number;    
+}
+
+declare type BlogPostItem = {
+    heroImage: Asset;
+    thumbnail: Asset;
+    title: string;
+    subtitle: string;
+    description: string;
+    category: string;
+    slug: string;
+    body: string;
+    publishDate: string;
+    sys: Sys;
+    contentfulMetadata: ContentfulMetadata;
+    authorsCollection: Author[];
+}
+
+declare type BlogPostsData = {
+    blogPostCollection: {
+        total: number;
+        limit: number;
+        items: BlogPostItem[]
     }
 }

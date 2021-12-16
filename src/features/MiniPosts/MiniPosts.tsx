@@ -1,89 +1,50 @@
-import includes from 'lodash/includes';
+import { FunctionComponent } from 'react';
 import MiniPostItem from '@components/MiniPost';
+import { useQuery } from '@apollo/client';
+import { GET_ALL_BLOGS } from '@graphQl/queries';
+import { captureException, captureScope, Severity } from '@services/monitoring';
 
-const MiniPosts = ({ posts, currentTag }) => {
+const MiniPosts: FunctionComponent = () => {
+  const { loading, error, data } = useQuery<BlogPostsData, GetAllBlogsVariables>(GET_ALL_BLOGS, {
+    variables: {
+      limit: 5,
+    },
+  });
+
+  // FIXME: use a component loader for this. Preferably a Skeleton loader
+  if (loading) return <div>Loading...</div>;
+
+  if (error) {
+    // FIXME: use error boundary for a component instead
+    captureException(
+      error,
+      captureScope({ type: 'component', data: { component: 'Blurb' } }, Severity.Error),
+    );
+    return <p>Yikes! Something terrible has happened. Looking into this :)</p>;
+  }
+
+  const posts = data ? data.blogPostCollection.items : [];
+
   return (
     <section>
       <div className="mini-posts">
-        {posts.map(
-          ({
-            node: {
-              frontmatter: {
-                title,
-                path,
-                date,
-                author: { avatar, link, name },
-                image: { teaser },
-                tags,
-              },
-            },
-          }) => {
-            if (currentTag && includes(tags, currentTag)) {
-              return (
-                <MiniPostItem
-                  key={path}
-                  link={`${slug}?id=${id}`}
-                  title={title}
-                  author={{
-                    link,
-                    name,
-                    avatar,
-                  }}
-                  time={date}
-                  img={teaser}
-                />
-              );
-            }
-            return (
-              <MiniPostItem
-                key={path}
-                link={path}
-                title={title}
-                author={{
-                  link,
-                  name,
-                  avatar,
-                }}
-                time={date}
-                img={teaser}
-              />
-            );
-          },
-        )}
+        {posts.map(({ sys: { id }, title, thumbnail: { url }, slug, publishDate }) => (
+          <MiniPostItem
+            key={id}
+            link={slug}
+            title={title}
+            author={{
+              link,
+              name,
+              avatar,
+            }}
+            time={publishDate}
+            img={url}
+          />
+        ))}
       </div>
     </section>
   );
-};
-
-MiniPosts.defaultProps = {
-  currentTag: null,
-};
-
-MiniPosts.propTypes = {
-  posts: arrayOf(
-    shape({
-      node: shape({
-        timeToRead: number,
-        frontmatter: shape({
-          title: string,
-          path: string,
-          date: string,
-          author: shape({
-            name: string,
-            link: string,
-            avatar: string,
-          }),
-          image: shape({
-            feature: string,
-            thumbnail: string,
-            teaser: string,
-          }),
-          tags: arrayOf(string),
-        }),
-      }),
-    }),
-  ),
-  currentTag: string,
 };
 
 export default MiniPosts;
