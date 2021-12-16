@@ -1,14 +1,11 @@
 import { FunctionComponent } from 'react';
 import MainLayout from '@layouts/MainLayout';
-import Pagination from '@components/Pagination';
+import Posts from '@features/Posts';
 
 const App: FunctionComponent = () => {
   return (
     <MainLayout>
-      <section>
-        {renderBlogPosts()}
-        <Pagination />
-      </section>
+      <Posts />
     </MainLayout>
   );
 };

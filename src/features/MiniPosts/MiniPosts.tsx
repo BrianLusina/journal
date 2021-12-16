@@ -28,20 +28,34 @@ const MiniPosts: FunctionComponent = () => {
   return (
     <section>
       <div className="mini-posts">
-        {posts.map(({ sys: { id }, title, thumbnail: { url }, slug, publishDate }) => (
-          <MiniPostItem
-            key={id}
-            link={slug}
-            title={title}
-            author={{
-              link,
-              name,
-              avatar,
-            }}
-            time={publishDate}
-            img={url}
-          />
-        ))}
+        {posts.map(
+          ({
+            sys: { id },
+            title,
+            thumbnail: { url },
+            slug,
+            publishDate,
+            authorsCollection: { items: authors },
+          }) => (
+            <MiniPostItem
+              key={id}
+              slug={slug}
+              id={id}
+              link={slug}
+              title={title}
+              // FIXME: author info
+              authors={authors.map(({ sys: { id: authorId } }) => ({
+                name: '',
+                id: authorId,
+                link: '',
+                slug: '',
+                avatar: '',
+              }))}
+              time={publishDate}
+              imgUrl={url}
+            />
+          ),
+        )}
       </div>
     </section>
   );

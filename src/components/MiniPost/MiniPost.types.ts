@@ -11,7 +11,7 @@ export type MiniPostProps = {
   slug: string;
   id: string;
   title: string;
-  author: Author;
+  authors: Author[];
   time: string;
   imgUrl: string;
 };

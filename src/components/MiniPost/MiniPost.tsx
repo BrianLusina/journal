@@ -9,7 +9,7 @@ const MiniPost: FunctionComponent<MiniPostProps> = ({
   slug,
   link,
   title,
-  author: { link: authorLink, id: authorId, name, avatar },
+  authors,
   time,
   imgUrl,
 }) => (
@@ -21,9 +21,11 @@ const MiniPost: FunctionComponent<MiniPostProps> = ({
       <time className="published" dateTime={time}>
         {time}
       </time>
-      <Link to={authorLink} className="author">
-        <img id={authorId} src={avatar || defaultAvatar} alt={name} />
-      </Link>
+      {authors.map(({ link: authorLink, id: authorId, name, avatar }) => (
+        <Link key={authorId} to={authorLink} className="author">
+          <img id={authorId} src={avatar || defaultAvatar} alt={name} />
+        </Link>
+      ))}
     </header>
     <Link to={link} className="image">
       <img id={id} src={imgUrl || defaultMiniPic} alt={title} />

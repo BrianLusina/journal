@@ -191,7 +191,7 @@ declare type SocialsData = {
     }
 }
 
-declare type Author = {
+declare type AuthorCollection = {
     items: Entry[];
     limit: number;
     skip: number;
@@ -223,7 +223,7 @@ declare type BlogPostItem = {
     publishDate: string;
     sys: Sys;
     contentfulMetadata: ContentfulMetadata;
-    authorsCollection: Author[];
+    authorsCollection: AuthorCollection;
 }
 
 declare type BlogPostsData = {
