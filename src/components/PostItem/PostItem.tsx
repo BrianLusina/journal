@@ -1,12 +1,12 @@
-import React from 'react';
-import { Link, withPrefix } from 'gatsby';
-import { string, shape, arrayOf } from 'prop-types';
+import { FunctionComponent } from 'react';
+import Link from '@components/Elements/Link';
 import kebabCase from 'lodash/kebabCase';
-import defaultAvatar from '../../assets/images/avatar.jpg';
-import defaultFeature from '../../assets/images/default_feature_pic.jpg';
-import ButtonLink from '../Elements/ButtonLink/ButtonLink';
+import defaultAvatar from '@assets/images/avatar.jpg';
+import defaultFeature from '@assets/images/default_feature_pic.jpg';
+import ButtonLink from '@components/Elements/ButtonLink';
+import { PostItemProps } from './PostItem.types';
 
-const PostItem = ({
+const PostItem: FunctionComponent<PostItemProps> = ({
   title,
   subtitle,
   date,
@@ -30,13 +30,13 @@ const PostItem = ({
         </time>
         <Link to={`about/#${authorLink}`} className="author">
           <span className="name">{name}</span>
-          <img src={avatar ? withPrefix(`images/authors/${avatar}`) : defaultAvatar} alt={name} />
+          <img src={avatar || defaultAvatar} alt={name} />
         </Link>
       </div>
     </header>
 
     <Link to={link} className="image featured">
-      <img src={src ? withPrefix(`images/posts/${src}`) : defaultFeature} alt={alt} />
+      <img src={src || defaultFeature} alt={alt} />
     </Link>
 
     <p>{excerpt}</p>
@@ -44,7 +44,7 @@ const PostItem = ({
     <footer>
       <ul className="actions">
         <li>
-          <ButtonLink link={link} text="Continue Reading" />
+          <ButtonLink path={link} text="Continue Reading" />
         </li>
       </ul>
       <ul className="stats">
@@ -69,23 +69,5 @@ const PostItem = ({
     </footer>
   </article>
 );
-
-PostItem.propTypes = {
-  title: string,
-  subtitle: string,
-  excerpt: string,
-  link: string,
-  date: string,
-  img: shape({
-    src: string,
-    alt: string,
-  }),
-  tags: arrayOf(string),
-  author: shape({
-    avatar: string,
-    name: string,
-    link: string,
-  }),
-};
 
 export default PostItem;
