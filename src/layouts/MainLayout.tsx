@@ -6,9 +6,9 @@ import Menu from '@components/Menu';
 import Sidebar from '@components/Sidebar';
 import Intro from '@components/Intro';
 import Footer from '@components/Footer';
-import SocialCard from '@components/SocialCard';
 import MiniPosts from '@features/MiniPosts';
-import Blurb from '@components/Blurb';
+import Social from '@features/Social';
+import AboutBlurb from '@features/AboutBlurb';
 
 const MainLayout: FunctionComponent = ({ children }) => (
   <div id="wrapper">
@@ -32,8 +32,8 @@ const MainLayout: FunctionComponent = ({ children }) => (
     <Sidebar>
       <Intro />
       <MiniPosts />
-      <Blurb />
-      <SocialCard />
+      <AboutBlurb />
+      <Social />
       <Footer />
     </Sidebar>
   </div>

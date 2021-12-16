@@ -181,7 +181,7 @@ declare type AboutPagesData = {
 }
 
 declare type SocialItem = {
-    title: string;
+    name: string;
     link: string;
 }
 

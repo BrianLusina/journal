@@ -1,56 +1,37 @@
-import { GET_ABOUT_PAGES } from '@graphQl/queries';
 import faker from 'faker';
-import { render, screen, act } from '@testing-library/react';
-import MockApp from '@testUtils/MockApp';
-import { MockedResponseType } from '@testUtils/MockAppWithGqlProvider';
+import { render, screen } from '@testing-library/react';
 import AboutBlurb from './Blurb';
 
 describe('Blurb', () => {
-  it('should render', async () => {
-    const aboutMock: MockedResponseType[] = [];
-    await act(async () => {
-      render(
-        <MockApp mocks={aboutMock}>
-          <AboutBlurb />
-        </MockApp>,
-      );
-    });
-  });
-
-  it('should display content as received from query', async () => {
+  it('should render', () => {
     const paragraph = faker.lorem.paragraph();
-    const aboutMock: MockedResponseType[] = [
-      {
-        request: {
-          query: GET_ABOUT_PAGES,
-        },
-        result: {
-          data: {
-            aboutCollection: {
-              items: [
-                {
-                  title: 'About',
-                  content: paragraph,
-                },
-              ],
-            },
-          },
-        },
-      },
-    ];
-
-    await act(async () => {
-      render(
-        <MockApp mocks={aboutMock}>
-          <AboutBlurb />
-        </MockApp>,
-      );
-    });
-
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    const title = faker.lorem.sentence();
+    render(<AboutBlurb title={title} content={paragraph} />);
 
     const paragraphTextElement = screen.getByText(paragraph);
+    const titleTextElement = screen.getByText(title);
 
     expect(paragraphTextElement).toBeInTheDocument();
+    expect(titleTextElement).toBeInTheDocument();
+  });
+
+  it('should display content as received from query', () => {
+    const title = faker.lorem.sentence();
+    const paragraph = faker.lorem.paragraph();
+    const content = faker.lorem.paragraph();
+
+    render(
+      <AboutBlurb title={title} content={paragraph}>
+        <p>{content}</p>
+      </AboutBlurb>,
+    );
+
+    const paragraphTextElement = screen.getByText(paragraph);
+    const titleTextElement = screen.getByText(title);
+    const contentTextElement = screen.getByText(content);
+
+    expect(paragraphTextElement).toBeInTheDocument();
+    expect(titleTextElement).toBeInTheDocument();
+    expect(contentTextElement).toBeInTheDocument();
   });
 });
