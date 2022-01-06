@@ -1,23 +1,18 @@
 import { FunctionComponent } from 'react';
-import ButtonLink from '../Elements/ButtonLink';
+import Button from '@components/Elements/Button';
 import { PaginationProps } from './Pagination.types';
 
-const Pagination: FunctionComponent<PaginationProps> = ({ previousUrl, nextUrl }) => {
+const Pagination: FunctionComponent<PaginationProps> = ({
+  hasNextPage,
+  onClick,
+  text = 'More',
+}) => {
   return (
     <ul className="actions pagination">
       <li>
-        <ButtonLink
-          path={previousUrl}
-          text="Previous Page"
-          className={`${previousUrl ? '' : 'disabled'} button large previous`}
-        />
-      </li>
-      <li>
-        <ButtonLink
-          path={nextUrl || ''}
-          text="Next Page"
-          className={`${nextUrl ? '' : 'disabled'} button large next`}
-        />
+        <Button onClick={onClick} className="next" disabled={!hasNextPage}>
+          {text}
+        </Button>
       </li>
     </ul>
   );

@@ -33,9 +33,9 @@ const Posts: FunctionComponent = () => {
   const total = data ? data.blogPostCollection.total : 0;
 
   let fetchedSize = posts.length;
+  const hasNextPage = fetchedSize < total;
 
   const handleSeeMore = (): void => {
-    const hasNextPage = fetchedSize < total;
     if (hasNextPage) {
       fetchedSize += currentSize;
       setCurrentSize(fetchedSize);
@@ -82,7 +82,7 @@ const Posts: FunctionComponent = () => {
           />
         ),
       )}
-      <Pagination />
+      <Pagination onClick={handleSeeMore} hasNextPage={hasNextPage} />
     </section>
   );
 };

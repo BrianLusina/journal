@@ -1,4 +1,5 @@
 export type PaginationProps = {
-  previousUrl: string;
-  nextUrl?: string;
+  hasNextPage: boolean;
+  onClick: () => void;
+  text?: string;
 };

@@ -9,11 +9,14 @@ export default {
 
 const Template: ComponentStory<typeof Pagination> = (args) => <Pagination {...args} />;
 
-const nextLink = faker.internet.url();
-const prevLink = faker.internet.url();
+const hasNextPage = faker.datatype.boolean();
+const text = faker.lorem.word();
 
 export const DefaultPagination = Template.bind({});
 DefaultPagination.args = {
-  nextUrl: nextLink,
-  previousUrl: prevLink,
+  onClick: () => {
+    console.log('Clicked');
+  },
+  hasNextPage,
+  text,
 };
