@@ -1,9 +1,10 @@
 import { FunctionComponent } from 'react';
+import { ContactProps } from './Contact.types';
 
 /**
  * Contact stateless component
  */
-const Contact: FunctionComponent = ({ town, country, email, emailAlias }) => {
+const Contact: FunctionComponent<ContactProps> = () => {
   return (
     <section>
       <header className="major">
@@ -13,7 +14,7 @@ const Contact: FunctionComponent = ({ town, country, email, emailAlias }) => {
         Do get in touch to work on a project, create something new or even talk about the universe.
         :)
       </p>
-      <ul className="contact">
+      {/* <ul className="contact">
         <li className="fa fa-envelope-o">
           <a href={`mailto:${email}`}>{emailAlias}</a>
         </li>
@@ -21,7 +22,7 @@ const Contact: FunctionComponent = ({ town, country, email, emailAlias }) => {
           {town}, {country}
           <br />
         </li>
-      </ul>
+      </ul> */}
     </section>
   );
 };

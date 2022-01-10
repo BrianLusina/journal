@@ -17,7 +17,7 @@ const MainLayout: FunctionComponent = ({ children }) => (
       <nav className="main">
         <ul>
           <li className="header-search">
-            <Search className="visible" />
+            <Search />
           </li>
           <li className="menu">
             <a className="fa-bars" href="#menu">
@@ -27,7 +27,7 @@ const MainLayout: FunctionComponent = ({ children }) => (
         </ul>
       </nav>
     </Header>
-    <Menu searchBar={<Search className="visible" />} />
+    <Menu searchBar={<Search />} />
     <div id="main">{children}</div>
     <Sidebar>
       <Intro />

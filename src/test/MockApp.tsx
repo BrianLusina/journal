@@ -2,11 +2,10 @@
  * Wrapper of Mocked App for testing
  */
 import { FunctionComponent, ReactChildren, ReactNode } from 'react';
-import MockAppWithRouter, { MockAppRouterProps } from './MockAppWithRouter';
+import MockAppWithRouter from './MockAppWithRouter';
 import MockAppWithGqlProvider, { MockAppWithGqlProviderProps } from './MockAppWithGqlProvider';
 
-type MockAppProps = { children?: ReactNode | ReactChildren } & MockAppWithGqlProviderProps &
-  MockAppRouterProps;
+type MockAppProps = { children?: ReactNode | ReactChildren } & MockAppWithGqlProviderProps;
 
 /**
  * Returns a Mock application wrapped in Mocked GraphQl Provider only

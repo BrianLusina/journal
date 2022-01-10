@@ -23,13 +23,15 @@ describe('MiniPostItem', () => {
       slug,
       link,
       title,
-      author: {
-        link: authorLink,
-        slug: authorSlug,
-        id: authorId,
-        avatar: authorAvatar,
-        name: authorName,
-      },
+      authors: [
+        {
+          link: authorLink,
+          slug: authorSlug,
+          id: authorId,
+          avatar: authorAvatar,
+          name: authorName,
+        },
+      ],
       time,
       imgUrl,
     };

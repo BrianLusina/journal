@@ -12,7 +12,7 @@ const SearchBar: FunctionComponent<SearchBarProps> = ({ onSearch }) => {
   };
 
   return (
-    <form className="search" method="get" action="#">
+    <form className="search visible" method="get" action="#">
       <input
         type="text"
         name="query"
