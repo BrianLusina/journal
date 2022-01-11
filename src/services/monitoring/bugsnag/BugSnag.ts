@@ -23,5 +23,7 @@ export const inititializeBugSnag = (): void => {
 };
 
 export const captureBugSnagError = (error: Error): void => {
-  Bugsnag.notify(error);
+  if (NODE_ENV === 'production' || ENV === 'production') {
+    Bugsnag.notify(error);
+  }
 };

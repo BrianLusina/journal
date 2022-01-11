@@ -55,12 +55,14 @@ export const initializeSentry = (): void => {
  * @param errorInfo Error information from React
  */
 export const captureAndLogSentryError = (error: Error, errorInfo: ErrorInfo): void => {
-  Sentry.withScope((scope: Scope) => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    scope.setExtras(errorInfo);
-    captureSentryException(error, scope, error.message);
-  });
+  if (NODE_ENV === 'production' || ENV === 'production') {
+    Sentry.withScope((scope: Scope) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      scope.setExtras(errorInfo);
+      captureSentryException(error, scope, error.message);
+    });
+  }
 };
 
 /**
@@ -72,12 +74,17 @@ export const captureSentryException = (
   scope?: Scope,
   errorMessage = 'Error Caught',
 ): void => {
-  Sentry.captureMessage(errorMessage, scope);
-  Sentry.captureException(error);
+  if (NODE_ENV === 'production' || ENV === 'production') {
+    Sentry.captureMessage(errorMessage, scope);
+    Sentry.captureException(error);
+  }
 };
 
 export const captureSentryScope = (data: Breadcrumb, level: Severity): Scope => {
-  return new Scope().setTag('env', NODE_ENV).setLevel(level).addBreadcrumb(data);
+  if (NODE_ENV === 'production' || ENV === 'production') {
+    return new Scope().setTag('env', NODE_ENV).setLevel(level).addBreadcrumb(data);
+  }
+  return new Scope();
 };
 
 export type SentryBreadcrumb = Breadcrumb;

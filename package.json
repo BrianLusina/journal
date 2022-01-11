@@ -5,7 +5,6 @@
   "description": "Blog and Journal Site",
   "author": "Brian Lusina <12752833+BrianLusina@users.noreply.github.com>",
   "license": "The MIT License (MIT)",
-  "homepage": "https://brianlusina.github.io/journal",
   "scripts": {
     "format": "prettier --trailing-comma es5 --no-semi --single-quote --write \"src/**/*.js\"",
     "start": "node scripts/start.js",
@@ -27,7 +26,7 @@
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook",
     "serve": "serve -s build",
-    "deploy:staging": "surge build --domain fenestra.surge.sh"
+    "deploy:staging": "surge build --domain ljournal.surge.sh"
   },
   "dependencies": {
     "@apollo/client": "^3.4.16",
