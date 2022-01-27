@@ -2,7 +2,9 @@ import { FunctionComponent, useState } from 'react';
 import SearchBar from '@components/SearchBar';
 
 const Search: FunctionComponent = () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [searchTerm, setSearchTerm] = useState<string>('');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [results, setResults] = useState<string[]>([]);
 
   const getSearchResults = (query: string): void => {
