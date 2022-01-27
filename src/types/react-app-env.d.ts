@@ -11,7 +11,7 @@ declare namespace NodeJS {
     readonly SENTRY_TRACES_SAMPLE_RATE: string;
     readonly CMS_GRAPHQL_URL: string;
     readonly CMS_REST_API_URL: string;
-    readonly CMS_TOKEN: string;
+    readonly CMS_API_KEY: string;
     readonly CMS_SPACE_ID: string;
     readonly CMS_PREVIEW_REST_API_URL: string;
     readonly CMS_ENVIRONMENT: string;

@@ -6,14 +6,17 @@ import Cache from './Cache';
 
 const {
   api: {
-    cms: { graphQlUrl },
+    cms: { graphQlUrl, spaceId, environment },
   },
 } = config;
 
-const httpLink = new HttpLink({ uri: graphQlUrl });
+const httpLink = new HttpLink({
+  uri: `${graphQlUrl}/content/v1/spaces/${spaceId}/environments/${environment}`,
+});
 
 const client = new ApolloClient({
   link: concat(authMiddleware, RetryMiddleware.concat(httpLink)),
+  credentials: 'same-origin',
   cache: Cache,
 });
 
