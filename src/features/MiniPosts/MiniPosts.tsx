@@ -3,6 +3,9 @@ import MiniPostItem from '@components/MiniPost';
 import { useQuery } from '@apollo/client';
 import { GET_ALL_BLOGS } from '@graphQl/queries';
 import { captureException, captureScope, Severity } from '@services/monitoring';
+import { humanizeDateTime } from '@timeUtils';
+// eslint-disable-next-line camelcase
+import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';
 
 const MiniPosts: FunctionComponent = () => {
   const { loading, error, data } = useQuery<BlogPostsData, GetAllBlogsVariables>(GET_ALL_BLOGS, {
@@ -51,7 +54,11 @@ const MiniPosts: FunctionComponent = () => {
                 slug: '',
                 avatar: '',
               }))}
-              time={publishDate}
+              time={humanizeDateTime(
+                publishDate,
+                DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss,
+                DATE_FORMAT_MMMM_D_YYYY,
+              )}
               imgUrl={url}
             />
           ),

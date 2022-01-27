@@ -9,7 +9,14 @@ export const GET_ALL_BLOGS = gql`
     $where: BlogPostFilter
     $order: [BlogPostOrder]
   ) {
-    blogPostCollection {
+    blogPostCollection(
+      skip: $skip
+      limit: $limit
+      preview: $preview
+      locale: $locale
+      where: $where
+      order: $order
+    ) {
       total
       limit
       items {
@@ -35,6 +42,13 @@ export const GET_ALL_BLOGS = gql`
           tags {
             id
             name
+          }
+        }
+        authorsCollection {
+          items {
+            sys {
+              id
+            }
           }
         }
       }

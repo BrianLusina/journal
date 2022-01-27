@@ -4,6 +4,9 @@ import PostItem from '@components/PostItem';
 import { captureException, captureScope, Severity } from '@services/monitoring';
 import { useQuery } from '@apollo/client';
 import { GET_ALL_BLOGS } from '@graphQl/queries';
+import { humanizeDateTime } from '@timeUtils';
+// eslint-disable-next-line camelcase
+import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';
 
 const Posts: FunctionComponent = () => {
   const itemsPerPage = 10;
@@ -70,7 +73,11 @@ const Posts: FunctionComponent = () => {
               src: url,
               alt: imgTitle,
             }}
-            date={publishDate}
+            date={humanizeDateTime(
+              publishDate,
+              DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss,
+              DATE_FORMAT_MMMM_D_YYYY,
+            )}
             tags={tags.map(({ name }) => name)}
             link={slug}
             // FIXME: author info
