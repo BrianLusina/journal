@@ -1,4 +1,11 @@
-import { getTime24Hours, getTime12hours, getDuration } from './timeUtils';
+import {
+  getTime24Hours,
+  getTime12hours,
+  getDuration,
+  humanizeDateTime,
+  fromNow,
+  getHumanizedDuration,
+} from './timeUtils';
 
 describe('TimeUtils', () => {
   describe('getTime24Hours', () => {
@@ -52,6 +59,49 @@ describe('TimeUtils', () => {
       const duration = getDuration(startTime, endTime);
 
       expect(duration).toEqual('0d 5h 300m 18000s');
+    });
+  });
+
+  describe('humanizeDateTime', () => {
+    it('should return December, 31 | 12pm from 2021-12-31 12:00:00', () => {
+      const input = '2021-12-31 12:00:00';
+      const expected = 'December, 31 | 12pm';
+      const actual = humanizeDateTime(input);
+
+      expect(actual).toEqual(expected);
+    });
+
+    it('should return September, 8 | 7am from 2021-09-08 07:00:00', () => {
+      const input = '2021-09-08 07:00:00';
+      const expected = 'September, 8 | 7am';
+      const actual = humanizeDateTime(input);
+
+      expect(actual).toEqual(expected);
+    });
+  });
+
+  describe('fromNow', () => {
+    it('should return in 3 months from 2021-12-31 12:00:00', () => {
+      // mock the date so that fromNow returns 3 months
+      // if this is not done, this test will fail for future runs
+      jest.spyOn(Date, 'now').mockImplementation(() => new Date('2021-09-31 12:00:00').valueOf());
+
+      const input = '2021-12-31 12:00:00';
+      const expected = 'in 3 months';
+      const actual = fromNow(input);
+
+      expect(actual).toEqual(expected);
+    });
+  });
+
+  describe('getHumanizedDuration', () => {
+    it('should return 2 Hours from startDate of 2021-12-31 09:00:00 and endDate of 2021-12-31 11:30:00', () => {
+      const startDate = '2021-12-31 09:00:00';
+      const endDate = '2021-12-31 11:00:00';
+      const expected = '2 hours';
+      const actual = getHumanizedDuration(startDate, endDate);
+
+      expect(actual).toEqual(expected);
     });
   });
 });

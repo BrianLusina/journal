@@ -38,6 +38,8 @@
       "@pages/*": ["pages/*"],
       "@layouts/*": ["layouts/*"],
       "@utils": ["utils/utils.ts"],
+      "@timeUtils": ["utils/time/timeUtils.ts"],
+      "@timeConstants": ["utils/time/constants.ts"],
       "@hooks/*": ["hooks/*"],
       "@services/*": ["services/*"],
       "@monitoring": ["services/monitoring/index.ts"],

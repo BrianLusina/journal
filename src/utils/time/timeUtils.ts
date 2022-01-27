@@ -1,4 +1,9 @@
 import getUnixTime from 'date-fns/getUnixTime';
+import formatDistance from 'date-fns/formatDistance';
+import formatDistanceStrict from 'date-fns/formatDistanceStrict';
+import moment from 'moment';
+// eslint-disable-next-line camelcase
+import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_TIME_FORMAT_MMMM_D_ha } from './constants';
 
 /**
  * Gets the time in 24 hours
@@ -61,4 +66,59 @@ export const getDuration = (startTime: string, endTime: string): string => {
 
   const duration = `${days}d ${hours}h ${minutes}m ${seconds}s`;
   return duration;
+};
+
+/**
+ * Humanize the time
+ * @param {string} time Time to convert to human time
+ * @param {string} fromFormat Optional format to convert from
+ * @param {string} toFormat Optional format to convert to
+ * @returns {String} Human readable time
+ */
+export const humanizeDateTime = (
+  time: string,
+  fromFormat = DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss,
+  toFormat = DATE_TIME_FORMAT_MMMM_D_ha,
+): string => {
+  const mom = moment(time, fromFormat);
+  return mom.format(toFormat);
+};
+
+/**
+ * Gets the relative duration of time from passed in time string up till now. e.g. in 3 days, 2 hours, 5 minutes
+ * @param {string} time time string
+ * @param {string} fromFormat Optional format to convert from
+ * @param {boolean} removePrefix Optional flag to remove the prefix
+ * @returns {string} duration of time in human readable format
+ */
+export const fromNow = (
+  time: string,
+  fromFormat = DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss,
+  removePrefix = false,
+): string => {
+  const mom = moment(time, fromFormat);
+  return mom.fromNow(removePrefix);
+};
+
+/**
+ * Gets the duration of time between 2 time strings and returns it in human readable format, eg. 2 Hours 30 minutes
+ * @param {string} startDateTime Start date time in string format
+ * @param {string} endDateTime end date time in string format
+ * @param {string} formart OPTIONAL format to convert from
+ * @param {boolean} strict whether to be strict about the distance between the 2 times
+ * @returns {string} duration of time in human readable format
+ */
+export const getHumanizedDuration = (
+  startDateTime: string,
+  endDateTime: string,
+  formart = DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss,
+  strict = true,
+): string => {
+  const startDate = moment(startDateTime, formart).toDate();
+  const endDate = moment(endDateTime, formart).toDate();
+
+  if (strict) {
+    return formatDistanceStrict(startDate, endDate);
+  }
+  return formatDistance(startDate, endDate);
 };

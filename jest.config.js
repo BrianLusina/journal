@@ -138,6 +138,7 @@ module.exports = {
     '^@routes': '<rootDir>/src/config/routes.ts',
     '^@utils': '<rootDir>/src/utils/utils.ts',
     '^@timeUtils': '<rootDir>/src/utils/timeUtils.ts',
+    '^@timeConstants': '<rootDir>/src/utils/constants.ts',
     '^@hooks/(.*)$': '<rootDir>/src/hooks/$1',
     '^@services/(.*)$': '<rootDir>/src/services/$1',
     '^@monitoring': '<rootDir>/src/services/monitoring/index.ts',
