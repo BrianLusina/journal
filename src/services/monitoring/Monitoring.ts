@@ -1,4 +1,5 @@
 import { ErrorInfo } from 'react';
+import config from '@config';
 import {
   initializeSentry,
   captureAndLogSentryError,
@@ -10,12 +11,18 @@ import {
 } from './sentry';
 import { inititializeBugSnag, captureBugSnagError } from './bugsnag';
 
+const {
+  env: { isProduction },
+} = config;
+
 /**
  * Initializes monitoring service
  */
 export const initializeMonitoring = (): void => {
-  initializeSentry();
-  inititializeBugSnag();
+  if (isProduction) {
+    initializeSentry();
+    inititializeBugSnag();
+  }
 };
 
 /**
@@ -24,8 +31,10 @@ export const initializeMonitoring = (): void => {
  * @param errorInfo Error information from React
  */
 export const captureAndLogError = (error: Error, errorInfo: ErrorInfo): void => {
-  captureAndLogSentryError(error, errorInfo);
-  captureBugSnagError(error);
+  if (isProduction) {
+    captureAndLogSentryError(error, errorInfo);
+    captureBugSnagError(error);
+  }
 };
 
 /**
@@ -37,8 +46,10 @@ export const captureException = (
   scope?: SentryScope,
   errorMessage = 'Error Caught',
 ): void => {
-  captureSentryException(error, scope, errorMessage);
-  captureBugSnagError(error);
+  if (isProduction) {
+    captureSentryException(error, scope, errorMessage);
+    captureBugSnagError(error);
+  }
 };
 
 export const captureScope = (
