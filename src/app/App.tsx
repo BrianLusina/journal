@@ -8,6 +8,7 @@ import PageLoader from '@components/Elements/Loaders/PageLoader';
 import ScrollToTop from '@components/ScrollToTop';
 
 const Posts = lazy(() => import('@features/Posts'));
+const ArticlePage = lazy(() => import('@pages/Article'));
 
 const App: FunctionComponent = () => {
   const location = useLocation();
@@ -25,6 +26,14 @@ const App: FunctionComponent = () => {
                 element={
                   <RouteErrorBoundary location="/">
                     <Posts />
+                  </RouteErrorBoundary>
+                }
+              />
+              <Route
+                path="/:slug"
+                element={
+                  <RouteErrorBoundary location="/article/:slug">
+                    <ArticlePage />
                   </RouteErrorBoundary>
                 }
               />

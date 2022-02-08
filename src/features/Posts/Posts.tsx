@@ -27,7 +27,7 @@ const Posts: FunctionComponent = () => {
     // FIXME: use error boundary for a component instead
     captureException(
       error,
-      captureScope({ type: 'component', data: { component: 'Blurb' } }, Severity.Error),
+      captureScope({ type: 'component', data: { component: 'Posts' } }, Severity.Error),
     );
     return <p>Yikes! Something terrible has happened. Looking into this :)</p>;
   }
