@@ -74,6 +74,13 @@ export const GET_BLOG = gql`
       slug
       body
       publishDate
+      authorsCollection {
+        items {
+          sys {
+            id
+          }
+        }
+      }
       contentfulMetadata {
         tags {
           id

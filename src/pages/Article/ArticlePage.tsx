@@ -1,18 +1,26 @@
 import { FunctionComponent } from 'react';
 import { useQuery } from '@apollo/client';
 import { useParams } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { GET_BLOG } from '@graphQl/queries';
+import Link from '@components/Elements/Link';
 import { captureException, captureScope, Severity } from '@services/monitoring';
 import PageLoader from '@components/Elements/Loaders/PageLoader';
+import { humanizeDateTime } from '@timeUtils';
+import { kebabCase } from 'lodash';
 
 const ArticlePage: FunctionComponent = () => {
-  const { slug } = useParams();
-  const { loading, error, data } = useQuery<BlogPostItem, GetBlogVariables>(GET_BLOG, {
-    variables: {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      id: slug!,
+  const { slug, id } = useParams();
+  const { loading, error, data } = useQuery<{ blogPost: BlogPostItem }, GetBlogVariables>(
+    GET_BLOG,
+    {
+      variables: {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        id: id!,
+      },
     },
-  });
+  );
 
   if (loading) {
     return <PageLoader />;
@@ -27,60 +35,67 @@ const ArticlePage: FunctionComponent = () => {
     return <p>Yikes! Something terrible has happened. Looking into this :)</p>;
   }
 
+  if (!data) {
+    // TODO: display error or redirect to 404?
+    return <p>Page Not Found</p>;
+  }
+
+  const {
+    heroImage: { url: imageUrl },
+    title,
+    subtitle,
+    publishDate,
+    body,
+    contentfulMetadata: { tags },
+    authorsCollection: { items: authors },
+  } = data.blogPost;
+
+  const publishDateHumanized = humanizeDateTime(publishDate);
+
   return (
     <article className="post">
       <header>
         <div className="title">
           <h2>
-            <a href="#">Magna sed adipiscing</a>
+            <Link to={`${id}/${slug}`}>{title}</Link>
           </h2>
-          <p>Lorem ipsum dolor amet nullam consequat etiam feugiat</p>
+          <p>{subtitle}</p>
         </div>
         <div className="meta">
-          <time className="published" datetime="2015-11-01">
-            November 1, 2015
+          <time className="published" dateTime={publishDate}>
+            {publishDateHumanized}
           </time>
-          <a href="#" className="author">
-            <span className="name">Jane Doe</span>
-            <img src="images/avatar.jpg" alt="" />
-          </a>
+          {/* TODO: link to author */}
+          {authors.map(({ sys: { id: authorId } }) => (
+            <Link key={authorId} to={`authors/${authorId}`} className="author">
+              <span className="name">Jane Doe</span>
+              <img src="images/avatar.jpg" alt="" />
+            </Link>
+          ))}
         </div>
       </header>
       <span className="image featured">
-        <img src="images/pic01.jpg" alt="" />
+        <img src={imageUrl} alt={title} />
       </span>
-      <p>
-        Mauris neque quam, fermentum ut nisl vitae, convallis maximus nisl. Sed mattis nunc id lorem
-        euismod placerat. Vivamus porttitor magna enim, ac accumsan tortor cursus at. Phasellus sed
-        ultricies mi non congue ullam corper. Praesent tincidunt sed tellus ut rutrum. Sed vitae
-        justo condimentum, porta lectus vitae, ultricies congue gravida diam non fringilla.
-      </p>
-      <p>
-        Nunc quis dui scelerisque, scelerisque urna ut, dapibus orci. Sed vitae condimentum lectus,
-        ut imperdiet quam. Maecenas in justo ut nulla aliquam sodales vel at ligula. Sed blandit
-        diam odio, sed fringilla lectus molestie sit amet. Praesent eu tortor viverra lorem mattis
-        pulvinar feugiat in turpis. className aptent taciti sociosqu ad litora torquent per conubia
-        nostra, per inceptos himenaeos. Fusce ullamcorper tellus sit amet mattis dignissim.
-        Phasellus ut metus ligula. Curabitur nec leo turpis. Ut gravida purus quis erat pretium, sed
-        pellentesque massa elementum. Fusce vestibulum porta augue, at mattis justo. Integer sed
-        sapien fringilla, dapibus risus id, faucibus ante. Pellentesque mattis nunc sit amet tortor
-        pellentesque, non placerat neque viverra.{' '}
-      </p>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
       <footer>
         <ul className="stats">
-          <li>
-            <a href="#">General</a>
-          </li>
-          <li>
-            <a href="#" className="icon fa-heart">
+          {tags.map(({ id: tagId, name }) => (
+            <li key={tagId}>
+              <Link to={`tags/${kebabCase(name)}`}>{name}</Link>
+            </li>
+          ))}
+          {/* TODO: Comment box and love hearts */}
+          {/* <li>
+            <a href="#love" className="icon fa-heart">
               28
             </a>
           </li>
           <li>
-            <a href="#" className="icon fa-comment">
+            <a href="#comments" className="icon fa-comment">
               128
             </a>
-          </li>
+          </li> */}
         </ul>
       </footer>
     </article>

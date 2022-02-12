@@ -7,6 +7,7 @@ import ButtonLink from '@components/Elements/ButtonLink';
 import { PostItemProps } from './PostItem.types';
 
 const PostItem: FunctionComponent<PostItemProps> = ({
+  id,
   title,
   subtitle,
   date,
@@ -16,7 +17,7 @@ const PostItem: FunctionComponent<PostItemProps> = ({
   author: { name, avatar, link: authorLink },
   tags,
 }) => (
-  <article className="post">
+  <article id={id} className="post">
     <header>
       <div className="title">
         <h2>

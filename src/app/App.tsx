@@ -30,7 +30,7 @@ const App: FunctionComponent = () => {
                 }
               />
               <Route
-                path="/:slug"
+                path="/:id/:slug"
                 element={
                   <RouteErrorBoundary location="/article/:slug">
                     <ArticlePage />

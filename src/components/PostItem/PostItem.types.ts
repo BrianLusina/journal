@@ -10,6 +10,7 @@ type PostAuthor = {
 };
 
 export type PostItemProps = {
+  id: string;
   title: string;
   subtitle: string;
   excerpt: string;

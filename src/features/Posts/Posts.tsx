@@ -66,6 +66,7 @@ const Posts: FunctionComponent = () => {
         }) => (
           <PostItem
             key={id}
+            id={id}
             title={title}
             subtitle={subtitle}
             excerpt={description}
@@ -79,7 +80,7 @@ const Posts: FunctionComponent = () => {
               DATE_FORMAT_MMMM_D_YYYY,
             )}
             tags={tags.map(({ name }) => name)}
-            link={slug}
+            link={`${id}/${slug}`}
             // FIXME: author info
             author={{
               avatar: '',
