@@ -51,9 +51,12 @@ const PostItem: FunctionComponent<PostItemProps> = ({
       <ul className="stats">
         <li>
           {tags.map((tag) => (
-            <Link key={tag} to={`tags/${kebabCase(tag)}`}>
-              {tag}
-            </Link>
+            <>
+              {' '}
+              <Link key={tag} to={`tags/${kebabCase(tag)}`}>
+                {tag}
+              </Link>{' '}
+            </>
           ))}
         </li>
         {/* <li>
