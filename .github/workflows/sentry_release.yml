@@ -55,6 +55,13 @@ jobs:
         FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
         FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
         BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
+        CMS_SPACE_ID: ${{ secrets.CMS_SPACE_ID }}
+        CMS_GRAPHQL_URL: ${{ secrets.CMS_GRAPHQL_URL }}
+        CMS_API_KEY: ${{ secrets.CMS_API_KEY }}
+        CMS_REST_API_URL: ${{ secrets.CMS_REST_API_URL }}
+        CMS_PREVIEW_REST_API_URL: ${{ secrets.CMS_PREVIEW_REST_API_URL }}
+        CMS_ENVIRONMENT: ${{ secrets.CMS_ENVIRONMENT }}
+        CMS_PREVIEW: ${{ secrets.CMS_PREVIEW }}
 
     - name: Create Sentry Staging release
       if: github.ref_name == 'staging'
@@ -82,6 +89,13 @@ jobs:
         FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
         FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
         BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
+        CMS_SPACE_ID: ${{ secrets.CMS_SPACE_ID }}
+        CMS_GRAPHQL_URL: ${{ secrets.CMS_GRAPHQL_URL }}
+        CMS_API_KEY: ${{ secrets.CMS_API_KEY }}
+        CMS_REST_API_URL: ${{ secrets.CMS_REST_API_URL }}
+        CMS_PREVIEW_REST_API_URL: ${{ secrets.CMS_PREVIEW_REST_API_URL }}
+        CMS_ENVIRONMENT: ${{ secrets.CMS_ENVIRONMENT }}
+        CMS_PREVIEW: ${{ secrets.CMS_PREVIEW }}
 
     - name: Create Sentry Production release
       if: github.ref_name == 'production'

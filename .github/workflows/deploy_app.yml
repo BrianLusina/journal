@@ -55,6 +55,13 @@ jobs:
         FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
         FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
         BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
+        CMS_SPACE_ID: ${{ secrets.CMS_SPACE_ID }}
+        CMS_GRAPHQL_URL: ${{ secrets.CMS_GRAPHQL_URL }}
+        CMS_API_KEY: ${{ secrets.CMS_API_KEY }}
+        CMS_REST_API_URL: ${{ secrets.CMS_REST_API_URL }}
+        CMS_PREVIEW_REST_API_URL: ${{ secrets.CMS_PREVIEW_REST_API_URL }}
+        CMS_ENVIRONMENT: ${{ secrets.CMS_ENVIRONMENT }}
+        CMS_PREVIEW: ${{ secrets.CMS_PREVIEW }}
 
     - name: Deploy Staging
       if: github.ref == 'refs/heads/staging'
@@ -77,6 +84,13 @@ jobs:
         FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
         FIREBASE_MEASUREMENT_ID: ${{ secrets.FIREBASE_MEASUREMENT_ID }}
         BUGSNAG_API_KEY: ${{ secrets.BUGSNAG_API_KEY }}
+        CMS_SPACE_ID: ${{ secrets.CMS_SPACE_ID }}
+        CMS_GRAPHQL_URL: ${{ secrets.CMS_GRAPHQL_URL }}
+        CMS_API_KEY: ${{ secrets.CMS_API_KEY }}
+        CMS_REST_API_URL: ${{ secrets.CMS_REST_API_URL }}
+        CMS_PREVIEW_REST_API_URL: ${{ secrets.CMS_PREVIEW_REST_API_URL }}
+        CMS_ENVIRONMENT: ${{ secrets.CMS_ENVIRONMENT }}
+        CMS_PREVIEW: ${{ secrets.CMS_PREVIEW }}
 
 # Not being deployed to production, as this might expose sensitive data in the minified build
     # - name: Push Production
