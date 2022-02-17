@@ -44,7 +44,7 @@ const MiniPosts: FunctionComponent = () => {
               key={id}
               slug={slug}
               id={id}
-              link={slug}
+              link={`${id}/${slug}`}
               title={title}
               // FIXME: author info
               authors={authors.map(({ sys: { id: authorId } }) => ({
