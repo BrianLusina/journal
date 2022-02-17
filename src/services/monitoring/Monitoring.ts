@@ -1,3 +1,13 @@
+/**
+ * Custom Monitoring Service. This can be extended to capture logs/errors in application.
+ * This should ideally not be used for analytics/metrics. These can be handled separately.
+ *
+ * Here Sentry can be used.
+ * Or LogRocket can be used.
+ * Or a custom Logger Service can be used.
+ * or all of them combined
+ */
+
 import { ErrorInfo } from 'react';
 import config from '@config';
 import {

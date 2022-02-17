@@ -1,12 +1,5 @@
 /**
- * Custom Logger Service. This can be extended to capture logs/errors in application.
- * This should ideally not be used for analytics/metrics. These can be handled separately.
- *
- * Here Sentry can be used.
- * Or LogRocket can be used.
- * Or a custom Logger Service can be used.
- *
- * This has been configured with Sentry; But can be interchanged with something else
+ * Sentry Service. This can be extended to capture logs/errors in application
  * Reference https://docs.sentry.io/platforms/javascript/guides/react/
  */
 
@@ -27,11 +20,10 @@ const {
  */
 export const initializeSentry = (): void => {
   if (NODE_ENV === 'production' || ENV === 'production') {
-    // log.info('Initializing Monitoring');
+    // log.debug('Initializing Monitoring');
     // configuration options can be found here as well
     // ref: https://docs.sentry.io/platforms/javascript/guides/react/configuration/options/
     Sentry.init({
-      // eslint-disable-next-line no-underscore-dangle
       dsn: SENTRY_DSN,
       integrations: [new BrowserTracing()],
       tracesSampleRate: tracesSampleRate as number,
