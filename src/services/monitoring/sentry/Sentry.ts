@@ -13,7 +13,7 @@
 import * as Sentry from '@sentry/react';
 import { ErrorInfo } from 'react';
 import { Scope, Breadcrumb, Severity } from '@sentry/react';
-import { Integrations } from '@sentry/tracing';
+import { BrowserTracing } from '@sentry/tracing';
 import config from '@config';
 // import log from '@log';
 
@@ -33,7 +33,7 @@ export const initializeSentry = (): void => {
     Sentry.init({
       // eslint-disable-next-line no-underscore-dangle
       dsn: SENTRY_DSN,
-      integrations: [new Integrations.BrowserTracing()],
+      integrations: [new BrowserTracing()],
       tracesSampleRate: tracesSampleRate as number,
       debug,
       beforeSend(event: Sentry.Event): Sentry.Event | null {
