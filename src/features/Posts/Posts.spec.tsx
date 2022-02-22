@@ -1,6 +1,6 @@
 import { GET_ALL_BLOGS } from '@graphQl/queries';
 import faker from 'faker';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen, act, fireEvent } from '@testing-library/react';
 import MockApp from '@testUtils/MockApp';
 import { MockedResponseType } from '@testUtils/MockAppWithGqlProvider';
 import * as Monitoring from '@services/monitoring';
@@ -10,6 +10,9 @@ jest.mock('@services/monitoring', () => {
   return {
     captureException: jest.fn(),
     captureScope: jest.fn(),
+    Severity: {
+      Error: 'error',
+    },
   };
 });
 
@@ -160,5 +163,146 @@ describe('Posts', () => {
 
     expect(Monitoring.captureException).toBeCalledTimes(1);
     expect(Monitoring.captureScope).toBeCalledTimes(1);
+  });
+
+  it('should handle fetchMore to display more data', async () => {
+    const items = [
+      {
+        heroImage: {
+          title: faker.lorem.word(),
+          url: faker.image.imageUrl(),
+        },
+        thumbnail: {
+          title: faker.lorem.word(),
+          url: faker.image.imageUrl(),
+        },
+        title: faker.lorem.word(),
+        subtitle: faker.lorem.words(),
+        description: faker.lorem.text(),
+        slug: faker.random.word(),
+        body: faker.lorem.paragraphs(),
+        publishDate: faker.date.past().toISOString(),
+        sys: {
+          id: faker.datatype.uuid(),
+        },
+        contentfulMetadata: {
+          tags: [
+            {
+              name: faker.lorem.word(),
+              id: faker.datatype.uuid(),
+            },
+          ],
+        },
+        // authorsCollection: AuthorCollection;
+      },
+      {
+        heroImage: {
+          title: faker.lorem.word(),
+          url: faker.image.imageUrl(),
+        },
+        thumbnail: {
+          title: faker.lorem.word(),
+          url: faker.image.imageUrl(),
+        },
+        title: faker.lorem.word(),
+        subtitle: faker.lorem.words(),
+        description: faker.lorem.text(),
+        slug: faker.random.word(),
+        body: faker.lorem.paragraphs(),
+        publishDate: faker.date.past().toISOString(),
+        sys: {
+          id: faker.datatype.uuid(),
+        },
+        contentfulMetadata: {
+          tags: [
+            {
+              name: faker.lorem.word(),
+              id: faker.datatype.uuid(),
+            },
+          ],
+        },
+        // authorsCollection: AuthorCollection;
+      },
+    ];
+
+    const newItem = {
+      heroImage: {
+        title: faker.lorem.word(),
+        url: faker.image.imageUrl(),
+      },
+      thumbnail: {
+        title: faker.lorem.word(),
+        url: faker.image.imageUrl(),
+      },
+      title: faker.lorem.word(),
+      subtitle: faker.lorem.words(),
+      description: faker.lorem.text(),
+      slug: faker.random.word(),
+      body: faker.lorem.paragraphs(),
+      publishDate: faker.date.past().toISOString(),
+      sys: {
+        id: faker.datatype.uuid(),
+      },
+      contentfulMetadata: {
+        tags: [
+          {
+            name: faker.lorem.word(),
+            id: faker.datatype.uuid(),
+          },
+        ],
+      },
+      // authorsCollection: AuthorCollection;
+    };
+
+    const postsMock: MockedResponseType[] = [
+      {
+        request: {
+          query: GET_ALL_BLOGS,
+          variables: {
+            limit: 10,
+          },
+        },
+        error: undefined,
+        newData: () => {
+          return {
+            data: {
+              blogPostCollection: {
+                items: [...items, newItem],
+                total: items.length + 1,
+              },
+            },
+          };
+        },
+        result: {
+          data: {
+            blogPostCollection: {
+              items,
+              total: items.length,
+            },
+          },
+        },
+      },
+    ];
+
+    await act(async () => {
+      render(
+        <MockApp mocks={postsMock}>
+          <Posts />
+        </MockApp>,
+      );
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const loadMoreBtn = screen.getByText('Load More');
+    fireEvent.click(loadMoreBtn);
+
+    const postTitleElement = screen.getByText(newItem.title);
+    const postSubtitleElement = screen.getByText(newItem.subtitle);
+    const heroImageElement = screen.getByAltText(newItem.heroImage.title);
+
+    expect(postTitleElement).toBeInTheDocument();
+    expect(postSubtitleElement).toBeInTheDocument();
+    expect(heroImageElement.getAttribute('src')).toContain(newItem.heroImage.url);
   });
 });

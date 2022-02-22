@@ -32,8 +32,7 @@ const Posts: FunctionComponent = () => {
     return <p>Yikes! Something terrible has happened. Looking into this :)</p>;
   }
 
-  const posts = data ? data.blogPostCollection.items : [];
-  const total = data ? data.blogPostCollection.total : 0;
+  const { items: posts, total } = data ? data.blogPostCollection : { items: [], total: 0 };
 
   let fetchedSize = posts.length;
   const hasNextPage = fetchedSize < total;
@@ -90,7 +89,7 @@ const Posts: FunctionComponent = () => {
           />
         ),
       )}
-      <Pagination onClick={handleSeeMore} hasNextPage={hasNextPage} />
+      <Pagination onClick={handleSeeMore} hasNextPage={hasNextPage} text="Load More" />
     </section>
   );
 };
