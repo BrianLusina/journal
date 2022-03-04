@@ -18,11 +18,11 @@ const MiniPosts: FunctionComponent = () => {
   if (loading) return <div>Loading...</div>;
 
   if (error) {
-    // FIXME: use error boundary for a component instead
     captureException(
       error,
-      captureScope({ type: 'component', data: { component: 'Blurb' } }, Severity.Error),
+      captureScope({ type: 'component', data: { component: 'Blurb', ...error } }, Severity.Error),
     );
+    // FIXME: use error boundary for a component instead
     return <p>Yikes! Something terrible has happened. Looking into this :)</p>;
   }
 

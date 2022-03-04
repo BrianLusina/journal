@@ -143,6 +143,7 @@ module.exports = {
     '^@services/(.*)$': '<rootDir>/src/services/$1',
     '^@monitoring': '<rootDir>/src/services/monitoring/index.ts',
     '^@analytics': '<rootDir>/src/services/analytics/index.ts',
+    '^@testUtils': '<rootDir>/src/test/index.ts',
     '^@testUtils/(.*)$': '<rootDir>/src/test/$1',
     '^@styles/(.*)$': '<rootDir>/src/styles/$1',
     '^@styled/(.*)$': '<rootDir>/src/styles/ts/$1',

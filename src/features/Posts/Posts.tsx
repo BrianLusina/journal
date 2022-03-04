@@ -1,12 +1,12 @@
 import { FunctionComponent, useState } from 'react';
 import Pagination from '@components/Pagination';
-import PostItem from '@components/PostItem';
 import { captureException, captureScope, Severity } from '@services/monitoring';
 import { useQuery } from '@apollo/client';
 import { GET_ALL_BLOGS } from '@graphQl/queries';
 import { humanizeDateTime } from '@timeUtils';
 // eslint-disable-next-line camelcase
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';
+import PostItem from './PostItem';
 
 const Posts: FunctionComponent = () => {
   const itemsPerPage = 10;
@@ -62,6 +62,7 @@ const Posts: FunctionComponent = () => {
           publishDate,
           contentfulMetadata: { tags },
           slug,
+          authorsCollection: { items: authors },
         }) => (
           <PostItem
             key={id}
@@ -80,12 +81,7 @@ const Posts: FunctionComponent = () => {
             )}
             tags={tags.map(({ name }) => name)}
             link={`${id}/${slug}`}
-            // FIXME: author info
-            author={{
-              avatar: '',
-              name: '',
-              link: '',
-            }}
+            authorIds={authors.map(({ sys: { id: authorId } }) => authorId)}
           />
         ),
       )}
