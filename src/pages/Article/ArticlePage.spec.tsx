@@ -1,7 +1,6 @@
 import { GET_BLOG } from '@graphQl/queries';
 import faker from 'faker';
-// import { screen, act } from '@testing-library/react';
-import { render, screen, act } from '@testUtils/rtlUtils';
+import { render, act } from '@testUtils/rtlUtils';
 import { MockedResponseType } from '@testUtils/MockAppWithGqlProvider';
 import * as Monitoring from '@services/monitoring';
 import ArticlePage from './ArticlePage';
@@ -16,8 +15,11 @@ jest.mock('@services/monitoring', () => {
   };
 });
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+jest.mock('remark-gfm', () => () => {});
+
 describe('ArticlePage', () => {
-  beforeEach(() => {
+  afterEach(() => {
     jest.clearAllMocks();
   });
 

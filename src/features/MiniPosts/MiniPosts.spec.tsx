@@ -17,7 +17,7 @@ jest.mock('@services/monitoring', () => {
 });
 
 describe('MiniPosts', () => {
-  beforeEach(() => {
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
@@ -46,6 +46,7 @@ describe('MiniPosts', () => {
         title: 'Some Title',
         subtitle: faker.lorem.words(),
         description: faker.lorem.text(),
+        category: faker.lorem.text(),
         slug: faker.random.word(),
         body: faker.lorem.paragraphs(),
         publishDate: faker.date.past().toISOString(),
@@ -60,7 +61,16 @@ describe('MiniPosts', () => {
             },
           ],
         },
-        // authorsCollection: AuthorCollection;
+        authorsCollection: {
+          total: 1,
+          items: [
+            {
+              sys: {
+                id: faker.datatype.uuid(),
+              },
+            },
+          ],
+        },
       },
       {
         heroImage: {
@@ -74,6 +84,7 @@ describe('MiniPosts', () => {
         title: 'other title',
         subtitle: faker.lorem.words(),
         description: faker.lorem.text(),
+        category: faker.lorem.text(),
         slug: faker.random.word(),
         body: faker.lorem.paragraphs(),
         publishDate: faker.date.past().toISOString(),
@@ -88,7 +99,16 @@ describe('MiniPosts', () => {
             },
           ],
         },
-        // authorsCollection: AuthorCollection;
+        authorsCollection: {
+          total: 1,
+          items: [
+            {
+              sys: {
+                id: faker.datatype.uuid(),
+              },
+            },
+          ],
+        },
       },
     ];
 
@@ -103,6 +123,8 @@ describe('MiniPosts', () => {
         result: {
           data: {
             blogPostCollection: {
+              total: items.length,
+              limit: 5,
               items,
             },
           },
@@ -111,21 +133,21 @@ describe('MiniPosts', () => {
     ];
 
     await act(async () => {
-      render(
+      const { debug } = render(
         <MockApp mocks={miniPostsMock}>
           <MiniPosts />
         </MockApp>,
       );
+
+      debug();
     });
 
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     items.forEach((item) => {
       const postTitleElement = screen.getByText(item.title);
-      const thumbnailImageElement = screen.getByAltText(item.thumbnail.title);
 
       expect(postTitleElement).toBeInTheDocument();
-      expect(thumbnailImageElement.getAttribute('src')).toContain(item.heroImage.url);
     });
   });
 

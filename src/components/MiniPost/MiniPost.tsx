@@ -1,7 +1,7 @@
 import { FunctionComponent } from 'react';
 import Link from '@components/Elements/Link';
-import defaultAvatar from '@assets/images/avatar.jpg';
 import defaultMiniPic from '@assets/images/default_mini_pic.jpg';
+import AuthorBadge from '@features/AuthorBadge';
 import { MiniPostProps } from './MiniPost.types';
 
 const MiniPost: FunctionComponent<MiniPostProps> = ({
@@ -9,7 +9,7 @@ const MiniPost: FunctionComponent<MiniPostProps> = ({
   slug,
   link,
   title,
-  authors,
+  authorIds,
   time,
   imgUrl,
 }) => (
@@ -21,10 +21,8 @@ const MiniPost: FunctionComponent<MiniPostProps> = ({
       <time className="published" dateTime={time}>
         {time}
       </time>
-      {authors.map(({ link: authorLink, id: authorId, name, avatar }) => (
-        <Link key={authorId} to={authorLink} className="author">
-          <img id={authorId} src={avatar || defaultAvatar} alt={name} />
-        </Link>
+      {authorIds.map((authorId) => (
+        <AuthorBadge key={authorId} authorId={authorId} />
       ))}
     </header>
     <Link to={link} className="image">

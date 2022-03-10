@@ -46,14 +46,7 @@ const MiniPosts: FunctionComponent = () => {
               id={id}
               link={`${id}/${slug}`}
               title={title}
-              // FIXME: author info
-              authors={authors.map(({ sys: { id: authorId } }) => ({
-                name: '',
-                id: authorId,
-                link: '',
-                slug: '',
-                avatar: '',
-              }))}
+              authorIds={authors.map(({ sys: { id: authorId } }) => authorId)}
               time={humanizeDateTime(
                 publishDate,
                 DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss,

@@ -46,6 +46,7 @@ describe('Posts', () => {
         title: faker.lorem.word(),
         subtitle: faker.lorem.words(),
         description: faker.lorem.text(),
+        category: faker.lorem.text(),
         slug: faker.random.word(),
         body: faker.lorem.paragraphs(),
         publishDate: faker.date.past().toISOString(),
@@ -60,7 +61,16 @@ describe('Posts', () => {
             },
           ],
         },
-        // authorsCollection: AuthorCollection;
+        authorsCollection: {
+          total: 1,
+          items: [
+            {
+              sys: {
+                id: faker.datatype.uuid(),
+              },
+            },
+          ],
+        },
       },
       {
         heroImage: {
@@ -74,6 +84,7 @@ describe('Posts', () => {
         title: faker.lorem.word(),
         subtitle: faker.lorem.words(),
         description: faker.lorem.text(),
+        category: faker.lorem.text(),
         slug: faker.random.word(),
         body: faker.lorem.paragraphs(),
         publishDate: faker.date.past().toISOString(),
@@ -88,7 +99,16 @@ describe('Posts', () => {
             },
           ],
         },
-        // authorsCollection: AuthorCollection;
+        authorsCollection: {
+          total: 1,
+          items: [
+            {
+              sys: {
+                id: faker.datatype.uuid(),
+              },
+            },
+          ],
+        },
       },
     ];
 
@@ -179,6 +199,7 @@ describe('Posts', () => {
         title: faker.lorem.word(),
         subtitle: faker.lorem.words(),
         description: faker.lorem.text(),
+        category: faker.lorem.text(),
         slug: faker.random.word(),
         body: faker.lorem.paragraphs(),
         publishDate: faker.date.past().toISOString(),
@@ -193,7 +214,16 @@ describe('Posts', () => {
             },
           ],
         },
-        // authorsCollection: AuthorCollection;
+        authorsCollection: {
+          total: 1,
+          items: [
+            {
+              sys: {
+                id: faker.datatype.uuid(),
+              },
+            },
+          ],
+        },
       },
       {
         heroImage: {
@@ -207,6 +237,7 @@ describe('Posts', () => {
         title: faker.lorem.word(),
         subtitle: faker.lorem.words(),
         description: faker.lorem.text(),
+        category: faker.lorem.text(),
         slug: faker.random.word(),
         body: faker.lorem.paragraphs(),
         publishDate: faker.date.past().toISOString(),
@@ -221,7 +252,16 @@ describe('Posts', () => {
             },
           ],
         },
-        // authorsCollection: AuthorCollection;
+        authorsCollection: {
+          total: 1,
+          items: [
+            {
+              sys: {
+                id: faker.datatype.uuid(),
+              },
+            },
+          ],
+        },
       },
     ];
 
@@ -251,7 +291,16 @@ describe('Posts', () => {
           },
         ],
       },
-      // authorsCollection: AuthorCollection;
+      authorsCollection: {
+        total: 1,
+        items: [
+          {
+            sys: {
+              id: faker.datatype.uuid(),
+            },
+          },
+        ],
+      },
     };
 
     const postsMock: MockedResponseType[] = [

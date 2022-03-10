@@ -109,7 +109,7 @@ module.exports = {
     '^.+\\.css$': '<rootDir>/config/jest/cssTransform.js',
     '^(?!.*\\.(js|jsx|mjs|cjs|ts|tsx|css|json)$)': '<rootDir>/config/jest/fileTransform.js',
     '^.+\\.(ts|tsx)?$': 'ts-jest',
-    '^.+\\.[t|j]sx?$': 'babel-jest',
+    '^.+\\.(js|jsx)$': 'babel-jest',
   },
   transformIgnorePatterns: [
     '[/\\\\]node_modules[/\\\\].+\\.(js|jsx|mjs|cjs|ts|tsx)$',
@@ -143,12 +143,12 @@ module.exports = {
     '^@services/(.*)$': '<rootDir>/src/services/$1',
     '^@monitoring': '<rootDir>/src/services/monitoring/index.ts',
     '^@analytics': '<rootDir>/src/services/analytics/index.ts',
-    '^@testUtils': '<rootDir>/src/test/index.ts',
     '^@testUtils/(.*)$': '<rootDir>/src/test/$1',
     '^@styles/(.*)$': '<rootDir>/src/styles/$1',
     '^@styled/(.*)$': '<rootDir>/src/styles/ts/$1',
     '^@scss/(.*)$': '<rootDir>/src/styles/scss/$1',
     '^@css/(.*)$': '<rootDir>/src/styles/css/$1',
+    'react-markdown': '<rootDir>/config/mocks/react-markdown.js',
   },
   moduleFileExtensions: [
     'web.js',
