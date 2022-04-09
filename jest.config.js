@@ -109,7 +109,7 @@ module.exports = {
     '^.+\\.css$': '<rootDir>/config/jest/cssTransform.js',
     '^(?!.*\\.(js|jsx|mjs|cjs|ts|tsx|css|json)$)': '<rootDir>/config/jest/fileTransform.js',
     '^.+\\.(ts|tsx)?$': 'ts-jest',
-    '^.+\\.[t|j]sx?$': 'babel-jest',
+    '^.+\\.(js|jsx)$': 'babel-jest',
   },
   transformIgnorePatterns: [
     '[/\\\\]node_modules[/\\\\].+\\.(js|jsx|mjs|cjs|ts|tsx)$',
@@ -137,8 +137,8 @@ module.exports = {
     '^@layouts/(.*)$': '<rootDir>/src/layouts/$1',
     '^@routes': '<rootDir>/src/config/routes.ts',
     '^@utils': '<rootDir>/src/utils/utils.ts',
-    '^@timeUtils': '<rootDir>/src/utils/timeUtils.ts',
-    '^@timeConstants': '<rootDir>/src/utils/constants.ts',
+    '^@timeUtils': '<rootDir>/src/utils/time/timeUtils.ts',
+    '^@timeConstants': '<rootDir>/src/utils/time/constants.ts',
     '^@hooks/(.*)$': '<rootDir>/src/hooks/$1',
     '^@services/(.*)$': '<rootDir>/src/services/$1',
     '^@monitoring': '<rootDir>/src/services/monitoring/index.ts',
@@ -148,6 +148,7 @@ module.exports = {
     '^@styled/(.*)$': '<rootDir>/src/styles/ts/$1',
     '^@scss/(.*)$': '<rootDir>/src/styles/scss/$1',
     '^@css/(.*)$': '<rootDir>/src/styles/css/$1',
+    'react-markdown': '<rootDir>/config/mocks/react-markdown.js',
   },
   moduleFileExtensions: [
     'web.js',
