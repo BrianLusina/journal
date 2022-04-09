@@ -14,6 +14,7 @@ import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@
 
 const ArticlePage: FunctionComponent = () => {
   const { slug, id } = useParams();
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const [loading, error, data] = useFetchArticle(id!);
 
   if (loading) {
