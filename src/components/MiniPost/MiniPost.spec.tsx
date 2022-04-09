@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import MockAppWithRouter from '@testUtils/MockAppWithRouter';
+import MockApp from '@testUtils/MockApp';
 import faker from 'faker';
 import MiniPostItem from './MiniPost';
 
@@ -11,35 +11,22 @@ describe('MiniPostItem', () => {
     const title = faker.lorem.word();
     const time = faker.date.recent().toDateString();
     const imgUrl = faker.image.imageUrl();
-
-    const authorSlug = faker.random.word();
-    const authorLink = `/authors/${authorSlug}`;
-    const authorName = faker.name.firstName();
     const authorId = faker.datatype.uuid();
-    const authorAvatar = faker.image.imageUrl();
 
     const props = {
       id,
       slug,
       link,
       title,
-      authors: [
-        {
-          link: authorLink,
-          slug: authorSlug,
-          id: authorId,
-          avatar: authorAvatar,
-          name: authorName,
-        },
-      ],
+      authorIds: [authorId],
       time,
       imgUrl,
     };
 
     render(
-      <MockAppWithRouter>
+      <MockApp>
         <MiniPostItem {...props} />
-      </MockAppWithRouter>,
+      </MockApp>,
     );
 
     const titleElement = screen.getByText(title);

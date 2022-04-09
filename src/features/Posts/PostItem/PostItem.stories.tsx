@@ -19,11 +19,7 @@ const image = {
   alt: faker.lorem.word(),
 };
 const tags = [faker.lorem.word(), faker.lorem.word()];
-const author = {
-  avatar: faker.image.avatar(),
-  name: faker.name.firstName(),
-  link: faker.internet.url(),
-};
+const authorIds = [faker.datatype.uuid()];
 
 export const DefaultPostItem = Template.bind({});
 DefaultPostItem.args = {
@@ -34,5 +30,5 @@ DefaultPostItem.args = {
   date,
   img: image,
   tags,
-  author,
+  authorIds,
 };

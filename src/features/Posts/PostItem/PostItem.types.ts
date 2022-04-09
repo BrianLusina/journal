@@ -3,12 +3,6 @@ type PostItemImage = {
   alt: string;
 };
 
-type PostAuthor = {
-  avatar: string;
-  name: string;
-  link: string;
-};
-
 export type PostItemProps = {
   id: string;
   title: string;
@@ -18,5 +12,5 @@ export type PostItemProps = {
   date: string;
   img: PostItemImage;
   tags: string[];
-  author: PostAuthor;
+  authorIds: string[];
 };

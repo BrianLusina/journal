@@ -1,17 +1,9 @@
-type Author = {
-  link: string;
-  slug: string;
-  id: string;
-  name: string;
-  avatar: string;
-};
-
 export type MiniPostProps = {
   link: string;
   slug: string;
   id: string;
   title: string;
-  authors: Author[];
+  authorIds: string[];
   time: string;
   imgUrl: string;
 };
