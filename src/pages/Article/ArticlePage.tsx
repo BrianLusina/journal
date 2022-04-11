@@ -1,37 +1,32 @@
 import { FunctionComponent } from 'react';
-import { useQuery } from '@apollo/client';
 import { useParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { GET_BLOG } from '@graphQl/queries';
 import Link from '@components/Elements/Link';
 import { captureException, captureScope, Severity } from '@services/monitoring';
 import PageLoader from '@components/Elements/Loaders/PageLoader';
 import { humanizeDateTime } from '@timeUtils';
 import { kebabCase } from 'lodash';
+import useFetchArticle from '@hooks/api/useFetchArticle';
+import AuthorBadge from '@features/AuthorBadge';
+// eslint-disable-next-line camelcase
+import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';
 
 const ArticlePage: FunctionComponent = () => {
   const { slug, id } = useParams();
-  const { loading, error, data } = useQuery<{ blogPost: BlogPostItem }, GetBlogVariables>(
-    GET_BLOG,
-    {
-      variables: {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        id: id!,
-      },
-    },
-  );
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const [loading, error, data] = useFetchArticle(id!);
 
   if (loading) {
     return <PageLoader />;
   }
 
   if (error) {
-    // FIXME: use error boundary for a component instead
     captureException(
       error,
-      captureScope({ type: 'component', data: { component: 'Posts' } }, Severity.Error),
+      captureScope({ type: 'component', data: { component: 'ArticlePage' } }, Severity.Error),
     );
+    // FIXME: use error boundary for a component instead
     return <p>Yikes! Something terrible has happened. Looking into this :)</p>;
   }
 
@@ -50,7 +45,11 @@ const ArticlePage: FunctionComponent = () => {
     authorsCollection: { items: authors },
   } = data.blogPost;
 
-  const publishDateHumanized = humanizeDateTime(publishDate);
+  const publishDateHumanized = humanizeDateTime(
+    publishDate,
+    DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss,
+    DATE_FORMAT_MMMM_D_YYYY,
+  );
 
   return (
     <article className="post">
@@ -65,12 +64,8 @@ const ArticlePage: FunctionComponent = () => {
           <time className="published" dateTime={publishDate}>
             {publishDateHumanized}
           </time>
-          {/* TODO: link to author */}
           {authors.map(({ sys: { id: authorId } }) => (
-            <Link key={authorId} to={`authors/${authorId}`} className="author">
-              <span className="name">Jane Doe</span>
-              <img src="images/avatar.jpg" alt="" />
-            </Link>
+            <AuthorBadge key={id} authorId={authorId} />
           ))}
         </div>
       </header>

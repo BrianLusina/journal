@@ -112,3 +112,91 @@ export const GET_SOCIAL_INFO = gql`
     }
   }
 `;
+
+export const GET_AUTHOR = gql`
+  query GetAuthor($id: String!, $preview: Boolean, $locale: String) {
+    person(id: $id, preview: $preview, locale: $locale) {
+      company
+      email
+      linkedIn
+      title
+      facebook
+      github
+      medium
+      name
+      twitter
+      phone
+      tagline
+      shortBio
+      sys {
+        id
+        publishedAt
+        firstPublishedAt
+      }
+      image {
+        url
+        title
+        description
+      }
+      contentfulMetadata {
+        tags {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+export const GET_ALL_AUTHORS = gql`
+  query GetAllAuthors(
+    $skip: Int
+    $limit: Int
+    $preview: Boolean
+    $locale: String
+    $where: PersonFilter
+    $order: [PersonOrder]
+  ) {
+    personCollection(
+      skip: $skip
+      limit: $limit
+      preview: $preview
+      locale: $locale
+      where: $where
+      order: $order
+    ) {
+      total
+      limit
+      items {
+        company
+        email
+        linkedIn
+        title
+        facebook
+        github
+        medium
+        name
+        twitter
+        phone
+        tagline
+        shortBio
+        sys {
+          id
+          publishedAt
+          firstPublishedAt
+        }
+        image {
+          url
+          title
+          description
+        }
+        contentfulMetadata {
+          tags {
+            id
+            name
+          }
+        }
+      }
+    }
+  }
+`;

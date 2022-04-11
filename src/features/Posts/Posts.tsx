@@ -1,12 +1,12 @@
 import { FunctionComponent, useState } from 'react';
 import Pagination from '@components/Pagination';
-import PostItem from '@components/PostItem';
 import { captureException, captureScope, Severity } from '@services/monitoring';
 import { useQuery } from '@apollo/client';
 import { GET_ALL_BLOGS } from '@graphQl/queries';
 import { humanizeDateTime } from '@timeUtils';
 // eslint-disable-next-line camelcase
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';
+import PostItem from './PostItem';
 
 const Posts: FunctionComponent = () => {
   const itemsPerPage = 10;
@@ -24,16 +24,15 @@ const Posts: FunctionComponent = () => {
   if (loading) return <div>Loading...</div>;
 
   if (error) {
-    // FIXME: use error boundary for a component instead
     captureException(
       error,
-      captureScope({ type: 'component', data: { component: 'Posts' } }, Severity.Error),
+      captureScope({ type: 'component', data: { component: 'Posts', ...error } }, Severity.Error),
     );
+    // FIXME: use error boundary for a component instead
     return <p>Yikes! Something terrible has happened. Looking into this :)</p>;
   }
 
-  const posts = data ? data.blogPostCollection.items : [];
-  const total = data ? data.blogPostCollection.total : 0;
+  const { items: posts, total } = data ? data.blogPostCollection : { items: [], total: 0 };
 
   let fetchedSize = posts.length;
   const hasNextPage = fetchedSize < total;
@@ -63,6 +62,7 @@ const Posts: FunctionComponent = () => {
           publishDate,
           contentfulMetadata: { tags },
           slug,
+          authorsCollection: { items: authors },
         }) => (
           <PostItem
             key={id}
@@ -81,16 +81,11 @@ const Posts: FunctionComponent = () => {
             )}
             tags={tags.map(({ name }) => name)}
             link={`${id}/${slug}`}
-            // FIXME: author info
-            author={{
-              avatar: '',
-              name: '',
-              link: '',
-            }}
+            authorIds={authors.map(({ sys: { id: authorId } }) => authorId)}
           />
         ),
       )}
-      <Pagination onClick={handleSeeMore} hasNextPage={hasNextPage} />
+      <Pagination onClick={handleSeeMore} hasNextPage={hasNextPage} text="Load More" />
     </section>
   );
 };

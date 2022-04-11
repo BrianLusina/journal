@@ -1,6 +1,6 @@
 import faker from 'faker';
 import { render, screen } from '@testing-library/react';
-import MockAppWithRouter from '@testUtils/MockAppWithRouter';
+import MockApp from '@testUtils/MockApp';
 import PostItem from './PostItem';
 
 describe('PostItem', () => {
@@ -15,13 +15,9 @@ describe('PostItem', () => {
       alt: faker.lorem.word(),
     };
     const tags = [faker.lorem.word(), faker.lorem.word()];
-    const author = {
-      avatar: faker.image.avatar(),
-      name: faker.name.firstName(),
-      link: faker.internet.url(),
-    };
 
     const props = {
+      id: faker.random.uuid(),
       title,
       subtitle,
       excerpt,
@@ -29,13 +25,13 @@ describe('PostItem', () => {
       date,
       img: image,
       tags,
-      author,
+      authorIds: [faker.random.uuid()],
     };
 
     render(
-      <MockAppWithRouter>
+      <MockApp>
         <PostItem {...props} />
-      </MockAppWithRouter>,
+      </MockApp>,
     );
 
     const titleTextElement = screen.getByText(title);

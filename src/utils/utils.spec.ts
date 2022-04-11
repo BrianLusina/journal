@@ -1,4 +1,10 @@
-import { camelCaseObjectKeys, snakeCaseObjectKeys, sluggify, isEmailValid } from './utils';
+import {
+  camelCaseObjectKeys,
+  snakeCaseObjectKeys,
+  sluggify,
+  isEmailValid,
+  changedArray,
+} from './utils';
 
 describe('Utils', () => {
   describe('camelCaseObjectKeys', () => {
@@ -55,6 +61,24 @@ describe('Utils', () => {
       const validEmail = 'johndoe@example.com';
       const result = isEmailValid(validEmail);
       expect(result).toEqual(true);
+    });
+  });
+
+  describe('changedArray', () => {
+    it('should return true if arrays are different', () => {
+      const initialArray = [1, 2, 3];
+      const newArray = [1, 2, 4];
+      const actual = changedArray(initialArray, newArray);
+      const expected = true;
+      expect(actual).toEqual(expected);
+    });
+
+    it('should return false if arrays are same', () => {
+      const initialArray = [1, 2, 3];
+      const newArray = [1, 2, 3];
+      const actual = changedArray(initialArray, newArray);
+      const expected = false;
+      expect(actual).toEqual(expected);
     });
   });
 });
