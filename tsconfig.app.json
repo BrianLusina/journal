@@ -1,31 +1,27 @@
 {
-  "files": [],
-  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }],
   "compilerOptions": {
-    "baseUrl": ".",
-    "target": "es6",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
-    "allowJs": true,
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
     "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "isolatedModules": true,
+    "moduleDetection": "force",
     "noEmit": true,
     "jsx": "react-jsx",
-    "noImplicitAny": false,
-    "noUnusedParameters": false,
+
+    /* Linting */
+    "strict": false,
     "noUnusedLocals": false,
-    "strictNullChecks": false,
+    "noUnusedParameters": false,
+    "noImplicitAny": false,
+    "noFallthroughCasesInSwitch": false,
+
+    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
       "@assets/*": ["./src/assets/*"],
@@ -55,13 +51,8 @@
       "@styles/*": ["./src/styles/*"],
       "@styled/*": ["./src/styles/ts/*"],
       "@scss/*": ["./src/styles/scss/*"],
-      "@css/*": ["./src/styles/css/*"]
+      "@css/*": ["./src/styles/css/*"]      
     }
   },
-  "exclude": [
-    "src/**/*.story.mdx",
-    "src/**/*.story.@(js|jsx|ts|tsx)",
-    "src/**/*.stories.mdx",
-    "src/**/*.stories.@(js|jsx|ts|tsx)"
-  ]
+  "include": ["src"]
 }
