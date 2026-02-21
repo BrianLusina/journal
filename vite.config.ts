@@ -61,6 +61,7 @@ export default defineConfig(({ command, mode }) => {
         '@pages': path.resolve(__dirname, './src/pages'),
         '@layouts': path.resolve(__dirname, './src/layouts'),
         '@utils': path.resolve(__dirname, './src/utils/utils.ts'),
+        '@lib': path.resolve(__dirname, './src/lib/index.ts'),
         '@timeUtils': path.resolve(__dirname, './src/utils/time/timeUtils.ts'),
         '@timeConstants': path.resolve(__dirname, './src/utils/time/constants.ts'),
         '@hooks': path.resolve(__dirname, './src/hooks'),
