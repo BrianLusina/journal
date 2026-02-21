@@ -42,22 +42,22 @@ setup-trivy:
 	curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b ./bin v0.16.0
 
 install:
-	yarn install
+	bun install
 
 start:
-	yarn start
+	bun dev
 
 test:
-	yarn test
+	bun test
 
 test-cover:
-	yarn test:coverage
+	bun test:coverage
 
 scan-frontend:
-	yarn audit --audit-level=critical
+	bun audit --audit-level=critical
 
 scan-licenses:
-	yarn scan:licenses
+	bun scan:licenses
 
 scan-docker-image:
 	@echo "Scanning Docker Image: $(IMAGE)"
@@ -69,19 +69,19 @@ lint-docker:
 	./bin/hadolint Dockerfile
 
 lint:
-	yarn lint
+	bun lint
 
 lint-styles:
-	yarn lint:styles
+	bun lint:styles
 
 lint-fix:
-	yarn lint:fix
+	bun lint:fix
 
 setup-env:
 	./scripts/bash/env.sh
 
 build:
-	yarn build
+	bun build
 
 build-docker:
 	./scripts/docker/build_docker.sh

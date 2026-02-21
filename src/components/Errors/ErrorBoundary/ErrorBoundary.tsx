@@ -1,8 +1,6 @@
 import {
   isValidElement,
   Component,
-  ReactChildren,
-  ReactElement,
   ErrorInfo,
   ReactNode,
 } from 'react';
@@ -48,6 +46,8 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     const { onError } = this.props;
     if (onError) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       onError(error, errorInfo);
     } else {
       captureAndLogError(error, errorInfo);
@@ -70,7 +70,7 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
     this.setState({ error: null });
   }
 
-  render(): ReactChildren | ReactElement | ReactNode {
+  render(): ReactNode {
     const { children, FallbackComponent, fallback } = this.props;
     const { error } = this.state;
 

@@ -1,0 +1,58 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitAny": false,
+    "noFallthroughCasesInSwitch": false,
+
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@assets/*": ["./src/assets/*"],
+      "@icons/*": ["./src/assets/icons/*"],
+      "@images/*": ["./src/assets/images/*"],
+      "@fonts/*": ["./src/assets/fonts/*"],
+      "@app": ["./src/app/index.ts"],
+      "@config": ["./src/config/index.ts"],
+      "@apiConfig": ["./src/config/api.ts"],
+      "@routes": ["./src/config/routes.ts"],
+      "@graphQl/*": ["./src/api/graphql/*"],
+      "@graphQlClient": ["./src/api/graphql/GraphqlClient.ts"],
+      "@providers/*": ["./src/providers/*"],
+      "@components/*": ["./src/components/*"],
+      "@containers/*": ["./src/containers/*"],
+      "@features/*": ["./src/features/*"],
+      "@pages/*": ["./src/pages/*"],
+      "@layouts/*": ["./src/layouts/*"],
+      "@utils": ["./src/utils/utils.ts"],
+      "@timeUtils": ["./src/utils/time/timeUtils.ts"],
+      "@timeConstants": ["./src/utils/time/constants.ts"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@services/*": ["./src/services/*"],
+      "@monitoring": ["./src/services/monitoring/index.ts"],
+      "@analytics": ["./src/services/analytics/index.ts"],
+      "@testUtils/*": ["./src/test/*"],
+      "@styles/*": ["./src/styles/*"],
+      "@styled/*": ["./src/styles/ts/*"],
+      "@scss/*": ["./src/styles/scss/*"],
+      "@css/*": ["./src/styles/css/*"]      
+    }
+  },
+  "include": ["src"]
+}

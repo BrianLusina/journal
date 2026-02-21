@@ -13,7 +13,7 @@ interface FallbackProps {
 }
 
 export type ErrorBoundaryProps = {
-  children: ReactChildren | ReactElement | ReactNode;
+  children: ReactNode;
 
   fallback?: ReactElement<unknown, string | FunctionComponent | typeof Component> | null;
 
