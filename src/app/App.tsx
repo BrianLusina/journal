@@ -13,6 +13,9 @@ const HomePage = lazy(() => import('@/pages/Home'));
 const ContactPage = lazy(() => import('@/pages/Contact'));
 const AboutPage = lazy(() => import('@/pages/About'));
 const AuthorsPage = lazy(() => import('@/pages/Authors'));
+const PrivacyPage = lazy(() => import('@/pages/Privacy'));
+const TermsPage = lazy(() => import('@/pages/Terms'));
+const NotFound = lazy(() => import('@/pages/NotFound'));
 
 const App: FunctionComponent = () => {
   const location = useLocation();
@@ -58,6 +61,22 @@ const App: FunctionComponent = () => {
                 }
               />
               <Route
+                path="/privacy"
+                element={
+                  <RouteErrorBoundary location="/privacy">
+                    <PrivacyPage />
+                  </RouteErrorBoundary>
+                }
+              />
+              <Route
+                path="/terms"
+                element={
+                  <RouteErrorBoundary location="/terms">
+                    <TermsPage />
+                  </RouteErrorBoundary>
+                }
+              />
+              <Route
                 path="/tech"
                 element={
                   <RouteErrorBoundary location="/">
@@ -73,6 +92,8 @@ const App: FunctionComponent = () => {
                   </RouteErrorBoundary>
                 }
               />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </CSSTransition>
         </TransitionGroup>

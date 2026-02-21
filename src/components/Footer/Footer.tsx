@@ -55,11 +55,6 @@ const Footer: FunctionComponent<FooterProps> = ({ title = config.title }) => (
           <h3 className="font-semibold mb-4">Resources</h3>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>
-              <a href="/style-guide" className="hover:text-accent transition-colors">
-                Style Guide
-              </a>
-            </li>
-            <li>
               <a href="/#newsletter" className="hover:text-accent transition-colors">
                 Newsletter
               </a>
