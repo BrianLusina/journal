@@ -9,6 +9,8 @@ import ScrollToTop from '@/components/ScrollToTop';
 
 const Posts = lazy(() => import('@/features/Posts'));
 const ArticlePage = lazy(() => import('@/pages/Article'));
+const HomePage = lazy(() => import('@/pages/Home'));
+const ContactPage = lazy(() => import('@/pages/Contact'));
 
 const App: FunctionComponent = () => {
   const location = useLocation();
@@ -23,6 +25,22 @@ const App: FunctionComponent = () => {
             <Routes location={location}>
               <Route
                 path="/"
+                element={
+                  <RouteErrorBoundary location="/">
+                    <HomePage />
+                  </RouteErrorBoundary>
+                }
+              />
+              <Route
+                path="/contact"
+                element={
+                  <RouteErrorBoundary location="/contact">
+                    <ContactPage />
+                  </RouteErrorBoundary>
+                }
+              />
+              <Route
+                path="/tech"
                 element={
                   <RouteErrorBoundary location="/">
                     <Posts />
