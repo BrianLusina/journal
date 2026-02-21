@@ -1,14 +1,14 @@
 import { FunctionComponent } from 'react';
 import Header from '@components/Header';
 import Navbar from '@components/Navbar';
-import Search from '@features/Search';
+import Search from '@/features/Search';
 import Menu from '@components/Menu';
 import Sidebar from '@components/Sidebar';
 import Intro from '@components/Intro';
 import Footer from '@components/Footer';
-import MiniPosts from '@features/MiniPosts';
-import Social from '@features/Social';
-import AboutBlurb from '@features/AboutBlurb';
+import MiniPosts from '@/features/MiniPosts';
+import Social from '@/features/Social';
+import AboutBlurb from '@/features/AboutBlurb';
 
 const MainLayout: FunctionComponent = ({ children }) => (
   <div id="wrapper">

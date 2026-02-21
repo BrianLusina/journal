@@ -2,7 +2,7 @@ import { FunctionComponent } from 'react';
 import { Link } from 'react-router-dom';
 import config from '@config';
 import { HeaderProps } from './Header.types';
-import './header.scss';
+// import './header.scss';
 
 const Header: FunctionComponent<HeaderProps> = ({ title = config.title, children }) => {
   return (

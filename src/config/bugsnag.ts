@@ -1,4 +1,6 @@
+const BUGSNAG_API_KEY = import.meta.env.VITE_BUGSNAG_API_KEY || '';
+
 export default {
-  apiKey: process.env.BUGSNAG_API_KEY || '',
+  apiKey: BUGSNAG_API_KEY || '',
 };
   

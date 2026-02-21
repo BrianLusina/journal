@@ -9,7 +9,7 @@ import GraphqlProvider from './providers/graphql/GraphqlProvider';
 import GraphqlClient from './api/graphql/GraphQlClient';
 import App from './app';
 import reportWebVitals from './reportWebVitals';
-import './styles/scss/main.scss';
+// import './styles/scss/main.scss';
 import "./styles/css/index.css";
 
 initializeMonitoring();

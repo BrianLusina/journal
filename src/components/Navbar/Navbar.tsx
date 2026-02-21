@@ -1,7 +1,7 @@
 import { FunctionComponent } from 'react';
 import { Link } from 'react-router-dom';
 import navbarItems from './constants';
-import './navbar.scss';
+// import './navbar.scss';
 
 const Navbar: FunctionComponent = () => (
   <nav className="links">
