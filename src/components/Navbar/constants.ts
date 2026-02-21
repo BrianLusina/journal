@@ -1,5 +1,13 @@
 const navbarItems = [
   {
+    name: 'Home',
+    path: '/',
+  },
+  {
+    name: 'Articles',
+    path: '/#articles',
+  },
+  {
     name: 'Tech',
     path: '/tech',
   },
@@ -14,6 +22,10 @@ const navbarItems = [
   {
     name: 'Life',
     path: '/life',
+  },
+  {
+    name: 'About',
+    path: '/about',
   },
 ];
 
