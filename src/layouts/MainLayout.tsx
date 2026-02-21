@@ -14,22 +14,12 @@ const MainLayout: FC<{ children: React.ReactNode }> = ({ children }) => (
     <div className="min-h-screen bg-background animate-fade-in">
       <Header>
         <Navbar />
-        {/* <nav className="main">
-          <ul>
-            <li className="header-search">
-              <Search />
-            </li>
-            <li className="menu">
-              <a className="fa-bars" href="#menu">
-                Menu
-              </a>
-            </li>
-          </ul>
-        </nav> */}
       </Header>
       {/* TODO: add search functionality */}
       {/* <Menu searchBar={<Search />} /> */}
-      <main id="main" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</main>
+      <main id="main" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {children}
+      </main>
       <Footer />
       {/*
       <Sidebar>

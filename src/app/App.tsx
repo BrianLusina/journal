@@ -11,6 +11,7 @@ const Posts = lazy(() => import('@/features/Posts'));
 const ArticlePage = lazy(() => import('@/pages/Article'));
 const HomePage = lazy(() => import('@/pages/Home'));
 const ContactPage = lazy(() => import('@/pages/Contact'));
+const AboutPage = lazy(() => import('@/pages/About'));
 
 const App: FunctionComponent = () => {
   const location = useLocation();
@@ -36,6 +37,14 @@ const App: FunctionComponent = () => {
                 element={
                   <RouteErrorBoundary location="/contact">
                     <ContactPage />
+                  </RouteErrorBoundary>
+                }
+              />
+              <Route
+                path="/about"
+                element={
+                  <RouteErrorBoundary location="/about">
+                    <AboutPage />
                   </RouteErrorBoundary>
                 }
               />
