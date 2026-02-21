@@ -1,6 +1,6 @@
-import ArticleCard from "@/components/ArticleCard";
-import HeroSection from "@/components/HeroSection";
-import IntroSection from "@/components/IntroSection";
+import ArticleCard from "@components/ArticleCard";
+import HeroSection from "@components/HeroSection";
+import IntroSection from "@components/IntroSection";
 import { articles } from "@/data/articles";
 
 const HomePage = () => {

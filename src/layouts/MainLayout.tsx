@@ -4,7 +4,6 @@ import Navbar from '@components/Navbar';
 import Search from '@/features/Search';
 import Menu from '@components/Menu';
 import Sidebar from '@components/Sidebar';
-import Intro from '@components/Intro';
 import Footer from '@components/Footer';
 import MiniPosts from '@/features/MiniPosts';
 import Social from '@/features/Social';
@@ -32,7 +31,6 @@ const MainLayout: FunctionComponent = ({ children }) => (
       <main id="main" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</main>
       <Footer />
       <Sidebar>
-        <Intro />
         <MiniPosts />
         <AboutBlurb />
         <Social />

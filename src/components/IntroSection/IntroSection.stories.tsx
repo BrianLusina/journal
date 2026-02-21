@@ -1,5 +1,5 @@
 import { ComponentStory, ComponentMeta } from '@storybook/react';
-import Intro from './Intro';
+import Intro from './IntroSection';
 
 export default {
   title: 'Components/Intro',

@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import faker from 'faker';
-import Intro from './Intro';
+import Intro from './IntroSection';
 
 describe('Intro', () => {
   it('should render with default props', () => {
