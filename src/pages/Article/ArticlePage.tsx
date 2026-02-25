@@ -1,20 +1,20 @@
 import { FunctionComponent } from 'react';
-import { useParams } from 'react-router-dom';
+import { Navigate, useParams } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import Link from '@components/Elements/Link';
 import { captureException, captureScope, Severity } from '@services/monitoring';
 import PageLoader from '@components/Elements/Loaders/PageLoader';
 import { humanizeDateTime } from '@timeUtils';
-import { kebabCase } from 'lodash';
 import useFetchArticle from '@hooks/api/useFetchArticle';
-import AuthorBadge from '@features/AuthorBadge';
-// eslint-disable-next-line camelcase
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';
+import { BackNavigation } from '@/components/ui/navigation';
+import { ArticleHeader, ArticleHeroImage } from './components';
+import { Tags } from '@/components/ui/tag';
+import { NewsLetterCTA } from '@/features/NewsLetter';
+import MobileShareButtons from '@/components/ui/share';
 
 const ArticlePage: FunctionComponent = () => {
   const { slug, id } = useParams();
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const [loading, error, data] = useFetchArticle(id!);
 
   if (loading) {
@@ -31,8 +31,7 @@ const ArticlePage: FunctionComponent = () => {
   }
 
   if (!data) {
-    // TODO: display error or redirect to 404?
-    return <p>Page Not Found</p>;
+    return <Navigate to="/404" replace />;
   }
 
   const {
@@ -41,6 +40,7 @@ const ArticlePage: FunctionComponent = () => {
     subtitle,
     publishDate,
     body,
+    category,
     contentfulMetadata: { tags },
     authorsCollection: { items: authors },
   } = data.blogPost;
@@ -52,48 +52,46 @@ const ArticlePage: FunctionComponent = () => {
   );
 
   return (
-    <article className="post">
-      <header>
-        <div className="title">
-          <h2>
-            <Link to={`${id}/${slug}`}>{title}</Link>
-          </h2>
-          <p>{subtitle}</p>
-        </div>
-        <div className="meta">
-          <time className="published" dateTime={publishDate}>
-            {publishDateHumanized}
-          </time>
-          {authors.map(({ sys: { id: authorId } }) => (
-            <AuthorBadge key={id} authorId={authorId} />
+    <main>
+      <BackNavigation title="Back to Articles" link="/articles" />
+
+      <ArticleHeroImage imageUrl={imageUrl} title={title} />
+
+      <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-32 relative z-10">
+        <ArticleHeader
+          title={title}
+          subtitle={subtitle}
+          category={category}
+          publishedDate={publishDateHumanized}
+          authors={authors}
+        />
+
+        {/* Article Content */}
+        <div className="prose prose-lg max-w-none mb-16 animate-slide-up stagger-2">
+          <p className="text-lg leading-relaxed text-muted-foreground mb-8">{subtitle}</p>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
+
+          {/* {content.sections.map((section, index) => (
+            <div key={index} className="mb-10">
+              <h2 className="text-3xl font-bold mb-4">{section.heading}</h2>
+              <p className="text-lg leading-relaxed text-muted-foreground">
+                {section.content}
+              </p>
+            </div>
           ))}
+
+          <div className="mt-12 p-6 rounded-2xl bg-muted border-l-4 border-accent">
+            <p className="text-lg leading-relaxed italic text-foreground">
+              {content.conclusion}
+            </p>
+          </div> */}
         </div>
-      </header>
-      <span className="image featured">
-        <img src={imageUrl} alt={title} />
-      </span>
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
-      <footer>
-        <ul className="stats">
-          {tags.map(({ id: tagId, name }) => (
-            <li key={tagId}>
-              <Link to={`tags/${kebabCase(name)}`}>{name}</Link>
-            </li>
-          ))}
-          {/* TODO: Comment box and love hearts */}
-          {/* <li>
-            <a href="#love" className="icon fa-heart">
-              28
-            </a>
-          </li>
-          <li>
-            <a href="#comments" className="icon fa-comment">
-              128
-            </a>
-          </li> */}
-        </ul>
-      </footer>
-    </article>
+
+        <Tags tags={tags} />
+        <MobileShareButtons title={'Share this article'} />
+        <NewsLetterCTA />
+      </article>
+    </main>
   );
 };
 

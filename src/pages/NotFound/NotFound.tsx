@@ -14,8 +14,8 @@ const NotFoundPage: FunctionComponent = () => {
       <div className="container max-width-sm">
         <div className="text-component text-center margin-bottom-lg">
           <h1 className="mb-4 text-4xl font-bold">404</h1>
-          <p id="fof__subtitle">Sorry, but the page you were looking for could not be found.</p>
           <p className="mb-4 text-xl text-gray-600">Oops! Page not found</p>
+          <p id="fof__subtitle">Sorry, but the page you were looking for could not be found.</p>
           <p id="fof__link">
             <a href="/">Return Home</a>.
           </p>

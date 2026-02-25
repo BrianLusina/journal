@@ -1,3 +1,5 @@
+import { Button } from '@/components/ui/button';
+
 // TODO: Implement newsletter subscription logic (e.g., form handling, API integration)
 const NewsLetterSection = () => {
   return (

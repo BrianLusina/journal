@@ -33,12 +33,22 @@ const AuthorBadge: FunctionComponent<ArticleAuthorProps> = ({ authorId }) => {
   const {
     name,
     image: { url, title },
+    shortBio
   } = data;
 
   return (
     <Link key={authorId} to={`authors/${authorId}`} className="author">
-      <span className="name">{name}</span>
-      <img src={url || defaultAvatar} alt={title || name} />
+      <div className="flex items-center gap-4">
+        <img
+          src={url || defaultAvatar}
+          alt={name}
+          className="w-14 h-14 rounded-full object-cover"
+        />
+        <div>
+          <p className="font-semibold">{name}</p>
+          <p className="text-sm text-muted-foreground">{shortBio}</p>
+        </div>
+      </div>
     </Link>
   );
 };

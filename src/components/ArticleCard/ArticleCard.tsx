@@ -1,30 +1,23 @@
+import { FunctionComponent } from 'react';
+import { Link } from 'react-router-dom';
 import { ArrowUpRight } from "lucide-react";
+import { getCategoryClass } from '@/lib/utils';
 
 interface ArticleCardProps {
   id: string;
+  slug: string;
   title: string;
   category: string;
   date: string;
-  image: string;
+  thumbnail: string;
   size?: "small" | "large";
 }
 
-const ArticleCard = ({ id, title, category, date, image, size = "small" }: ArticleCardProps) => {
-  const getCategoryClass = (cat: string) => {
-    const normalized = cat.toLowerCase();
-    if (normalized.includes("finance")) return "tag-financing";
-    if (normalized.includes("lifestyle")) return "tag-lifestyle";
-    if (normalized.includes("community")) return "tag-community";
-    if (normalized.includes("wellness")) return "tag-wellness";
-    if (normalized.includes("travel")) return "tag-travel";
-    if (normalized.includes("creative")) return "tag-creativity";
-    if (normalized.includes("growth")) return "tag-growth";
-    return "tag-lifestyle";
-  };
+const ArticleCard: FunctionComponent<ArticleCardProps> = ({ id, slug, title, category, date, thumbnail: image, size = "small" }: ArticleCardProps) => {
 
   return (
-    <a
-      href={`/article/${id}`}
+    <Link
+      to={`/article/${id}/${slug}`}
       className={`group relative block rounded-[2.5rem] overflow-hidden card-hover ${
         size === "large" ? "col-span-1 md:col-span-2 row-span-2" : ""
       }`}
@@ -68,7 +61,7 @@ const ArticleCard = ({ id, title, category, date, image, size = "small" }: Artic
           <ArrowUpRight className="w-5 h-5" />
         </div>
       </div>
-    </a>
+    </Link>
   );
 };
 
