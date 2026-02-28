@@ -6,20 +6,30 @@ import usePageViews from '@/hooks/analytics/usePageView';
 import RouteErrorBoundary from '@/components/Errors/RouteErrorBoundary';
 import PageLoader from '@/components/Elements/Loaders/PageLoader';
 import ScrollToTop from '@/components/ScrollToTop';
+import routes from '@/routes/routes';
 
-const Posts = lazy(() => import('@/features/Posts'));
-const ArticlePage = lazy(() => import('@/pages/Article'));
-const HomePage = lazy(() => import('@/pages/Home'));
-const ContactPage = lazy(() => import('@/pages/Contact'));
-const AboutPage = lazy(() => import('@/pages/About'));
-const AuthorsPage = lazy(() => import('@/pages/Authors'));
-const PrivacyPage = lazy(() => import('@/pages/Privacy'));
-const TermsPage = lazy(() => import('@/pages/Terms'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 
 const App: FunctionComponent = () => {
   const location = useLocation();
   usePageViews();
+
+  const routePaths = routes.flatMap(({ path, alternatePaths, component: Component }) => {
+    const alternativeRoutes = alternatePaths
+      .flatMap((alternatePath) => alternatePath)
+      .map((altPath) => ({
+        path: altPath,
+        component: Component,
+      }));
+
+    return [
+      {
+        component: Component,
+        path,
+      },
+      ...alternativeRoutes,
+    ];
+  });
 
   return (
     <MainLayout>
@@ -28,70 +38,16 @@ const App: FunctionComponent = () => {
         <TransitionGroup>
           <CSSTransition key={location.pathname} classNames="fade" timeout={300}>
             <Routes location={location}>
-              <Route
-                path="/"
-                element={
-                  <RouteErrorBoundary location="/">
-                    <HomePage />
-                  </RouteErrorBoundary>
-                }
-              />
-              <Route
-                path="/contact"
-                element={
-                  <RouteErrorBoundary location="/contact">
-                    <ContactPage />
-                  </RouteErrorBoundary>
-                }
-              />
-              <Route
-                path="/about"
-                element={
-                  <RouteErrorBoundary location="/about">
-                    <AboutPage />
-                  </RouteErrorBoundary>
-                }
-              />
-              <Route
-                path="/authors"
-                element={
-                  <RouteErrorBoundary location="/authors">
-                    <AuthorsPage />
-                  </RouteErrorBoundary>
-                }
-              />
-              <Route
-                path="/privacy"
-                element={
-                  <RouteErrorBoundary location="/privacy">
-                    <PrivacyPage />
-                  </RouteErrorBoundary>
-                }
-              />
-              <Route
-                path="/terms"
-                element={
-                  <RouteErrorBoundary location="/terms">
-                    <TermsPage />
-                  </RouteErrorBoundary>
-                }
-              />
-              <Route
-                path="/tech"
-                element={
-                  <RouteErrorBoundary location="/">
-                    <Posts />
-                  </RouteErrorBoundary>
-                }
-              />
-              <Route
-                path="/article/:id/:slug"
-                element={
-                  <RouteErrorBoundary location="/article/:id/:slug">
-                    <ArticlePage />
-                  </RouteErrorBoundary>
-                }
-              />
+              {routePaths.map(({ path, component: Component }) => (
+                <Route
+                  path={path}
+                  element={
+                    <RouteErrorBoundary location={path}>
+                      <Component />
+                    </RouteErrorBoundary>
+                  }
+                />
+              ))}
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

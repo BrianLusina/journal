@@ -1,23 +1,16 @@
 import { FunctionComponent, useState } from 'react';
-import ArticleCard from '@/components/ArticleCard';
+import { Navigate } from 'react-router-dom';
 import { captureException, captureScope, Severity } from '@services/monitoring';
 import { useQuery } from '@apollo/client';
-import { GET_ALL_BLOGS } from '@graphQl/queries';
+import PageLoader from '@components/Elements/Loaders/PageLoader';
 import { humanizeDateTime } from '@timeUtils';
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';
-import { Link } from 'react-router-dom';
-import { ARTICLES_PAGE_ROUTE } from '@/routes/links';
+import { GET_ALL_BLOGS } from '@/api/graphql/queries';
+import ArticleCard from '@/components/ArticleCard';
 
-type FeaturedArticlesProps = {
-  itemsPerPage?: number;
-  featuredCount?: number;
-};
-
-const FeaturedArticles: FunctionComponent<FeaturedArticlesProps> = ({
-  itemsPerPage = 10,
-  featuredCount = 6,
-}) => {
-  const [currentSize, _] = useState<number>(itemsPerPage);
+const ArticlesPage: FunctionComponent = () => {
+  const itemsPerPage = 10;
+  const [currentSize, setCurrentSize] = useState<number>(itemsPerPage);
   const { loading, error, data, fetchMore } = useQuery<BlogPostsData, GetAllBlogsVariables>(
     GET_ALL_BLOGS,
     {
@@ -27,8 +20,9 @@ const FeaturedArticles: FunctionComponent<FeaturedArticlesProps> = ({
     },
   );
 
-  // FIXME: use a component loader for this. Preferably a Skeleton loader
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return <PageLoader />;
+  }
 
   if (error) {
     captureException(
@@ -39,24 +33,41 @@ const FeaturedArticles: FunctionComponent<FeaturedArticlesProps> = ({
     return <p>Yikes! Something terrible has happened. Looking into this :)</p>;
   }
 
-  const { items: posts } = data ? data.blogPostCollection : { items: [] };
+  const { items: posts, total } = data ? data.blogPostCollection : { items: [], total: 0 };
 
-  const featuredArticles = posts.slice(0, featuredCount);
+  let fetchedSize = posts.length;
+  const hasNextPage = fetchedSize < total;
+
+  const handleSeeMore = (): void => {
+    if (hasNextPage) {
+      fetchedSize += currentSize;
+      setCurrentSize(fetchedSize);
+
+      fetchMore({
+        variables: {
+          limit: fetchedSize,
+        },
+      });
+    }
+  };
+
+  if (error) {
+    captureException(
+      error,
+      captureScope({ type: 'component', data: { component: 'ArticlePage' } }, Severity.Error),
+    );
+    // FIXME: use error boundary for a component instead
+    return <p>Yikes! Something terrible has happened. Looking into this :)</p>;
+  }
+
+  if (!data) {
+    return <Navigate to="/404" replace />;
+  }
 
   return (
-    <section id="articles" className="py-12">
-      <div className="flex items-center justify-between mb-12 animate-slide-up">
-        <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Featured Articles</h2>
-        <Link
-          to={ARTICLES_PAGE_ROUTE}
-          className="text-sm font-medium text-muted-foreground hover:text-accent transition-colors px-4 py-2 rounded-full hover:bg-muted/60"
-        >
-          View all →
-        </Link>
-      </div>
-
+    <main>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {featuredArticles.map((article, index) => (
+        {posts.map((article, index) => (
           <div
             key={article.sys.id}
             className={`animate-slide-up stagger-${Math.min(index + 1, 6)}`}
@@ -77,8 +88,8 @@ const FeaturedArticles: FunctionComponent<FeaturedArticlesProps> = ({
           </div>
         ))}
       </div>
-    </section>
+    </main>
   );
 };
 
-export default FeaturedArticles;
+export default ArticlesPage;

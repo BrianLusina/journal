@@ -5,7 +5,7 @@ const navbarItems = [
   },
   {
     name: 'Articles',
-    path: '/#articles',
+    path: '/articles',
   },
   {
     name: 'Tech',

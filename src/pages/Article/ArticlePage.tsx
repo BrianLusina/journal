@@ -1,6 +1,6 @@
 import { FunctionComponent } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
+import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { captureException, captureScope, Severity } from '@services/monitoring';
 import PageLoader from '@components/Elements/Loaders/PageLoader';
@@ -12,6 +12,7 @@ import { ArticleHeader, ArticleHeroImage } from './components';
 import { Tags } from '@/components/ui/tag';
 import { NewsLetterCTA } from '@/features/NewsLetter';
 import MobileShareButtons from '@/components/ui/share';
+import MarkdownComponents from '@/components/ui/markdown';
 
 const ArticlePage: FunctionComponent = () => {
   const { slug, id } = useParams();
@@ -69,22 +70,7 @@ const ArticlePage: FunctionComponent = () => {
         {/* Article Content */}
         <div className="prose prose-lg max-w-none mb-16 animate-slide-up stagger-2">
           <p className="text-lg leading-relaxed text-muted-foreground mb-8">{subtitle}</p>
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
-
-          {/* {content.sections.map((section, index) => (
-            <div key={index} className="mb-10">
-              <h2 className="text-3xl font-bold mb-4">{section.heading}</h2>
-              <p className="text-lg leading-relaxed text-muted-foreground">
-                {section.content}
-              </p>
-            </div>
-          ))}
-
-          <div className="mt-12 p-6 rounded-2xl bg-muted border-l-4 border-accent">
-            <p className="text-lg leading-relaxed italic text-foreground">
-              {content.conclusion}
-            </p>
-          </div> */}
+          <Markdown remarkPlugins={[remarkGfm]} components={MarkdownComponents}>{body}</Markdown>
         </div>
 
         <Tags tags={tags} />
