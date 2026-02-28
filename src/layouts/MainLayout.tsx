@@ -3,11 +3,6 @@ import Header from '@components/Header';
 import Navbar from '@components/Navbar';
 import Footer from '@components/Footer';
 import Search from '@/features/Search';
-import Menu from '@components/Menu';
-import Sidebar from '@components/Sidebar';
-import MiniPosts from '@/features/MiniPosts';
-import Social from '@/features/Social';
-import AboutBlurb from '@/features/AboutBlurb';
 
 const MainLayout: FC<{ children: React.ReactNode }> = ({ children }) => (
   <div id="wrapper">

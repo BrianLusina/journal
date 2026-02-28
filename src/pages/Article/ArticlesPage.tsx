@@ -7,6 +7,7 @@ import { humanizeDateTime } from '@timeUtils';
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';
 import { GET_ALL_BLOGS } from '@/api/graphql/queries';
 import ArticleCard from '@/components/ArticleCard';
+import {Pagination} from '@components/Pagination';
 
 const ArticlesPage: FunctionComponent = () => {
   const itemsPerPage = 10;
@@ -66,6 +67,15 @@ const ArticlesPage: FunctionComponent = () => {
 
   return (
     <main>
+      {/* Hero Section */}
+      <div className="mb-16 text-center space-y-6">
+        <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed animate-slide-up stagger-1">
+          Discover all the articles that illuminate the paths of meaning and unravel the mysteries
+          of life's spectrum. Dive into a world of reflection, inspiration, and discovery through
+          our curated collection of insightful writings.
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {posts.map((article, index) => (
           <div
@@ -88,6 +98,8 @@ const ArticlesPage: FunctionComponent = () => {
           </div>
         ))}
       </div>
+      <Pagination onClick={handleSeeMore} />
+
     </main>
   );
 };

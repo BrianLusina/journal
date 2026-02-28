@@ -1,31 +1,21 @@
+import { ABOUT_PAGE_ROUTE, ARTICLES_PAGE_ROUTE, CONTACT_PAGE_ROUTE, HOME_PAGE_ROUTE } from '@/routes/links';
+
 const navbarItems = [
   {
     name: 'Home',
-    path: '/',
+    path: HOME_PAGE_ROUTE,
   },
   {
     name: 'Articles',
-    path: '/articles',
-  },
-  {
-    name: 'Tech',
-    path: '/tech',
-  },
-  {
-    name: 'Design',
-    path: '/design',
-  },
-  {
-    name: 'Finance',
-    path: '/finance',
-  },
-  {
-    name: 'Life',
-    path: '/life',
+    path: ARTICLES_PAGE_ROUTE,
   },
   {
     name: 'About',
-    path: '/about',
+    path: ABOUT_PAGE_ROUTE,
+  },
+  {
+    name: 'Contact',
+    path: CONTACT_PAGE_ROUTE,
   },
 ];
 
