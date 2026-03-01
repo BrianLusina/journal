@@ -1,8 +1,6 @@
 import { ApolloClient, HttpLink, concat } from '@apollo/client';
 import config from '@config';
-import authMiddleware from './AuthMiddleware';
-import RetryMiddleware from './RetryMiddleware';
-import Cache from './Cache';
+import { authMiddleware, RetryMiddleware, Cache, errorMiddleware } from './middleware';
 
 const {
   api: {
@@ -16,7 +14,7 @@ const httpLink = new HttpLink({
 });
 
 const client = new ApolloClient({
-  link: concat(authMiddleware, RetryMiddleware.concat(httpLink)),
+  link: concat(authMiddleware, RetryMiddleware.concat(httpLink)).concat(errorMiddleware),
   credentials: 'same-origin',
   cache: Cache,
   connectToDevTools: env === 'development',

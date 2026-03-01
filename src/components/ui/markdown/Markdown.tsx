@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { Components } from 'react-markdown';
+import Blockquote from '../blockquote';
 
 const MarkdownComponents: Partial<Components> = {
   h1(props) {
@@ -32,16 +33,20 @@ const MarkdownComponents: Partial<Components> = {
       </div>
     );
   },
-  //   ul(props) {
-  //     const { node, ...rest } = props;
-  //     // @ts-ignore
-  //     return <UnorderedTextList {...rest} />;
-  //   },
-  //   ol(props) {
-  //     const { node, ...rest } = props;
-  //     // @ts-ignore
-  //     return <OrderedTextList {...rest} />;
-  //   },
+  ul(props) {
+    const { node, ...rest } = props;
+    // @ts-ignore
+    return <ul className="list-disc pl-6 space-y-2 text-muted-foreground">{...rest.children}</ul>;
+  },
+  ol(props) {
+    const { node, ...rest } = props;
+    // @ts-ignore
+    return <ol className="list-disc pl-6 space-y-2 text-muted-foreground">{...rest.children}</ol>;
+  },
+  blockquote(props) {
+    const { node, ...rest } = props;
+    return <Blockquote content={rest.children} />
+  },
 };
 
 export default MarkdownComponents;
