@@ -27,3 +27,5 @@ export const ARTICLES_PAGE_ROUTE = `${BASE_ROUTE}/articles`;
 export const ARTICLE_PAGE_ROUTE = `${BASE_ROUTE}/article`;
 export const ARTICLES_DETAIL_PAGE_ROUTE = `${ARTICLES_PAGE_ROUTE}/:id/:slug`;
 export const ARTICLE_DETAIL_PAGE_ROUTE = `${ARTICLE_PAGE_ROUTE}/:id/:slug`;
+export const ARTICLE_PAGE_BY_TAGS_ROUTE = `${ARTICLE_PAGE_ROUTE}/tag`;
+export const ARTICLE_PAGE_BY_TAG_ROUTE = `${ARTICLE_PAGE_BY_TAGS_ROUTE}/:tag`;

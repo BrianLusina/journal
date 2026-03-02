@@ -50,7 +50,6 @@ export const GET_ALL_BLOGS_BY_TAG = gql`
     $limit: Int
     $preview: Boolean
     $locale: String
-    $where: BlogPostFilter
     $order: [BlogPostOrder]
   ) {
     blogPostCollection(
@@ -58,7 +57,7 @@ export const GET_ALL_BLOGS_BY_TAG = gql`
       limit: $limit
       preview: $preview
       locale: $locale
-      where: $where
+      where: {contentfulMetadata: {tags: {id_contains_some: [$tag]}}}
       order: $order
     ) {
       total

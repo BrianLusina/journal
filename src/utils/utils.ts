@@ -54,3 +54,10 @@ export const isEmailValid = (email: string): boolean => {
 export function changedArray(a: Array<unknown> = [], b: Array<unknown> = []): boolean {
   return a.length !== b.length || a.some((item, index) => !Object.is(item, b[index]));
 }
+
+export const camelCaseToNormal = (text: string): string => {
+  // 1. Insert a space before all capital letters
+  // 2. Capitalize the first letter of the entire string
+  const result = text.replace(/([A-Z])/g, ' $1');
+  return result.charAt(0).toUpperCase() + result.slice(1).trim();
+};
