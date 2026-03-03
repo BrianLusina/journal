@@ -13,6 +13,7 @@ import { Tags } from '@/components/ui/tag';
 import { NewsLetterCTA } from '@/features/NewsLetter';
 import MobileShareButtons from '@/components/ui/share';
 import MarkdownComponents from '@/components/ui/markdown';
+import RelatedArticles from '@/features/RelatedArticles';
 
 const ArticlePage: FunctionComponent = () => {
   const { slug, id } = useParams();
@@ -70,13 +71,16 @@ const ArticlePage: FunctionComponent = () => {
         {/* Article Content */}
         <div className="prose prose-lg max-w-none mb-16 animate-slide-up stagger-2">
           <p className="text-lg leading-relaxed text-muted-foreground mb-8">{subtitle}</p>
-          <Markdown remarkPlugins={[remarkGfm]} components={MarkdownComponents}>{body}</Markdown>
+          <Markdown remarkPlugins={[remarkGfm]} components={MarkdownComponents}>
+            {body}
+          </Markdown>
         </div>
 
         <Tags tags={tags} />
         <MobileShareButtons title={'Share this article'} />
         <NewsLetterCTA />
       </article>
+      <RelatedArticles category={category} />
     </main>
   );
 };
