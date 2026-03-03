@@ -48,7 +48,6 @@ const ArticleCard: FunctionComponent<ArticleCardProps> = ({ id, slug, title, cat
           {/* Bottom section - Title and Arrow */}
           <div className="flex items-end justify-between gap-4">
             <div className="flex-1">
-              <span className="text-white/50 text-xs font-medium tracking-wider block mb-3">{id}</span>
               <h3 className="text-white text-xl md:text-2xl lg:text-3xl font-bold leading-tight tracking-tight">
                 {title}
               </h3>

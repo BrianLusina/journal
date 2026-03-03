@@ -3,6 +3,7 @@ import Link from '@components/Elements/Link';
 import { captureException, captureScope, Severity } from '@services/monitoring';
 import useFetchAuthorById from '@hooks/api/useFetchAuthorById';
 import defaultAvatar from '@assets/images/avatar.jpg';
+import { AUTHORS_PAGE_ROUTE } from '@/routes/links';
 
 type ArticleAuthorProps = {
   authorId: string;
@@ -37,7 +38,7 @@ const AuthorBadge: FunctionComponent<ArticleAuthorProps> = ({ authorId }) => {
   } = data;
 
   return (
-    <Link key={authorId} to={`authors/${authorId}`} className="author">
+    <Link key={authorId} to={`${AUTHORS_PAGE_ROUTE}/${authorId}`} className="author">
       <div className="flex items-center gap-4">
         <img
           src={url || defaultAvatar}

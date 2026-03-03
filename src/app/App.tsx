@@ -40,6 +40,7 @@ const App: FunctionComponent = () => {
             <Routes location={location}>
               {routePaths.map(({ path, component: Component }) => (
                 <Route
+                  key={path}
                   path={path}
                   element={
                     <RouteErrorBoundary location={path}>

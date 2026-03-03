@@ -21,23 +21,31 @@ export const PersonFragment = gql`
     contentfulMetadata {
       ...ContentfulMetadataFragment
     }
-    email
-    facebook
-    github
     image {
       ...AssetFragment
     }
-    linkedIn
-    medium
     name
-    phone
     shortBio
     sys {
       ...SysFragment
     }
+    linkedFrom {
+		  entryCollection {
+			  total
+		  }
+	  }
     tagline
     title
+    role
+    phone
+    linkedIn
+    medium
     twitter
+    email
+    facebook
+    github
+    github
+    instagram
   }
 `;
 

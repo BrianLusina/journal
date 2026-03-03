@@ -1,37 +1,37 @@
-import { Mail, Instagram, Twitter } from 'lucide-react';
+import { Link, Navigate } from 'react-router-dom';
+import config from '@/config';
+import { CONTACT_PAGE_ROUTE } from '@/routes/links';
+import PageLoader from '@/components/Elements/Loaders/PageLoader';
+import useFetchAuthors from '@/hooks/api/useFetchAuthors';
+import { captureException, captureScope, Severity } from '@/services/monitoring';
+import { AuthorCardTile } from './components';
 
-// TODO: add dynamic fetching of authors from backend API, implement pagination for larger author lists, and integrate social media links with actual profiles
 const AuthorsPage = () => {
-  const authors = [
-    {
-      name: 'Emma Thompson',
-      role: 'Wellness Editor',
-      bio: 'Emma is a certified wellness coach and nutritionist with over 10 years of experience helping people create sustainable self-care practices. She believes in holistic approaches to health that honor both body and mind.',
-      image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&q=80',
-      articles: 24,
-    },
-    {
-      name: 'Marcus Chen',
-      role: 'Travel Writer',
-      bio: 'Having visited over 60 countries, Marcus specializes in slow travel and cultural immersion. His writing explores how travel can be both transformative and sustainable, emphasizing meaningful connection over tourist checklists.',
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80',
-      articles: 31,
-    },
-    {
-      name: 'Sofia Rodriguez',
-      role: 'Creativity Columnist',
-      bio: "Sofia is a multidisciplinary artist and creative consultant who helps individuals and teams unlock their creative potential. She's passionate about making creativity accessible to everyone, not just 'artists.'",
-      image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&q=80',
-      articles: 19,
-    },
-    {
-      name: 'David Kim',
-      role: 'Personal Growth Writer',
-      bio: 'David combines insights from psychology, philosophy, and personal experience to explore what it means to live intentionally. His thoughtful approach to growth emphasizes progress over perfection.',
-      image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&q=80',
-      articles: 27,
-    },
-  ];
+  const [loading, error, data] = useFetchAuthors();
+
+  if (loading) {
+    return <PageLoader />;
+  }
+
+  if (error) {
+    captureException(
+      error,
+      captureScope(
+        { type: 'component', data: { component: 'ArticlesByTagPage', ...error } },
+        Severity.Error,
+      ),
+    );
+    // FIXME: use error boundary for a component instead
+    return <p>Yikes! Something terrible has happened. Looking into this :)</p>;
+  }
+
+  if (!data) {
+    return <Navigate to="/404" replace />;
+  }
+
+  const {
+    personCollection: { items: authors },
+  } = data || {};
 
   return (
     <>
@@ -41,8 +41,8 @@ const AuthorsPage = () => {
           Meet Our Authors
         </h1>
         <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed animate-slide-up stagger-1">
-          The voices behind Perspective—experienced writers, practitioners, and thoughtful explorers
-          who bring diverse perspectives and genuine insights to every article.
+          The voices behind {config.title}—experienced writers, practitioners, and thoughtful
+          explorers who bring diverse perspectives and genuine insights to every article.
         </p>
       </div>
 
@@ -56,44 +56,19 @@ const AuthorsPage = () => {
               6,
             )}`}
           >
-            <div className="flex items-start gap-6 mb-6">
-              <img
-                src={author.image}
-                alt={author.name}
-                className="w-24 h-24 rounded-full object-cover"
-              />
-              <div className="flex-1">
-                <h3 className="text-2xl font-bold mb-1">{author.name}</h3>
-                <p className="text-accent font-medium mb-3">{author.role}</p>
-                <p className="text-sm text-muted-foreground">
-                  {author.articles} articles published
-                </p>
-              </div>
-            </div>
-            <p className="text-muted-foreground mb-6 leading-relaxed">{author.bio}</p>
-            <div className="flex items-center gap-3">
-              <a
-                href="#email"
-                className="w-10 h-10 rounded-full border border-border hover:border-primary hover:bg-muted transition-all flex items-center justify-center"
-                aria-label="Email"
-              >
-                <Mail className="w-4 h-4" />
-              </a>
-              <a
-                href="#twitter"
-                className="w-10 h-10 rounded-full border border-border hover:border-primary hover:bg-muted transition-all flex items-center justify-center"
-                aria-label="Twitter"
-              >
-                <Twitter className="w-4 h-4" />
-              </a>
-              <a
-                href="#instagram"
-                className="w-10 h-10 rounded-full border border-border hover:border-primary hover:bg-muted transition-all flex items-center justify-center"
-                aria-label="Instagram"
-              >
-                <Instagram className="w-4 h-4" />
-              </a>
-            </div>
+            <AuthorCardTile
+              name={author.name}
+              imageUrl={author.image.url}
+              role={author.role}
+              bio={author.shortBio}
+              articles={author.linkedFrom.entryCollection.total}
+              twitter={author.twitter}
+              linkedIn={author.linkedin}
+              instagram={author.instagram}
+              email={author.email}
+              github={author.github}
+              facebook={author.facebook}
+            />
           </div>
         ))}
       </section>
@@ -105,12 +80,12 @@ const AuthorsPage = () => {
           We're always looking for thoughtful voices to join our community. If you have insights to
           share on wellness, travel, creativity, or personal growth, we'd love to hear from you.
         </p>
-        <a
-          href="/contact"
+        <Link
+          to={CONTACT_PAGE_ROUTE}
           className="inline-block px-8 py-3 rounded-full bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
         >
           Get in Touch
-        </a>
+        </Link>
       </section>
     </>
   );

@@ -7,6 +7,7 @@ import {
   ARTICLE_PAGE_ROUTE,
   ARTICLES_DETAIL_PAGE_ROUTE,
   ARTICLES_PAGE_ROUTE,
+  AUTHOR_DETAIL_PAGE_ROUTE,
   AUTHORS_PAGE_ROUTE,
   BASE_ROUTE,
   CONTACT_PAGE_ROUTE,
@@ -90,6 +91,12 @@ export default [
   },
   {
     path: AUTHORS_PAGE_ROUTE,
+    alternatePaths: [],
+    component: AuthorsPage,
+  },
+  {
+    // TODO: setup author detail page
+    path: AUTHOR_DETAIL_PAGE_ROUTE,
     alternatePaths: [],
     component: AuthorsPage,
   },
