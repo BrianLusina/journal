@@ -18,3 +18,4 @@ Object.defineProperty(window, 'matchMedia', {
   }),
 });
 
+global.fetch = jest.fn();

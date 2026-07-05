@@ -5,7 +5,7 @@ import remarkGfm from 'remark-gfm';
 import { captureException, captureScope, Severity } from '@services/monitoring';
 import PageLoader from '@components/Elements/Loaders/PageLoader';
 import { humanizeDateTime } from '@timeUtils';
-import useFetchArticle from '@hooks/api/useFetchArticle';
+import { usePost } from '@hooks/cms/usePost';
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';
 import { BackNavigation } from '@/components/ui/navigation';
 import { ArticleHeader, ArticleHeroImage } from './components';
@@ -16,8 +16,8 @@ import MarkdownComponents from '@/components/ui/markdown';
 import RelatedArticles from '@/features/RelatedArticles';
 
 const ArticlePage: FunctionComponent = () => {
-  const { slug, id } = useParams();
-  const [loading, error, data] = useFetchArticle(id!);
+  const { slug } = useParams();
+  const { loading, error, data } = usePost(slug);
 
   if (loading) {
     return <PageLoader />;
@@ -37,15 +37,15 @@ const ArticlePage: FunctionComponent = () => {
   }
 
   const {
-    heroImage: { url: imageUrl },
+    heroImage,
     title,
     subtitle,
     publishDate,
     body,
     category,
-    contentfulMetadata: { tags },
-    authorsCollection: { items: authors },
-  } = data.blogPost;
+    tags,
+    authors,
+  } = data;
 
   const publishDateHumanized = humanizeDateTime(
     publishDate,
@@ -57,13 +57,13 @@ const ArticlePage: FunctionComponent = () => {
     <main>
       <BackNavigation title="Back to Articles" link="/articles" />
 
-      <ArticleHeroImage imageUrl={imageUrl} title={title} />
+      <ArticleHeroImage imageUrl={heroImage?.url || ''} title={title} />
 
       <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-32 relative z-10">
         <ArticleHeader
           title={title}
-          subtitle={subtitle}
-          category={category}
+          subtitle={subtitle || ''}
+          category={category || ''}
           publishedDate={publishDateHumanized}
           authors={authors}
         />

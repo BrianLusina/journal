@@ -1,6 +1,6 @@
 import { FunctionComponent } from 'react';
 import ArticleCard from '@/components/ArticleCard';
-import useFetchArticlesByCategory from '@/hooks/api/useFetchArticlesByCategory';
+import { usePosts } from '@/hooks/cms/usePosts';
 import { captureException, captureScope, Severity } from '@/services/monitoring';
 import { humanizeDateTime } from '@timeUtils';
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';
@@ -10,9 +10,9 @@ type RelatedArticlesProps = {
 };
 
 const RelatedArticles: FunctionComponent<RelatedArticlesProps> = ({ category }) => {
-  const [loading, error, data] = useFetchArticlesByCategory(category);
+  const { loading, error, data } = usePosts({ category, limit: 3 });
 
-  if (loading) {
+  if (loading && (!data || data.items.length === 0)) {
     // TODO: use component loader
     return <></>;
   }
@@ -26,7 +26,9 @@ const RelatedArticles: FunctionComponent<RelatedArticlesProps> = ({ category }) 
     return <p>Yikes! Something terrible has happened. Looking into this :)</p>;
   }
 
-  const relatedArticles = data.blogPostCollection.items;
+  const relatedArticles = data ? data.items : [];
+
+  if (relatedArticles.length === 0) return null;
 
   return (
     <section className="bg-muted py-16 animate-fade-in">
@@ -35,15 +37,15 @@ const RelatedArticles: FunctionComponent<RelatedArticlesProps> = ({ category }) 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {relatedArticles.map((relatedArticle, index) => (
             <div
-              key={relatedArticle.sys.id}
+              key={relatedArticle.id}
               className={`animate-slide-up stagger-${Math.min(index + 1, 3)}`}
             >
               <ArticleCard
                 size="small"
-                id={relatedArticle.sys.id}
+                id={relatedArticle.id}
                 slug={relatedArticle.slug}
                 title={relatedArticle.title}
-                category={relatedArticle.category}
+                category={relatedArticle.category || ''}
                 date={humanizeDateTime(
                   relatedArticle.publishDate,
                   DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss,

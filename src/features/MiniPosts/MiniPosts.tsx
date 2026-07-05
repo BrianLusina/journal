@@ -1,21 +1,16 @@
 import { FunctionComponent } from 'react';
 import MiniPostItem from '@components/MiniPost';
-import { useQuery } from '@apollo/client';
-import { GET_ALL_BLOGS } from '@graphQl/queries';
+import { usePosts } from '@hooks/cms/usePosts';
 import { captureException, captureScope, Severity } from '@services/monitoring';
 import { humanizeDateTime } from '@timeUtils';
 // eslint-disable-next-line camelcase
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';
 
 const MiniPosts: FunctionComponent = () => {
-  const { loading, error, data } = useQuery<BlogPostsData, GetAllBlogsVariables>(GET_ALL_BLOGS, {
-    variables: {
-      limit: 5,
-    },
-  });
+  const { loading, error, data } = usePosts({ limit: 5 });
 
   // FIXME: use a component loader for this. Preferably a Skeleton loader
-  if (loading) return <div>Loading...</div>;
+  if (loading && (!data || data.items.length === 0)) return <div>Loading...</div>;
 
   if (error) {
     captureException(
@@ -26,19 +21,19 @@ const MiniPosts: FunctionComponent = () => {
     return <p>Yikes! Something terrible has happened. Looking into this :)</p>;
   }
 
-  const posts = data ? data.blogPostCollection.items : [];
+  const posts = data ? data.items : [];
 
   return (
     <section>
       <div className="mini-posts">
         {posts.map(
           ({
-            sys: { id },
+            id,
             title,
-            thumbnail: { url },
+            thumbnail,
             slug,
             publishDate,
-            authorsCollection: { items: authors },
+            authors,
           }) => (
             <MiniPostItem
               key={id}
@@ -46,13 +41,13 @@ const MiniPosts: FunctionComponent = () => {
               id={id}
               link={`${id}/${slug}`}
               title={title}
-              authorIds={authors.map(({ sys: { id: authorId } }) => authorId)}
+              authorIds={authors.map(author => author.id)}
               time={humanizeDateTime(
                 publishDate,
                 DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss,
                 DATE_FORMAT_MMMM_D_YYYY,
               )}
-              imgUrl={url}
+              imgUrl={thumbnail?.url || ''}
             />
           ),
         )}

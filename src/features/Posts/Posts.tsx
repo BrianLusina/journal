@@ -1,8 +1,7 @@
 import { FunctionComponent, useState } from 'react';
 import { Button } from '@components/ui/button';
 import { captureException, captureScope, Severity } from '@services/monitoring';
-import { useQuery } from '@apollo/client';
-import { GET_ALL_BLOGS } from '@graphQl/queries';
+import { usePosts } from '@hooks/cms/usePosts';
 import { humanizeDateTime } from '@timeUtils';
 // eslint-disable-next-line camelcase
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';
@@ -11,17 +10,10 @@ import PostItem from './PostItem';
 const Posts: FunctionComponent = () => {
   const itemsPerPage = 10;
   const [currentSize, setCurrentSize] = useState<number>(itemsPerPage);
-  const { loading, error, data, fetchMore } = useQuery<BlogPostsData, GetAllBlogsVariables>(
-    GET_ALL_BLOGS,
-    {
-      variables: {
-        limit: currentSize,
-      },
-    },
-  );
+  const { loading, error, data } = usePosts({ limit: currentSize });
 
   // FIXME: use a component loader for this. Preferably a Skeleton loader
-  if (loading) return <div>Loading...</div>;
+  if (loading && (!data || data.items.length === 0)) return <div>Loading...</div>;
 
   if (error) {
     console.error('Posts Error:', error);
@@ -33,15 +25,15 @@ const Posts: FunctionComponent = () => {
     return <p>Yikes! Something terrible has happened. Looking into this :)</p>;
   }
 
-  const posts = data ? data.blogPostCollection.items : [];
-  const total = data ? data.blogPostCollection.total : 0;
+  const posts = data ? data.items : [];
+  const total = data ? data.total : 0;
 
   let fetchedSize = posts.length;
   const hasNextPage = fetchedSize < total;
 
   const handleSeeMore = (): void => {
     if (hasNextPage) {
-      fetchedSize += currentSize;
+      fetchedSize += itemsPerPage;
       setCurrentSize(fetchedSize);
     }
   };
@@ -50,34 +42,34 @@ const Posts: FunctionComponent = () => {
     <section>
       {posts.map(
         ({
+          id,
           title,
           subtitle,
           description,
-          sys: { id },
-          heroImage: { url, title: imgTitle },
+          heroImage,
           publishDate,
-          contentfulMetadata: { tags },
+          tags,
           slug,
-          authorsCollection: { items: authors },
+          authors,
         }) => (
           <PostItem
             key={id}
             id={id}
             title={title}
-            subtitle={subtitle}
-            excerpt={description}
+            subtitle={subtitle || ''}
+            excerpt={description || ''}
             img={{
-              src: url,
-              alt: imgTitle,
+              src: heroImage?.url || '',
+              alt: heroImage?.title || title,
             }}
             date={humanizeDateTime(
               publishDate,
               DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss,
               DATE_FORMAT_MMMM_D_YYYY,
             )}
-            tags={tags.map(({ name }) => name)}
+            tags={tags}
             link={`${id}/${slug}`}
-            authorIds={authors.map(({ sys: { id: authorId } }) => authorId)}
+            authorIds={authors.map(author => author.id)}
           />
         ),
       )}

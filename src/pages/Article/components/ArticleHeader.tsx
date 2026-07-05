@@ -8,7 +8,7 @@ type ArticleHeaderProps = {
     subtitle: string;
     category: string;
     publishedDate: string;
-    authors: { sys: { id: string } }[];
+    authors: UnifiedAuthor[];
 };
 
 const ArticleHeader: React.FC<ArticleHeaderProps> = ({
@@ -44,8 +44,8 @@ const ArticleHeader: React.FC<ArticleHeaderProps> = ({
       {/* Author Info */}
       <div className="flex items-center justify-between border-t border-b border-border py-6">
         <div className="flex items-center gap-4">
-          {authors.map(({ sys: { id: authorId } }) => (
-            <AuthorBadge key={authorId} authorId={authorId} />
+          {authors.map((author) => (
+            <AuthorBadge key={author.id} authorId={author.id} />
           ))}
         </div>
 

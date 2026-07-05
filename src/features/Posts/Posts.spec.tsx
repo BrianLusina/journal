@@ -1,10 +1,9 @@
-import { GET_ALL_BLOGS } from '@graphQl/queries';
 import faker from 'faker';
 import { render, screen, act, fireEvent } from '@testing-library/react';
 import MockApp from '@testUtils/MockApp';
-import { MockedResponseType } from '@testUtils/MockAppWithGqlProvider';
 import * as Monitoring from '@services/monitoring';
 import Posts from './Posts';
+import { usePosts } from '@hooks/cms/usePosts';
 
 jest.mock('@services/monitoring', () => {
   return {
@@ -16,280 +15,110 @@ jest.mock('@services/monitoring', () => {
   };
 });
 
+jest.mock('@hooks/cms/usePosts');
+
 describe('Posts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should render', async () => {
-    const postsMock: MockedResponseType[] = [];
-    await act(async () => {
-      render(
-        <MockApp mocks={postsMock}>
-          <Posts />
-        </MockApp>,
-      );
+  it('should render loading state', async () => {
+    (usePosts as jest.Mock).mockReturnValue({
+      data: null,
+      loading: true,
+      error: null,
     });
+    
+    render(
+      <MockApp mocks={[]}>
+        <Posts />
+      </MockApp>,
+    );
+
+    expect(screen.getByText('Loading...')).toBeInTheDocument();
   });
 
   it('should display content as received from query', async () => {
     const items = [
       {
+        id: faker.datatype.uuid(),
+        source: 'contentful',
         heroImage: {
-          contentfulMetadata: {
-            concepts: [],
-          tags: [
-            {
-              name: faker.lorem.word(),
-              id: faker.datatype.uuid(),
-            },
-          ],
-          },
-          contentType: 'image/jpeg',
-          description: faker.lorem.sentence(),
-          fileName: 'image.jpg',
-          height: 100,
-          size: 1000,
-          sys: {
-            environmentId: 'master',
-          firstPublishedAt: faker.date.past().toISOString(),
-          id: faker.datatype.uuid(),
-          locale: 'en-US',
-          publishedAt: faker.date.past().toISOString(),
-          publishedVersion: 1,
-          spaceId: 'space-123',
-          },
-          title: faker.lorem.word(),
           url: faker.image.imageUrl(),
-          width: 100,
-        },
-        thumbnail: {
-          contentfulMetadata: {
-            concepts: [],
-          tags: [
-            {
-              name: faker.lorem.word(),
-              id: faker.datatype.uuid(),
-            },
-          ],
-          },
-          contentType: 'image/jpeg',
-          description: faker.lorem.sentence(),
-          fileName: 'image.jpg',
-          height: 100,
-          size: 1000,
-          sys: {
-            environmentId: 'master',
-          firstPublishedAt: faker.date.past().toISOString(),
-          id: faker.datatype.uuid(),
-          locale: 'en-US',
-          publishedAt: faker.date.past().toISOString(),
-          publishedVersion: 1,
-          spaceId: 'space-123',
-          },
-          title: faker.lorem.word(),
-          url: faker.image.imageUrl(),
-          width: 100,
+          title: 'Hero 1',
         },
         title: faker.lorem.word(),
         subtitle: faker.lorem.words(),
         description: faker.lorem.text(),
-        category: faker.lorem.text(),
+        category: faker.lorem.word(),
         slug: faker.random.word(),
-        body: faker.lorem.paragraphs(),
         publishDate: faker.date.past().toISOString(),
-        sys: {
-            environmentId: 'master',
-          firstPublishedAt: faker.date.past().toISOString(),
-          id: faker.datatype.uuid(),
-          locale: 'en-US',
-          publishedAt: faker.date.past().toISOString(),
-          publishedVersion: 1,
-          spaceId: 'space-123',
-          },
-          contentfulMetadata: {
-            concepts: [],
-            tags: [
-              {
-                name: faker.lorem.word(),
-                id: faker.datatype.uuid(),
-              },
-            ],
-          },
-        authorsCollection: {
-          total: 1,
-          items: [
-            {
-              sys: {
-                id: faker.datatype.uuid(),
-              },
-            },
-          ],
-        },
+        tags: [faker.lorem.word()],
+        authors: [{ id: faker.datatype.uuid() }],
       },
       {
+        id: faker.datatype.uuid(),
+        source: 'notion',
         heroImage: {
-          contentfulMetadata: {
-            concepts: [],
-          tags: [
-            {
-              name: faker.lorem.word(),
-              id: faker.datatype.uuid(),
-            },
-          ],
-          },
-          contentType: 'image/jpeg',
-          description: faker.lorem.sentence(),
-          fileName: 'image.jpg',
-          height: 100,
-          size: 1000,
-          sys: {
-            environmentId: 'master',
-          firstPublishedAt: faker.date.past().toISOString(),
-          id: faker.datatype.uuid(),
-          locale: 'en-US',
-          publishedAt: faker.date.past().toISOString(),
-          publishedVersion: 1,
-          spaceId: 'space-123',
-          },
-          title: faker.lorem.word(),
           url: faker.image.imageUrl(),
-          width: 100,
-        },
-        thumbnail: {
-          contentfulMetadata: {
-            concepts: [],
-          tags: [
-            {
-              name: faker.lorem.word(),
-              id: faker.datatype.uuid(),
-            },
-          ],
-          },
-          contentType: 'image/jpeg',
-          description: faker.lorem.sentence(),
-          fileName: 'image.jpg',
-          height: 100,
-          size: 1000,
-          sys: {
-            environmentId: 'master',
-          firstPublishedAt: faker.date.past().toISOString(),
-          id: faker.datatype.uuid(),
-          locale: 'en-US',
-          publishedAt: faker.date.past().toISOString(),
-          publishedVersion: 1,
-          spaceId: 'space-123',
-          },
-          title: faker.lorem.word(),
-          url: faker.image.imageUrl(),
-          width: 100,
+          title: 'Hero 2',
         },
         title: faker.lorem.word(),
         subtitle: faker.lorem.words(),
         description: faker.lorem.text(),
-        category: faker.lorem.text(),
+        category: faker.lorem.word(),
         slug: faker.random.word(),
-        body: faker.lorem.paragraphs(),
         publishDate: faker.date.past().toISOString(),
-        sys: {
-            environmentId: 'master',
-          firstPublishedAt: faker.date.past().toISOString(),
-          id: faker.datatype.uuid(),
-          locale: 'en-US',
-          publishedAt: faker.date.past().toISOString(),
-          publishedVersion: 1,
-          spaceId: 'space-123',
-          },
-          contentfulMetadata: {
-            concepts: [],
-            tags: [
-              {
-                name: faker.lorem.word(),
-                id: faker.datatype.uuid(),
-              },
-            ],
-          },
-        authorsCollection: {
-          total: 1,
-          items: [
-            {
-              sys: {
-                id: faker.datatype.uuid(),
-              },
-            },
-          ],
-        },
+        tags: [faker.lorem.word()],
+        authors: [{ id: faker.datatype.uuid() }],
       },
     ];
 
-    const postsMock: MockedResponseType[] = [
-      {
-        request: {
-          query: GET_ALL_BLOGS,
-          variables: {
-            limit: 10,
-          },
-        },
-        result: {
-          data: {
-            blogPostCollection: {
-              items,
-              total: items.length + 1,
-            },
-          },
-        },
+    (usePosts as jest.Mock).mockReturnValue({
+      data: {
+        items,
+        total: items.length + 1,
+        limit: 10,
+        skip: 0,
       },
-    ];
-
-    await act(async () => {
-      render(
-        <MockApp mocks={postsMock}>
-          <Posts />
-        </MockApp>,
-      );
+      loading: false,
+      error: null,
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    render(
+      <MockApp mocks={[]}>
+        <Posts />
+      </MockApp>,
+    );
 
     items.forEach((item) => {
-      const postTitleElement = screen.getByText(item.title);
-      const postSubtitleElement = screen.getByText(item.subtitle);
+      const postTitleElements = screen.getAllByText(item.title);
+      const postSubtitleElements = screen.getAllByText(item.subtitle);
       const heroImageElement = screen.getByAltText(item.heroImage.title);
 
-      expect(postTitleElement).toBeInTheDocument();
-      expect(postSubtitleElement).toBeInTheDocument();
+      expect(postTitleElements[0]).toBeInTheDocument();
+      expect(postSubtitleElements[0]).toBeInTheDocument();
       expect(heroImageElement.getAttribute('src')).toContain(item.heroImage.url);
     });
   });
 
   it('should display error if query fails to fetch content', async () => {
-    const postsMock: MockedResponseType[] = [
-      {
-        request: {
-          query: GET_ALL_BLOGS,
-          variables: {
-            limit: 10,
-          },
-        },
-        error: {
-          name: 'Error',
-          message: faker.lorem.words(),
-        },
-        result: {
-          data: undefined,
-        },
-      },
-    ];
-
-    await act(async () => {
-      render(
-        <MockApp mocks={postsMock}>
-          <Posts />
-        </MockApp>,
-      );
+    const mockError = new Error(faker.lorem.words());
+    
+    (usePosts as jest.Mock).mockReturnValue({
+      data: null,
+      loading: false,
+      error: mockError,
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    render(
+      <MockApp mocks={[]}>
+        <Posts />
+      </MockApp>,
+    );
+
+    const errorMsg = await screen.findByText(/Yikes! Something terrible has happened/i);
+    expect(errorMsg).toBeInTheDocument();
 
     expect(Monitoring.captureException).toBeCalledTimes(1);
     expect(Monitoring.captureScope).toBeCalledTimes(1);
@@ -298,355 +127,85 @@ describe('Posts', () => {
   it('should handle fetchMore to display more data', async () => {
     const items = [
       {
+        id: faker.datatype.uuid(),
+        source: 'contentful',
         heroImage: {
-          contentfulMetadata: {
-            concepts: [],
-          tags: [
-            {
-              name: faker.lorem.word(),
-              id: faker.datatype.uuid(),
-            },
-          ],
-          },
-          contentType: 'image/jpeg',
-          description: faker.lorem.sentence(),
-          fileName: 'image.jpg',
-          height: 100,
-          size: 1000,
-          sys: {
-            environmentId: 'master',
-          firstPublishedAt: faker.date.past().toISOString(),
-          id: faker.datatype.uuid(),
-          locale: 'en-US',
-          publishedAt: faker.date.past().toISOString(),
-          publishedVersion: 1,
-          spaceId: 'space-123',
-          },
-          title: faker.lorem.word(),
           url: faker.image.imageUrl(),
-          width: 100,
-        },
-        thumbnail: {
-          contentfulMetadata: {
-            concepts: [],
-          tags: [
-            {
-              name: faker.lorem.word(),
-              id: faker.datatype.uuid(),
-            },
-          ],
-          },
-          contentType: 'image/jpeg',
-          description: faker.lorem.sentence(),
-          fileName: 'image.jpg',
-          height: 100,
-          size: 1000,
-          sys: {
-            environmentId: 'master',
-          firstPublishedAt: faker.date.past().toISOString(),
-          id: faker.datatype.uuid(),
-          locale: 'en-US',
-          publishedAt: faker.date.past().toISOString(),
-          publishedVersion: 1,
-          spaceId: 'space-123',
-          },
-          title: faker.lorem.word(),
-          url: faker.image.imageUrl(),
-          width: 100,
+          title: 'Hero 1',
         },
         title: faker.lorem.word(),
         subtitle: faker.lorem.words(),
         description: faker.lorem.text(),
-        category: faker.lorem.text(),
+        category: faker.lorem.word(),
         slug: faker.random.word(),
-        body: faker.lorem.paragraphs(),
         publishDate: faker.date.past().toISOString(),
-        sys: {
-            environmentId: 'master',
-          firstPublishedAt: faker.date.past().toISOString(),
-          id: faker.datatype.uuid(),
-          locale: 'en-US',
-          publishedAt: faker.date.past().toISOString(),
-          publishedVersion: 1,
-          spaceId: 'space-123',
-          },
-          contentfulMetadata: {
-          tags: [
-            {
-              name: faker.lorem.word(),
-              id: faker.datatype.uuid(),
-            },
-          ],
-        },
-        authorsCollection: {
-          total: 1,
-          items: [
-            {
-              sys: {
-                id: faker.datatype.uuid(),
-              },
-            },
-          ],
-        },
-      },
-      {
-        heroImage: {
-          contentfulMetadata: {
-            concepts: [],
-          tags: [
-            {
-              name: faker.lorem.word(),
-              id: faker.datatype.uuid(),
-            },
-          ],
-          },
-          contentType: 'image/jpeg',
-          description: faker.lorem.sentence(),
-          fileName: 'image.jpg',
-          height: 100,
-          size: 1000,
-          sys: {
-            environmentId: 'master',
-          firstPublishedAt: faker.date.past().toISOString(),
-          id: faker.datatype.uuid(),
-          locale: 'en-US',
-          publishedAt: faker.date.past().toISOString(),
-          publishedVersion: 1,
-          spaceId: 'space-123',
-          },
-          title: faker.lorem.word(),
-          url: faker.image.imageUrl(),
-          width: 100,
-        },
-        thumbnail: {
-          contentfulMetadata: {
-            concepts: [],
-          tags: [
-            {
-              name: faker.lorem.word(),
-              id: faker.datatype.uuid(),
-            },
-          ],
-          },
-          contentType: 'image/jpeg',
-          description: faker.lorem.sentence(),
-          fileName: 'image.jpg',
-          height: 100,
-          size: 1000,
-          sys: {
-            environmentId: 'master',
-          firstPublishedAt: faker.date.past().toISOString(),
-          id: faker.datatype.uuid(),
-          locale: 'en-US',
-          publishedAt: faker.date.past().toISOString(),
-          publishedVersion: 1,
-          spaceId: 'space-123',
-          },
-          title: faker.lorem.word(),
-          url: faker.image.imageUrl(),
-          width: 100,
-        },
-        title: faker.lorem.word(),
-        subtitle: faker.lorem.words(),
-        description: faker.lorem.text(),
-        category: faker.lorem.text(),
-        slug: faker.random.word(),
-        body: faker.lorem.paragraphs(),
-        publishDate: faker.date.past().toISOString(),
-        sys: {
-            environmentId: 'master',
-          firstPublishedAt: faker.date.past().toISOString(),
-          id: faker.datatype.uuid(),
-          locale: 'en-US',
-          publishedAt: faker.date.past().toISOString(),
-          publishedVersion: 1,
-          spaceId: 'space-123',
-          },
-          contentfulMetadata: {
-            concepts: [],
-          tags: [
-            {
-              name: faker.lorem.word(),
-              id: faker.datatype.uuid(),
-            },
-          ],
-        },
-        authorsCollection: {
-          total: 1,
-          items: [
-            {
-              sys: {
-                id: faker.datatype.uuid(),
-              },
-            },
-          ],
-        },
+        tags: [faker.lorem.word()],
+        authors: [{ id: faker.datatype.uuid() }],
       },
     ];
 
     const newItem = {
-      heroImage: {
-          contentfulMetadata: {
-            concepts: [],
-          tags: [
-            {
-              name: faker.lorem.word(),
-              id: faker.datatype.uuid(),
-            },
-          ],
-          },
-          contentType: 'image/jpeg',
-          description: faker.lorem.sentence(),
-          fileName: 'image.jpg',
-          height: 100,
-          size: 1000,
-          sys: {
-            environmentId: 'master',
-          firstPublishedAt: faker.date.past().toISOString(),
-          id: faker.datatype.uuid(),
-          locale: 'en-US',
-          publishedAt: faker.date.past().toISOString(),
-          publishedVersion: 1,
-          spaceId: 'space-123',
-          },
-          title: faker.lorem.word(),
+        id: faker.datatype.uuid(),
+        source: 'notion',
+        heroImage: {
           url: faker.image.imageUrl(),
-          width: 100,
-        },
-        thumbnail: {
-          contentfulMetadata: {
-            concepts: [],
-          tags: [
-            {
-              name: faker.lorem.word(),
-              id: faker.datatype.uuid(),
-            },
-          ],
-          },
-          contentType: 'image/jpeg',
-          description: faker.lorem.sentence(),
-          fileName: 'image.jpg',
-          height: 100,
-          size: 1000,
-          sys: {
-            environmentId: 'master',
-          firstPublishedAt: faker.date.past().toISOString(),
-          id: faker.datatype.uuid(),
-          locale: 'en-US',
-          publishedAt: faker.date.past().toISOString(),
-          publishedVersion: 1,
-          spaceId: 'space-123',
-          },
-          title: faker.lorem.word(),
-          url: faker.image.imageUrl(),
-          width: 100,
+          title: 'Hero 2',
         },
         title: faker.lorem.word(),
-      subtitle: faker.lorem.words(),
-      description: faker.lorem.text(),
-      slug: faker.random.word(),
-      body: faker.lorem.paragraphs(),
-      publishDate: faker.date.past().toISOString(),
-      sys: {
-            environmentId: 'master',
-          firstPublishedAt: faker.date.past().toISOString(),
-          id: faker.datatype.uuid(),
-          locale: 'en-US',
-          publishedAt: faker.date.past().toISOString(),
-          publishedVersion: 1,
-          spaceId: 'space-123',
-          },
-          contentfulMetadata: {
-        concepts: [],
-        tags: [
-          {
-            name: faker.lorem.word(),
-            id: faker.datatype.uuid(),
-          },
-        ],
-      },
-      authorsCollection: {
-        total: 1,
-        items: [
-          {
-            sys: {
-              id: faker.datatype.uuid(),
-            },
-          },
-        ],
-      },
+        subtitle: faker.lorem.words(),
+        description: faker.lorem.text(),
+        category: faker.lorem.word(),
+        slug: faker.random.word(),
+        publishDate: faker.date.past().toISOString(),
+        tags: [faker.lorem.word()],
+        authors: [{ id: faker.datatype.uuid() }],
     };
 
-    const postsMock: MockedResponseType[] = [
-      {
-        request: {
-          query: GET_ALL_BLOGS,
-          variables: {
+    let renderCount = 0;
+    (usePosts as jest.Mock).mockImplementation(({ limit }) => {
+      renderCount++;
+      // First render (limit: 10)
+      if (limit === 10) {
+        return {
+          data: {
+            items,
+            total: 2,
             limit: 10,
+            skip: 0,
           },
-        },
-        result: {
+          loading: false,
+          error: null,
+        };
+      }
+      
+      // Subsequent render (limit: 20 after "Load More" clicked)
+      return {
           data: {
-            blogPostCollection: {
-              items,
-              total: items.length + 1,
-            },
+            items: [...items, newItem],
+            total: 2,
+            limit: 20,
+            skip: 0,
           },
-        },
-      },
-      {
-        request: {
-          query: GET_ALL_BLOGS,
-          variables: {
-            limit: 12,
-          },
-        },
-        result: {
-          data: {
-            blogPostCollection: {
-              items: [...items, newItem],
-              total: items.length + 1,
-            },
-          },
-        },
-      },
-      {
-        request: {
-          query: GET_ALL_BLOGS,
-          variables: {
-            limit: 12,
-          },
-        },
-        result: {
-          data: {
-            blogPostCollection: {
-              items: [...items, newItem],
-              total: items.length + 1,
-            },
-          },
-        },
-      },
-    ];
-
-    await act(async () => {
-      render(
-        <MockApp mocks={postsMock}>
-          <Posts />
-        </MockApp>,
-      );
+          loading: false,
+          error: null,
+      };
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    render(
+      <MockApp mocks={[]}>
+        <Posts />
+      </MockApp>,
+    );
 
     const loadMoreBtn = await screen.findByText('Load More');
     fireEvent.click(loadMoreBtn);
 
-    const postTitleElement = await screen.findByText(newItem.title);
-    const postSubtitleElement = await screen.findByText(newItem.subtitle);
+    const postTitleElements = await screen.findAllByText(newItem.title);
+    const postSubtitleElements = await screen.findAllByText(newItem.subtitle);
     const heroImageElement = screen.getByAltText(newItem.heroImage.title);
 
-    expect(postTitleElement).toBeInTheDocument();
-    expect(postSubtitleElement).toBeInTheDocument();
+    expect(postTitleElements[0]).toBeInTheDocument();
+    expect(postSubtitleElements[0]).toBeInTheDocument();
     expect(heroImageElement.getAttribute('src')).toContain(newItem.heroImage.url);
   });
 });
