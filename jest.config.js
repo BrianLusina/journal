@@ -91,7 +91,6 @@ module.exports = {
     '<rootDir>/src/components/Messaging/Notification/NotificationContainer.tsx',
   ],
   setupFiles: [
-    'react-app-polyfill/jsdom',
     '<rootDir>/config/mocks/browserMock.js',
     '<rootDir>/config/mocks/axios.js',
     '<rootDir>/config/mocks/intersectionObserver.js',
@@ -120,6 +119,7 @@ module.exports = {
     '^react-native$': 'react-native-web',
     '^.+\\.module\\.(css|sass|scss)$': 'identity-obj-proxy',
     // ...pathsToModuleNameMapper(compilerOptions.paths),
+    '^@/(.*)$': '<rootDir>/src/$1',
     '^@assets/(.*)$': '<rootDir>/src/assets/$1',
     '^@icons/(.*)$': '<rootDir>/src/assets/icons/$1',
     '^@images/(.*)$': '<rootDir>/src/assets/images/$1',
@@ -145,7 +145,6 @@ module.exports = {
     '^@analytics': '<rootDir>/src/services/analytics/index.ts',
     '^@testUtils/(.*)$': '<rootDir>/src/test/$1',
     '^@styles/(.*)$': '<rootDir>/src/styles/$1',
-    '^@styled/(.*)$': '<rootDir>/src/styles/ts/$1',
     '^@scss/(.*)$': '<rootDir>/src/styles/scss/$1',
     '^@css/(.*)$': '<rootDir>/src/styles/css/$1',
     'react-markdown': '<rootDir>/config/mocks/react-markdown.js',

@@ -22,7 +22,23 @@ describe('MiniPosts', () => {
   });
 
   it('should render', async () => {
-    const miniPostsMock: MockedResponseType[] = [];
+    const miniPostsMock: MockedResponseType[] = [
+      {
+        request: {
+          query: GET_ALL_BLOGS,
+          variables: { limit: 5 },
+        },
+        result: {
+          data: {
+            blogPostCollection: {
+              total: 0,
+              limit: 5,
+              items: [],
+            },
+          },
+        },
+      },
+    ];
     await act(async () => {
       render(
         <MockApp mocks={miniPostsMock}>
@@ -35,13 +51,70 @@ describe('MiniPosts', () => {
   it('should display content as received from query', async () => {
     const items = [
       {
+        __typename: 'BlogPost',
         heroImage: {
+          __typename: 'Asset',
+          contentfulMetadata: {
+            __typename: 'ContentfulMetadata',
+            concepts: [],
+            tags: [
+              {
+                __typename: 'ContentfulTag',
+                name: faker.lorem.word(),
+                id: faker.datatype.uuid(),
+              },
+            ],
+          },
+          contentType: 'image/jpeg',
+          description: faker.lorem.sentence(),
+          fileName: 'image.jpg',
+          height: 100,
+          size: 1000,
+          sys: {
+            __typename: 'Sys',
+            environmentId: 'master',
+            firstPublishedAt: faker.date.past().toISOString(),
+            id: faker.datatype.uuid(),
+            locale: 'en-US',
+            publishedAt: faker.date.past().toISOString(),
+            publishedVersion: 1,
+            spaceId: 'space-123',
+          },
           title: faker.lorem.word(),
           url: faker.image.imageUrl(),
+          width: 100,
         },
         thumbnail: {
-          title: 'thumbnail title',
+          __typename: 'Asset',
+          contentfulMetadata: {
+            __typename: 'ContentfulMetadata',
+            concepts: [],
+            tags: [
+              {
+                __typename: 'ContentfulTag',
+                name: faker.lorem.word(),
+                id: faker.datatype.uuid(),
+              },
+            ],
+          },
+          contentType: 'image/jpeg',
+          description: faker.lorem.sentence(),
+          fileName: 'image.jpg',
+          height: 100,
+          size: 1000,
+          sys: {
+            __typename: 'Sys',
+            environmentId: 'master',
+            firstPublishedAt: faker.date.past().toISOString(),
+            id: faker.datatype.uuid(),
+            locale: 'en-US',
+            publishedAt: faker.date.past().toISOString(),
+            publishedVersion: 1,
+            spaceId: 'space-123',
+          },
+          title: faker.lorem.word(),
           url: faker.image.imageUrl(),
+          width: 100,
         },
         title: 'Some Title',
         subtitle: faker.lorem.words(),
@@ -51,21 +124,34 @@ describe('MiniPosts', () => {
         body: faker.lorem.paragraphs(),
         publishDate: faker.date.past().toISOString(),
         sys: {
+            __typename: 'Sys',
+            environmentId: 'master',
+          firstPublishedAt: faker.date.past().toISOString(),
           id: faker.datatype.uuid(),
-        },
-        contentfulMetadata: {
-          tags: [
-            {
-              name: faker.lorem.word(),
-              id: faker.datatype.uuid(),
-            },
-          ],
-        },
+          locale: 'en-US',
+          publishedAt: faker.date.past().toISOString(),
+          publishedVersion: 1,
+          spaceId: 'space-123',
+          },
+          contentfulMetadata: {
+            __typename: 'ContentfulMetadata',
+            concepts: [],
+            tags: [
+              {
+                __typename: 'ContentfulTag',
+                name: faker.lorem.word(),
+                id: faker.datatype.uuid(),
+              },
+            ],
+          },
         authorsCollection: {
+          __typename: 'BlogPostAuthorsCollection',
           total: 1,
           items: [
             {
+              __typename: 'Person',
               sys: {
+                __typename: 'Sys',
                 id: faker.datatype.uuid(),
               },
             },
@@ -73,13 +159,70 @@ describe('MiniPosts', () => {
         },
       },
       {
+        __typename: 'BlogPost',
         heroImage: {
+          __typename: 'Asset',
+          contentfulMetadata: {
+            __typename: 'ContentfulMetadata',
+            concepts: [],
+          tags: [
+            {
+              __typename: 'ContentfulTag',
+              name: faker.lorem.word(),
+              id: faker.datatype.uuid(),
+            },
+          ],
+          },
+          contentType: 'image/jpeg',
+          description: faker.lorem.sentence(),
+          fileName: 'image.jpg',
+          height: 100,
+          size: 1000,
+          sys: {
+            __typename: 'Sys',
+            environmentId: 'master',
+          firstPublishedAt: faker.date.past().toISOString(),
+          id: faker.datatype.uuid(),
+          locale: 'en-US',
+          publishedAt: faker.date.past().toISOString(),
+          publishedVersion: 1,
+          spaceId: 'space-123',
+          },
           title: faker.lorem.word(),
           url: faker.image.imageUrl(),
+          width: 100,
         },
         thumbnail: {
-          title: 'thumnail title 2',
+          __typename: 'Asset',
+          contentfulMetadata: {
+            __typename: 'ContentfulMetadata',
+            concepts: [],
+          tags: [
+            {
+              __typename: 'ContentfulTag',
+              name: faker.lorem.word(),
+              id: faker.datatype.uuid(),
+            },
+          ],
+          },
+          contentType: 'image/jpeg',
+          description: faker.lorem.sentence(),
+          fileName: 'image.jpg',
+          height: 100,
+          size: 1000,
+          sys: {
+            __typename: 'Sys',
+            environmentId: 'master',
+          firstPublishedAt: faker.date.past().toISOString(),
+          id: faker.datatype.uuid(),
+          locale: 'en-US',
+          publishedAt: faker.date.past().toISOString(),
+          publishedVersion: 1,
+          spaceId: 'space-123',
+          },
+          title: faker.lorem.word(),
           url: faker.image.imageUrl(),
+          width: 100,
         },
         title: 'other title',
         subtitle: faker.lorem.words(),
@@ -89,21 +232,34 @@ describe('MiniPosts', () => {
         body: faker.lorem.paragraphs(),
         publishDate: faker.date.past().toISOString(),
         sys: {
+            __typename: 'Sys',
+            environmentId: 'master',
+          firstPublishedAt: faker.date.past().toISOString(),
           id: faker.datatype.uuid(),
-        },
-        contentfulMetadata: {
-          tags: [
-            {
-              name: faker.lorem.word(),
-              id: faker.datatype.uuid(),
-            },
-          ],
-        },
+          locale: 'en-US',
+          publishedAt: faker.date.past().toISOString(),
+          publishedVersion: 1,
+          spaceId: 'space-123',
+          },
+          contentfulMetadata: {
+            __typename: 'ContentfulMetadata',
+            concepts: [],
+            tags: [
+              {
+                __typename: 'ContentfulTag',
+                name: faker.lorem.word(),
+                id: faker.datatype.uuid(),
+              },
+            ],
+          },
         authorsCollection: {
+          __typename: 'BlogPostAuthorsCollection',
           total: 1,
           items: [
             {
+              __typename: 'Person',
               sys: {
+                __typename: 'Sys',
                 id: faker.datatype.uuid(),
               },
             },
@@ -144,11 +300,10 @@ describe('MiniPosts', () => {
 
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    items.forEach((item) => {
-      const postTitleElement = screen.getByText(item.title);
-
+    for (const item of items) {
+      const postTitleElement = await screen.findByText(item.title);
       expect(postTitleElement).toBeInTheDocument();
-    });
+    }
   });
 
   it('should display error if query fails to fetch content', async () => {
@@ -177,6 +332,9 @@ describe('MiniPosts', () => {
         </MockApp>,
       );
     });
+
+    const errorMsg = await screen.findByText(/Yikes! Something terrible has happened/i);
+    expect(errorMsg).toBeInTheDocument();
 
     await new Promise((resolve) => setTimeout(resolve, 0));
 

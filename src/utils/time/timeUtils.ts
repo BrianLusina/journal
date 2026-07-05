@@ -1,9 +1,38 @@
-import getUnixTime from 'date-fns/getUnixTime';
-import formatDistance from 'date-fns/formatDistance';
-import formatDistanceStrict from 'date-fns/formatDistanceStrict';
-import moment from 'moment';
+import { getUnixTime, formatDistance, formatDistanceStrict, formatDistanceToNow, format, parse, isValid } from 'date-fns';
 // eslint-disable-next-line camelcase
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_TIME_FORMAT_MMMM_D_ha } from './constants';
+
+/**
+ * Mapping from moment.js format tokens to date-fns format tokens.
+ */
+const momentToDateFnsFormat = (momentFormat: string): string => {
+  return momentFormat
+    .replace(/YYYY/g, 'yyyy')
+    .replace(/YY/g, 'yy')
+    .replace(/DD/g, 'dd')
+    .replace(/D/g, 'd')
+    .replace(/MMMM/g, 'LLLL')
+    .replace(/MMM/g, 'LLL')
+    .replace(/MM/g, 'MM')
+    .replace(/hh/g, 'hh')
+    .replace(/HH/g, 'HH')
+    .replace(/mm/g, 'mm')
+    .replace(/ss/g, 'ss')
+    .replace(/a/g, 'aaa');
+};
+
+const safeParse = (time: string, formatStr: string): Date => {
+  const dfnsFormat = momentToDateFnsFormat(formatStr);
+  const parsedDate = parse(time, dfnsFormat, new Date());
+  if (isValid(parsedDate)) {
+    return parsedDate;
+  }
+  const fallbackDate = new Date(time);
+  if (isValid(fallbackDate)) {
+    return fallbackDate;
+  }
+  return parsedDate; // Return the invalid date, it will throw RangeError later as before
+};
 
 /**
  * Gets the time in 24 hours
@@ -80,8 +109,8 @@ export const humanizeDateTime = (
   fromFormat = DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss,
   toFormat = DATE_TIME_FORMAT_MMMM_D_ha,
 ): string => {
-  const mom = moment(time, fromFormat);
-  return mom.format(toFormat);
+  const parsedDate = safeParse(time, fromFormat);
+  return format(parsedDate, momentToDateFnsFormat(toFormat));
 };
 
 /**
@@ -96,8 +125,8 @@ export const fromNow = (
   fromFormat = DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss,
   removePrefix = false,
 ): string => {
-  const mom = moment(time, fromFormat);
-  return mom.fromNow(removePrefix);
+  const parsedDate = safeParse(time, fromFormat);
+  return formatDistanceToNow(parsedDate, { addSuffix: !removePrefix });
 };
 
 /**
@@ -114,8 +143,8 @@ export const getHumanizedDuration = (
   formart = DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss,
   strict = true,
 ): string => {
-  const startDate = moment(startDateTime, formart).toDate();
-  const endDate = moment(endDateTime, formart).toDate();
+  const startDate = safeParse(startDateTime, formart);
+  const endDate = safeParse(endDateTime, formart);
 
   if (strict) {
     return formatDistanceStrict(startDate, endDate);

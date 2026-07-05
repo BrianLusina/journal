@@ -13,8 +13,7 @@ import App from './app';
 import reportWebVitals from './reportWebVitals';
 // import './styles/scss/main.scss';
 import "./styles/css/index.css";
-import { Toaster } from './components/ui/toaster';
-import { Toaster as Sonner } from './components/ui/sonner';
+import { Toaster } from './components/ui/sonner';
 
 initializeMonitoring();
 const queryClient = new QueryClient();
@@ -26,7 +25,6 @@ createRoot(document.getElementById('root')!).render(
         <Helmet titleTemplate={`${config.title} | %s `} defaultTitle={`${config.title}`} />
         <TooltipProvider>
           <Toaster />
-          <Sonner />
           <ErrorBoundary>
             <BrowserRouter>
               <App />

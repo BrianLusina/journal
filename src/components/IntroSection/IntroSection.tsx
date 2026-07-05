@@ -11,9 +11,10 @@ const IntroSection: FunctionComponent<IntroSectionProps> = ({ title, desc }) => 
         </h2>
         {/* TODO: populate from a config or from an API */}
         <p className="text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto animate-slide-up stagger-1">
-          From mindful living and personal growth to travel experiences and creative pursuits, 
+          {desc ||
+            `From mindful living and personal growth to travel experiences and creative pursuits, 
           we share perspectives that enrich daily life. Join us as we explore topics that inspire 
-          curiosity and meaningful conversation.
+          curiosity and meaningful conversation.`}
         </p>
       </div>
     </section>

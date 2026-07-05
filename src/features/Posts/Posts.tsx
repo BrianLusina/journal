@@ -1,5 +1,5 @@
 import { FunctionComponent, useState } from 'react';
-import Pagination from '@components/Pagination';
+import { Button } from '@components/ui/button';
 import { captureException, captureScope, Severity } from '@services/monitoring';
 import { useQuery } from '@apollo/client';
 import { GET_ALL_BLOGS } from '@graphQl/queries';
@@ -24,6 +24,7 @@ const Posts: FunctionComponent = () => {
   if (loading) return <div>Loading...</div>;
 
   if (error) {
+    console.error('Posts Error:', error);
     captureException(
       error,
       captureScope({ type: 'component', data: { component: 'Posts', ...error } }, Severity.Error),
@@ -32,7 +33,8 @@ const Posts: FunctionComponent = () => {
     return <p>Yikes! Something terrible has happened. Looking into this :)</p>;
   }
 
-  const { items: posts, total } = data ? data.blogPostCollection : { items: [], total: 0 };
+  const posts = data ? data.blogPostCollection.items : [];
+  const total = data ? data.blogPostCollection.total : 0;
 
   let fetchedSize = posts.length;
   const hasNextPage = fetchedSize < total;
@@ -41,12 +43,6 @@ const Posts: FunctionComponent = () => {
     if (hasNextPage) {
       fetchedSize += currentSize;
       setCurrentSize(fetchedSize);
-
-      fetchMore({
-        variables: {
-          limit: fetchedSize,
-        },
-      });
     }
   };
 
@@ -85,7 +81,13 @@ const Posts: FunctionComponent = () => {
           />
         ),
       )}
-      <Pagination onClick={handleSeeMore} hasNextPage={hasNextPage} text="Load More" />
+      {hasNextPage && (
+        <div className="mt-8 flex justify-center">
+          <Button variant="outline" onClick={handleSeeMore}>
+            Load More
+          </Button>
+        </div>
+      )}
     </section>
   );
 };

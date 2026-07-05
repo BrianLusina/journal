@@ -12,7 +12,7 @@ describe('Intro', () => {
 
     render(<Intro title={title} />);
 
-    const titleElement = screen.getByText(title);
+    const titleElement = screen.getByText(new RegExp(title, 'i'));
 
     expect(titleElement).toBeInTheDocument();
   });

@@ -6,46 +6,40 @@ const MarkdownComponents: Partial<Components> = {
   h1(props) {
     const { node, ...rest } = props;
     return (
-      // @ts-ignore
-      <h1 className="text-5xl font-bold mb-2">{...rest}</h1>
+      <h1 className="text-5xl font-bold mb-2" {...rest} />
     );
   },
   h2(props) {
     const { node, ...rest } = props;
     return (
-      // @ts-ignore
-      <h2 className="text-3xl font-bold mb-4">{...rest.children}</h2>
+      <h2 className="text-3xl font-bold mb-4" {...rest} />
     );
   },
   h3(props) {
     const { node, ...rest } = props;
     return (
-      // @ts-ignore
-      <h3 className="text-3xl font-bold mb-2">{...rest.children}</h3>
+      <h3 className="text-3xl font-bold mb-2" {...rest} />
     );
   },
   p(props) {
     const { node, ...rest } = props;
     return (
       <div className="mb-10">
-        {/* @ts-ignore */}
-        <p className="text-lg leading-relaxed text-muted-foreground">{...rest.children}</p>
+        <p className="text-lg leading-relaxed text-muted-foreground" {...rest} />
       </div>
     );
   },
   ul(props) {
     const { node, ...rest } = props;
-    // @ts-ignore
-    return <ul className="list-disc pl-6 space-y-2 text-muted-foreground">{...rest.children}</ul>;
+    return <ul className="list-disc pl-6 space-y-2 text-muted-foreground" {...rest} />;
   },
   ol(props) {
     const { node, ...rest } = props;
-    // @ts-ignore
-    return <ol className="list-disc pl-6 space-y-2 text-muted-foreground">{...rest.children}</ol>;
+    return <ol className="list-disc pl-6 space-y-2 text-muted-foreground" {...rest} />;
   },
   blockquote(props) {
     const { node, ...rest } = props;
-    return <Blockquote content={rest.children} />
+    return <Blockquote content={rest.children as React.ReactNode} />;
   },
 };
 

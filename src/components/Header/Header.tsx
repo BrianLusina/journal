@@ -5,7 +5,10 @@ import { HeaderProps } from './Header.types';
 
 const Header: FunctionComponent<HeaderProps> = ({ title = config.title, children }) => {
   return (
-    <header className="sticky top-0 z-50 py-2 sm:py-4">
+    <header className="sticky top-0 z-50 py-2 sm:py-4 flex justify-between items-center px-4">
+      <h1 className="text-xl font-bold">
+        <a href="/" className="hover:text-primary transition-colors">{title}</a>
+      </h1>
       {children}
     </header>
   );

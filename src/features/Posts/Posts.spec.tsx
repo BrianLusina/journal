@@ -36,12 +36,60 @@ describe('Posts', () => {
     const items = [
       {
         heroImage: {
+          contentfulMetadata: {
+            concepts: [],
+          tags: [
+            {
+              name: faker.lorem.word(),
+              id: faker.datatype.uuid(),
+            },
+          ],
+          },
+          contentType: 'image/jpeg',
+          description: faker.lorem.sentence(),
+          fileName: 'image.jpg',
+          height: 100,
+          size: 1000,
+          sys: {
+            environmentId: 'master',
+          firstPublishedAt: faker.date.past().toISOString(),
+          id: faker.datatype.uuid(),
+          locale: 'en-US',
+          publishedAt: faker.date.past().toISOString(),
+          publishedVersion: 1,
+          spaceId: 'space-123',
+          },
           title: faker.lorem.word(),
           url: faker.image.imageUrl(),
+          width: 100,
         },
         thumbnail: {
+          contentfulMetadata: {
+            concepts: [],
+          tags: [
+            {
+              name: faker.lorem.word(),
+              id: faker.datatype.uuid(),
+            },
+          ],
+          },
+          contentType: 'image/jpeg',
+          description: faker.lorem.sentence(),
+          fileName: 'image.jpg',
+          height: 100,
+          size: 1000,
+          sys: {
+            environmentId: 'master',
+          firstPublishedAt: faker.date.past().toISOString(),
+          id: faker.datatype.uuid(),
+          locale: 'en-US',
+          publishedAt: faker.date.past().toISOString(),
+          publishedVersion: 1,
+          spaceId: 'space-123',
+          },
           title: faker.lorem.word(),
           url: faker.image.imageUrl(),
+          width: 100,
         },
         title: faker.lorem.word(),
         subtitle: faker.lorem.words(),
@@ -51,16 +99,23 @@ describe('Posts', () => {
         body: faker.lorem.paragraphs(),
         publishDate: faker.date.past().toISOString(),
         sys: {
+            environmentId: 'master',
+          firstPublishedAt: faker.date.past().toISOString(),
           id: faker.datatype.uuid(),
-        },
-        contentfulMetadata: {
-          tags: [
-            {
-              name: faker.lorem.word(),
-              id: faker.datatype.uuid(),
-            },
-          ],
-        },
+          locale: 'en-US',
+          publishedAt: faker.date.past().toISOString(),
+          publishedVersion: 1,
+          spaceId: 'space-123',
+          },
+          contentfulMetadata: {
+            concepts: [],
+            tags: [
+              {
+                name: faker.lorem.word(),
+                id: faker.datatype.uuid(),
+              },
+            ],
+          },
         authorsCollection: {
           total: 1,
           items: [
@@ -74,12 +129,60 @@ describe('Posts', () => {
       },
       {
         heroImage: {
+          contentfulMetadata: {
+            concepts: [],
+          tags: [
+            {
+              name: faker.lorem.word(),
+              id: faker.datatype.uuid(),
+            },
+          ],
+          },
+          contentType: 'image/jpeg',
+          description: faker.lorem.sentence(),
+          fileName: 'image.jpg',
+          height: 100,
+          size: 1000,
+          sys: {
+            environmentId: 'master',
+          firstPublishedAt: faker.date.past().toISOString(),
+          id: faker.datatype.uuid(),
+          locale: 'en-US',
+          publishedAt: faker.date.past().toISOString(),
+          publishedVersion: 1,
+          spaceId: 'space-123',
+          },
           title: faker.lorem.word(),
           url: faker.image.imageUrl(),
+          width: 100,
         },
         thumbnail: {
+          contentfulMetadata: {
+            concepts: [],
+          tags: [
+            {
+              name: faker.lorem.word(),
+              id: faker.datatype.uuid(),
+            },
+          ],
+          },
+          contentType: 'image/jpeg',
+          description: faker.lorem.sentence(),
+          fileName: 'image.jpg',
+          height: 100,
+          size: 1000,
+          sys: {
+            environmentId: 'master',
+          firstPublishedAt: faker.date.past().toISOString(),
+          id: faker.datatype.uuid(),
+          locale: 'en-US',
+          publishedAt: faker.date.past().toISOString(),
+          publishedVersion: 1,
+          spaceId: 'space-123',
+          },
           title: faker.lorem.word(),
           url: faker.image.imageUrl(),
+          width: 100,
         },
         title: faker.lorem.word(),
         subtitle: faker.lorem.words(),
@@ -89,16 +192,23 @@ describe('Posts', () => {
         body: faker.lorem.paragraphs(),
         publishDate: faker.date.past().toISOString(),
         sys: {
+            environmentId: 'master',
+          firstPublishedAt: faker.date.past().toISOString(),
           id: faker.datatype.uuid(),
-        },
-        contentfulMetadata: {
-          tags: [
-            {
-              name: faker.lorem.word(),
-              id: faker.datatype.uuid(),
-            },
-          ],
-        },
+          locale: 'en-US',
+          publishedAt: faker.date.past().toISOString(),
+          publishedVersion: 1,
+          spaceId: 'space-123',
+          },
+          contentfulMetadata: {
+            concepts: [],
+            tags: [
+              {
+                name: faker.lorem.word(),
+                id: faker.datatype.uuid(),
+              },
+            ],
+          },
         authorsCollection: {
           total: 1,
           items: [
@@ -124,7 +234,7 @@ describe('Posts', () => {
           data: {
             blogPostCollection: {
               items,
-              total: items.length,
+              total: items.length + 1,
             },
           },
         },
@@ -189,12 +299,60 @@ describe('Posts', () => {
     const items = [
       {
         heroImage: {
+          contentfulMetadata: {
+            concepts: [],
+          tags: [
+            {
+              name: faker.lorem.word(),
+              id: faker.datatype.uuid(),
+            },
+          ],
+          },
+          contentType: 'image/jpeg',
+          description: faker.lorem.sentence(),
+          fileName: 'image.jpg',
+          height: 100,
+          size: 1000,
+          sys: {
+            environmentId: 'master',
+          firstPublishedAt: faker.date.past().toISOString(),
+          id: faker.datatype.uuid(),
+          locale: 'en-US',
+          publishedAt: faker.date.past().toISOString(),
+          publishedVersion: 1,
+          spaceId: 'space-123',
+          },
           title: faker.lorem.word(),
           url: faker.image.imageUrl(),
+          width: 100,
         },
         thumbnail: {
+          contentfulMetadata: {
+            concepts: [],
+          tags: [
+            {
+              name: faker.lorem.word(),
+              id: faker.datatype.uuid(),
+            },
+          ],
+          },
+          contentType: 'image/jpeg',
+          description: faker.lorem.sentence(),
+          fileName: 'image.jpg',
+          height: 100,
+          size: 1000,
+          sys: {
+            environmentId: 'master',
+          firstPublishedAt: faker.date.past().toISOString(),
+          id: faker.datatype.uuid(),
+          locale: 'en-US',
+          publishedAt: faker.date.past().toISOString(),
+          publishedVersion: 1,
+          spaceId: 'space-123',
+          },
           title: faker.lorem.word(),
           url: faker.image.imageUrl(),
+          width: 100,
         },
         title: faker.lorem.word(),
         subtitle: faker.lorem.words(),
@@ -204,9 +362,15 @@ describe('Posts', () => {
         body: faker.lorem.paragraphs(),
         publishDate: faker.date.past().toISOString(),
         sys: {
+            environmentId: 'master',
+          firstPublishedAt: faker.date.past().toISOString(),
           id: faker.datatype.uuid(),
-        },
-        contentfulMetadata: {
+          locale: 'en-US',
+          publishedAt: faker.date.past().toISOString(),
+          publishedVersion: 1,
+          spaceId: 'space-123',
+          },
+          contentfulMetadata: {
           tags: [
             {
               name: faker.lorem.word(),
@@ -227,12 +391,60 @@ describe('Posts', () => {
       },
       {
         heroImage: {
+          contentfulMetadata: {
+            concepts: [],
+          tags: [
+            {
+              name: faker.lorem.word(),
+              id: faker.datatype.uuid(),
+            },
+          ],
+          },
+          contentType: 'image/jpeg',
+          description: faker.lorem.sentence(),
+          fileName: 'image.jpg',
+          height: 100,
+          size: 1000,
+          sys: {
+            environmentId: 'master',
+          firstPublishedAt: faker.date.past().toISOString(),
+          id: faker.datatype.uuid(),
+          locale: 'en-US',
+          publishedAt: faker.date.past().toISOString(),
+          publishedVersion: 1,
+          spaceId: 'space-123',
+          },
           title: faker.lorem.word(),
           url: faker.image.imageUrl(),
+          width: 100,
         },
         thumbnail: {
+          contentfulMetadata: {
+            concepts: [],
+          tags: [
+            {
+              name: faker.lorem.word(),
+              id: faker.datatype.uuid(),
+            },
+          ],
+          },
+          contentType: 'image/jpeg',
+          description: faker.lorem.sentence(),
+          fileName: 'image.jpg',
+          height: 100,
+          size: 1000,
+          sys: {
+            environmentId: 'master',
+          firstPublishedAt: faker.date.past().toISOString(),
+          id: faker.datatype.uuid(),
+          locale: 'en-US',
+          publishedAt: faker.date.past().toISOString(),
+          publishedVersion: 1,
+          spaceId: 'space-123',
+          },
           title: faker.lorem.word(),
           url: faker.image.imageUrl(),
+          width: 100,
         },
         title: faker.lorem.word(),
         subtitle: faker.lorem.words(),
@@ -242,9 +454,16 @@ describe('Posts', () => {
         body: faker.lorem.paragraphs(),
         publishDate: faker.date.past().toISOString(),
         sys: {
+            environmentId: 'master',
+          firstPublishedAt: faker.date.past().toISOString(),
           id: faker.datatype.uuid(),
-        },
-        contentfulMetadata: {
+          locale: 'en-US',
+          publishedAt: faker.date.past().toISOString(),
+          publishedVersion: 1,
+          spaceId: 'space-123',
+          },
+          contentfulMetadata: {
+            concepts: [],
           tags: [
             {
               name: faker.lorem.word(),
@@ -267,23 +486,78 @@ describe('Posts', () => {
 
     const newItem = {
       heroImage: {
+          contentfulMetadata: {
+            concepts: [],
+          tags: [
+            {
+              name: faker.lorem.word(),
+              id: faker.datatype.uuid(),
+            },
+          ],
+          },
+          contentType: 'image/jpeg',
+          description: faker.lorem.sentence(),
+          fileName: 'image.jpg',
+          height: 100,
+          size: 1000,
+          sys: {
+            environmentId: 'master',
+          firstPublishedAt: faker.date.past().toISOString(),
+          id: faker.datatype.uuid(),
+          locale: 'en-US',
+          publishedAt: faker.date.past().toISOString(),
+          publishedVersion: 1,
+          spaceId: 'space-123',
+          },
+          title: faker.lorem.word(),
+          url: faker.image.imageUrl(),
+          width: 100,
+        },
+        thumbnail: {
+          contentfulMetadata: {
+            concepts: [],
+          tags: [
+            {
+              name: faker.lorem.word(),
+              id: faker.datatype.uuid(),
+            },
+          ],
+          },
+          contentType: 'image/jpeg',
+          description: faker.lorem.sentence(),
+          fileName: 'image.jpg',
+          height: 100,
+          size: 1000,
+          sys: {
+            environmentId: 'master',
+          firstPublishedAt: faker.date.past().toISOString(),
+          id: faker.datatype.uuid(),
+          locale: 'en-US',
+          publishedAt: faker.date.past().toISOString(),
+          publishedVersion: 1,
+          spaceId: 'space-123',
+          },
+          title: faker.lorem.word(),
+          url: faker.image.imageUrl(),
+          width: 100,
+        },
         title: faker.lorem.word(),
-        url: faker.image.imageUrl(),
-      },
-      thumbnail: {
-        title: faker.lorem.word(),
-        url: faker.image.imageUrl(),
-      },
-      title: faker.lorem.word(),
       subtitle: faker.lorem.words(),
       description: faker.lorem.text(),
       slug: faker.random.word(),
       body: faker.lorem.paragraphs(),
       publishDate: faker.date.past().toISOString(),
       sys: {
-        id: faker.datatype.uuid(),
-      },
-      contentfulMetadata: {
+            environmentId: 'master',
+          firstPublishedAt: faker.date.past().toISOString(),
+          id: faker.datatype.uuid(),
+          locale: 'en-US',
+          publishedAt: faker.date.past().toISOString(),
+          publishedVersion: 1,
+          spaceId: 'space-123',
+          },
+          contentfulMetadata: {
+        concepts: [],
         tags: [
           {
             name: faker.lorem.word(),
@@ -311,22 +585,43 @@ describe('Posts', () => {
             limit: 10,
           },
         },
-        error: undefined,
-        newData: () => {
-          return {
-            data: {
-              blogPostCollection: {
-                items: [...items, newItem],
-                total: items.length + 1,
-              },
-            },
-          };
-        },
         result: {
           data: {
             blogPostCollection: {
               items,
-              total: items.length,
+              total: items.length + 1,
+            },
+          },
+        },
+      },
+      {
+        request: {
+          query: GET_ALL_BLOGS,
+          variables: {
+            limit: 12,
+          },
+        },
+        result: {
+          data: {
+            blogPostCollection: {
+              items: [...items, newItem],
+              total: items.length + 1,
+            },
+          },
+        },
+      },
+      {
+        request: {
+          query: GET_ALL_BLOGS,
+          variables: {
+            limit: 12,
+          },
+        },
+        result: {
+          data: {
+            blogPostCollection: {
+              items: [...items, newItem],
+              total: items.length + 1,
             },
           },
         },
@@ -343,11 +638,11 @@ describe('Posts', () => {
 
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    const loadMoreBtn = screen.getByText('Load More');
+    const loadMoreBtn = await screen.findByText('Load More');
     fireEvent.click(loadMoreBtn);
 
-    const postTitleElement = screen.getByText(newItem.title);
-    const postSubtitleElement = screen.getByText(newItem.subtitle);
+    const postTitleElement = await screen.findByText(newItem.title);
+    const postSubtitleElement = await screen.findByText(newItem.subtitle);
     const heroImageElement = screen.getByAltText(newItem.heroImage.title);
 
     expect(postTitleElement).toBeInTheDocument();

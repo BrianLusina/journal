@@ -1,6 +1,4 @@
-// import MainLayout from '@layouts/MainLayout';
 import { FunctionComponent } from 'react';
-import { ErrorPageContainer, ErrorPageTitle, ErrorPageText } from './styles';
 import { ErrorPageProps } from './ErrorPage.interface';
 
 const ErrorPage: FunctionComponent<ErrorPageProps> = ({
@@ -8,10 +6,10 @@ const ErrorPage: FunctionComponent<ErrorPageProps> = ({
   message = 'Something terrible went wrong and we regret that you had to experience this! <b /> We are working to fix this.',
 }: ErrorPageProps) => {
   return (
-    <ErrorPageContainer>
-      <ErrorPageTitle>{title}</ErrorPageTitle>
-      <ErrorPageText>{message}</ErrorPageText>
-    </ErrorPageContainer>
+    <div>
+      <h1 className="font-sans font-medium text-4xl text-center text-[#181818]">{title}</h1>
+      <p className="font-sans font-medium text-base text-center text-[#181818] my-[0.1em]">{message}</p>
+    </div>
   );
 };
 

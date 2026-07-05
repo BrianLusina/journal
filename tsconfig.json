@@ -53,9 +53,10 @@
       "@analytics": ["./src/services/analytics/index.ts"],
       "@testUtils/*": ["./src/test/*"],
       "@styles/*": ["./src/styles/*"],
-      "@styled/*": ["./src/styles/ts/*"],
       "@scss/*": ["./src/styles/scss/*"],
-      "@css/*": ["./src/styles/css/*"]
+      "@css/*": ["./src/styles/css/*"],
+      "@lib": ["./src/lib/index.ts"],
+      "@lib/*": ["./src/lib/*"]
     }
   },
   "exclude": [
