@@ -1,5 +1,5 @@
 import { ApolloError, useQuery } from '@apollo/client';
-import { GET_ALL_BLOGS_BY_TAG } from '@graphQl/queries';
+import { GET_ALL_BLOGS_BY_TAG } from '@contentfulClient';
 
 export default function useFetchArticlesByTag(tag: string): [
   boolean,

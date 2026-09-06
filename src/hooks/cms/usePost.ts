@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ContentfulAdapter } from '@services/cms/ContentfulAdapter';
-import { NotionAdapter } from '@services/cms/NotionAdapter';
+import { ContentfulAdapter } from '@services';
+import { NotionAdapter } from '@cmsService';
 
 export function usePost(slug: string | undefined) {
   const [data, setData] = useState<UnifiedPost | null>(null);

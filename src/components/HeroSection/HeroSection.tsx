@@ -1,5 +1,5 @@
 import { Instagram, Facebook, Linkedin } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components";
 
 const HeroSection = () => {
   return (

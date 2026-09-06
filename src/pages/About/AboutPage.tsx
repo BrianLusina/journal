@@ -1,8 +1,8 @@
 import { Mail } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components';
 import { useQuery } from '@apollo/client';
-import { GET_ABOUT_PAGES } from '@graphQl/queries';
-import { captureException, captureScope, Severity } from '@services/monitoring';
+import { GET_ABOUT_PAGES } from '@contentfulClient';
+import { captureException, captureScope, Severity } from '@monitoring';
 import config from '@config';
 
 const AboutPage = () => {

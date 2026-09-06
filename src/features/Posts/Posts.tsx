@@ -1,7 +1,7 @@
 import { FunctionComponent, useState } from 'react';
-import { Button } from '@components/ui/button';
-import { captureException, captureScope, Severity } from '@services/monitoring';
-import { usePosts } from '@hooks/cms/usePosts';
+import { Button } from '@components';
+import { captureException, captureScope, Severity } from '@monitoring';
+import { usePosts } from '@hooks';
 import { humanizeDateTime } from '@timeUtils';
 // eslint-disable-next-line camelcase
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';

@@ -1,9 +1,8 @@
 import { FunctionComponent } from 'react';
-import Link from '@components/Elements/Link';
+import {Link, ButtonLink } from '@components';
 import kebabCase from 'lodash/kebabCase';
-import defaultFeature from '@assets/images/default_feature_pic.jpg';
-import ButtonLink from '@components/Elements/ButtonLink';
-import AuthorBadge from '@features/AuthorBadge';
+import defaultFeature from '@/assets/images/default_feature_pic.jpg';
+import {AuthorBadge} from '@features';
 import { PostItemProps } from './PostItem.types';
 
 const PostItem: FunctionComponent<PostItemProps> = ({

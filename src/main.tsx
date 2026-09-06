@@ -7,7 +7,7 @@ import config from './config';
 import ErrorBoundary from './components/Errors/ErrorBoundary';
 import { TooltipProvider } from './components/ui/tooltip';
 import GraphqlProvider from './providers/graphql/GraphqlProvider';
-import GraphqlClient from './api/graphql/GraphQlClient';
+import GraphqlClient from './clients/graphql/GraphQlClient';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import App from './app';
 import reportWebVitals from './reportWebVitals';

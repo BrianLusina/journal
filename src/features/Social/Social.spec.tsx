@@ -1,4 +1,4 @@
-import { GET_SOCIAL_INFO } from '@graphQl/queries';
+import { GET_SOCIAL_INFO } from '@contentfulClient';
 import faker from 'faker';
 import { render, screen, act } from '@testing-library/react';
 import MockApp from '@testUtils/MockApp';

@@ -2,7 +2,7 @@ import { FunctionComponent } from 'react';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, Moon, Sun } from 'lucide-react';
-import { Button } from '@components/ui/button';
+import { Button } from '@components';
 import navbarItems from './constants';
 import Logo from '../ui/logo';
 // import './navbar.scss';

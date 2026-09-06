@@ -1,4 +1,4 @@
-import { GET_ABOUT_PAGES } from '@graphQl/queries';
+import { GET_ABOUT_PAGES } from '@contentfulClient';
 import faker from 'faker';
 import { render, screen, act } from '@testing-library/react';
 import MockApp from '@testUtils/MockApp';

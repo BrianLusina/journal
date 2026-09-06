@@ -1,11 +1,11 @@
 import faker from 'faker';
 import { render, act, screen } from '@testUtils/rtlUtils';
-import * as Monitoring from '@services/monitoring';
+import * as Monitoring from '@monitoring';
 import ArticlePage from './ArticlePage';
-import { usePost } from '@hooks/cms/usePost';
+import { usePost } from '@hooks';
 import { MemoryRouter } from 'react-router-dom';
 
-jest.mock('@services/monitoring', () => {
+jest.mock('@monitoring', () => {
   return {
     captureException: jest.fn(),
     captureScope: jest.fn(),

@@ -1,5 +1,5 @@
 import { Mail, MapPin, Phone } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components";
 import { useState } from "react";
 import { toast } from "sonner";
 

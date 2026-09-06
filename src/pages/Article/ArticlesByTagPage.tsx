@@ -1,11 +1,10 @@
 import { FunctionComponent } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
-import { captureException, captureScope, Severity } from '@services/monitoring';
-import PageLoader from '@components/Elements/Loaders/PageLoader';
+import { captureException, captureScope, Severity } from '@monitoring';
+import {PageLoader, Pagination} from '@components';
 import { humanizeDateTime } from '@timeUtils';
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';
 import ArticleCard from '@/components/ArticleCard';
-import { Pagination } from '@components/Pagination';
 import useFetchArticlesByTag from '@/hooks/api/useFetchArticlesByTag';
 import { camelCaseToNormal } from '@/utils/utils';
 

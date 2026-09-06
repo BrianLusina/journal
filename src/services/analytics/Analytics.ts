@@ -5,7 +5,7 @@ import {
   EventParams,
   CustomEventName,
 } from 'firebase/analytics';
-import firebaseApp from '@services/firebase';
+import firebaseApp from '@firebaseClient';
 import config from '@config';
 
 const {

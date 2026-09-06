@@ -1,7 +1,7 @@
 import { FunctionComponent } from 'react';
-import MiniPostItem from '@components/MiniPost';
-import { usePosts } from '@hooks/cms/usePosts';
-import { captureException, captureScope, Severity } from '@services/monitoring';
+import {MiniPost as MiniPostItem} from '@components';
+import { usePosts } from '@hooks';
+import { captureException, captureScope, Severity } from '@monitoring';
 import { humanizeDateTime } from '@timeUtils';
 // eslint-disable-next-line camelcase
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';

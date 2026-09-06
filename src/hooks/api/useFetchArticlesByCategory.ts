@@ -1,5 +1,5 @@
 import { ApolloError, useQuery } from '@apollo/client';
-import { GET_ALL_BLOGS_BY_CATEGORY } from '@graphQl/queries';
+import { GET_ALL_BLOGS_BY_CATEGORY } from '@contentfulClient';
 
 export default function useFetchArticlesByCategory(category: string): [
   boolean,

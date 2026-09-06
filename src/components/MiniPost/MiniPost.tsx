@@ -1,7 +1,7 @@
 import { FunctionComponent } from 'react';
-import Link from '@components/Elements/Link';
-import defaultMiniPic from '@assets/images/default_mini_pic.jpg';
-import AuthorBadge from '@features/AuthorBadge';
+import {Link} from '@components';
+import defaultMiniPic from '@/assets/images/default_mini_pic.jpg';
+import {AuthorBadge} from '@features';
 import { MiniPostProps } from './MiniPost.types';
 
 const MiniPost: FunctionComponent<MiniPostProps> = ({

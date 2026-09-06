@@ -1,13 +1,11 @@
 import { FunctionComponent, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { captureException, captureScope, Severity } from '@services/monitoring';
+import { captureException, captureScope, Severity } from '@monitoring';
 import { useQuery } from '@apollo/client';
-import PageLoader from '@components/Elements/Loaders/PageLoader';
+import { PageLoader, Pagination, ArticleCard } from '@components';
 import { humanizeDateTime } from '@timeUtils';
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';
-import { GET_ALL_BLOGS } from '@/api/graphql/queries';
-import ArticleCard from '@/components/ArticleCard';
-import { Pagination } from '@components/Pagination';
+import { GET_ALL_BLOGS } from '@contentfulClient';
 
 const ArticlesPage: FunctionComponent = () => {
   const itemsPerPage = 10;

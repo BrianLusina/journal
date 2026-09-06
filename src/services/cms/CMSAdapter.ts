@@ -1,4 +1,4 @@
-export interface CMSAdapter {
+export default interface CMSAdapter {
   /**
    * Identifies the source name for the adapter.
    */

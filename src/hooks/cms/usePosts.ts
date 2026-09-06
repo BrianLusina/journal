@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ContentfulAdapter } from '@services/cms/ContentfulAdapter';
-import { NotionAdapter } from '@services/cms/NotionAdapter';
+import { ContentfulAdapter, NotionAdapter } from '@services';
 
 const DEFAULT_LIMIT = 100;
 

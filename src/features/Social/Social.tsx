@@ -1,7 +1,7 @@
 import { FunctionComponent } from 'react';
 import { useQuery } from '@apollo/client';
-import { GET_SOCIAL_INFO } from '@graphQl/queries';
-import { captureException, captureScope, Severity } from '@services/monitoring';
+import { GET_SOCIAL_INFO } from '@contentfulClient';
+import { captureException, captureScope, Severity } from '@monitoring';
 import SocialCard from '@components/SocialCard';
 
 const Social: FunctionComponent = () => {

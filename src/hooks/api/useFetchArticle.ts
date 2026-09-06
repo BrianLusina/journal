@@ -1,5 +1,5 @@
 import { ApolloError, useQuery } from '@apollo/client';
-import { GET_BLOG } from '@graphQl/queries';
+import { GET_BLOG } from '@contentfulClient';
 
 export default function useFetchArticle(id: string): [
   boolean,

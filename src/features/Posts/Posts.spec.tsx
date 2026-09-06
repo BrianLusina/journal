@@ -1,11 +1,11 @@
 import faker from 'faker';
 import { render, screen, act, fireEvent } from '@testing-library/react';
 import MockApp from '@testUtils/MockApp';
-import * as Monitoring from '@services/monitoring';
+import * as Monitoring from '@monitoring';
 import Posts from './Posts';
-import { usePosts } from '@hooks/cms/usePosts';
+import { usePosts } from '@hooks';
 
-jest.mock('@services/monitoring', () => {
+jest.mock('@monitoring', () => {
   return {
     captureException: jest.fn(),
     captureScope: jest.fn(),

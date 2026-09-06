@@ -1,4 +1,4 @@
-import { CMSAdapter } from './CMSAdapter';
+import CMSAdapter from './CMSAdapter';
 
 /**
  * Maps a Notion Page object to the UnifiedPost domain model.
@@ -57,7 +57,7 @@ function mapNotionPageToUnified(page: any): UnifiedPost {
   };
 }
 
-export class NotionAdapter implements CMSAdapter {
+export default class NotionAdapter implements CMSAdapter {
   public readonly source: CMSSource = 'notion';
 
   async getPosts(options?: CMSPaginationOptions): Promise<PaginatedUnifiedPosts> {

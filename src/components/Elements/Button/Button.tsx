@@ -1,22 +1,13 @@
-import { FunctionComponent } from 'react';
-import { ButtonProps } from './Button.types';
+import React from 'react';
+import { Slot } from "@radix-ui/react-slot";
+import { cn } from "@/lib/utils";
+import { ButtonProps, buttonVariants } from './Button.types';
 
-const Button: FunctionComponent<ButtonProps> = ({
-  onClick,
-  children,
-  className,
-  type = 'button',
-  disabled = false,
-}) => (
-  <button
-    // eslint-disable-next-line react/button-has-type
-    type={type}
-    className={`button large ${className || ''} ${disabled ? 'disabled' : ''}`}
-    onClick={onClick}
-    disabled={disabled}
-  >
-    {children}
-  </button>
-);
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button";
+    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
+});
+
+Button.displayName = "Button";
 
 export default Button;

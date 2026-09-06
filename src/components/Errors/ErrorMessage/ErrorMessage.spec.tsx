@@ -1,12 +1,12 @@
 import { render, screen } from '@testing-library/react';
 import MockAppWithRouter from '@testUtils/MockAppWithRouter';
-import ErrorPage from './ErrorPage';
+import ErrorMessage from './ErrorMessage';
 
 describe('ErrorPage', () => {
   it('Should render & display text', () => {
     render(
       <MockAppWithRouter>
-        <ErrorPage />
+        <ErrorMessage />
       </MockAppWithRouter>,
     );
 
@@ -20,7 +20,7 @@ describe('ErrorPage', () => {
 
     render(
       <MockAppWithRouter>
-        <ErrorPage title={title} message={message} />
+        <ErrorMessage title={title} message={message} />
       </MockAppWithRouter>,
     );
 

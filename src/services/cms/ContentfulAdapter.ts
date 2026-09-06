@@ -1,6 +1,5 @@
-import client from '@graphQlClient';
-import { GET_ALL_BLOGS, GET_BLOG } from '@graphQl/queries';
-import { CMSAdapter } from './CMSAdapter';
+import contentfulClient, { GET_ALL_BLOGS, GET_BLOG } from '@contentfulClient';
+import CMSAdapter from './CMSAdapter';
 
 /**
  * Maps the raw Contentful BlogPostItem to the generic UnifiedPost domain model.
@@ -35,7 +34,7 @@ function mapContentfulPostToUnified(post: BlogPostItem): UnifiedPost {
   };
 }
 
-export class ContentfulAdapter implements CMSAdapter {
+export default class ContentfulAdapter implements CMSAdapter {
   public readonly source: CMSSource = 'contentful';
 
   async getPosts(options?: CMSPaginationOptions): Promise<PaginatedUnifiedPosts> {
@@ -52,7 +51,7 @@ export class ContentfulAdapter implements CMSAdapter {
         variables.where = { category: options.category };
     }
 
-    const { data } = await client.query<BlogPostsData, GetAllBlogsVariables>({
+    const { data } = await contentfulClient.query<BlogPostsData, GetAllBlogsVariables>({
       query,
       variables,
       fetchPolicy: 'network-only', // or cache-first if preferred
@@ -69,7 +68,7 @@ export class ContentfulAdapter implements CMSAdapter {
   }
 
   async getPostBySlug(slug: string): Promise<UnifiedPost | null> {
-    const { data } = await client.query<BlogPostsData, GetAllBlogsVariables>({
+    const { data } = await contentfulClient.query<BlogPostsData, GetAllBlogsVariables>({
       query: GET_ALL_BLOGS,
       variables: {
         limit: 1,

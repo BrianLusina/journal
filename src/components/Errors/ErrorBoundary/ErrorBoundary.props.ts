@@ -1,5 +1,4 @@
 import {
-  ReactChildren,
   FunctionComponent,
   ReactElement,
   ReactNode,
@@ -13,6 +12,9 @@ interface FallbackProps {
 }
 
 export type ErrorBoundaryProps = {
+  title?: ReactNode | null;
+  message?: ReactNode | null;
+  
   children: ReactNode;
 
   fallback?: ReactElement<unknown, string | FunctionComponent | typeof Component> | null;

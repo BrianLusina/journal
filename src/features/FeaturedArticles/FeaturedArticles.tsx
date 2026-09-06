@@ -1,8 +1,8 @@
 import { FunctionComponent, useState } from 'react';
 import ArticleCard from '@/components/ArticleCard';
-import { captureException, captureScope, Severity } from '@services/monitoring';
+import { captureException, captureScope, Severity } from '@monitoring';
 import { useQuery } from '@apollo/client';
-import { GET_ALL_BLOGS } from '@graphQl/queries';
+import { GET_ALL_BLOGS } from '@contentfulClient';
 import { humanizeDateTime } from '@timeUtils';
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';
 import { Link } from 'react-router-dom';

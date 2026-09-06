@@ -1,5 +1,5 @@
 import { Facebook, Twitter, Linkedin, Link2 } from 'lucide-react';
-import AuthorBadge from '@features/AuthorBadge';
+import {AuthorBadge} from '@features';
 import { getCategoryClass } from '@/lib/utils';
 import { toast } from 'sonner';
 

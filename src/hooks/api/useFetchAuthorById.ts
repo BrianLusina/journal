@@ -1,5 +1,5 @@
 import { ApolloError, useQuery } from '@apollo/client';
-import { GET_AUTHOR } from '@graphQl/queries';
+import { GET_AUTHOR } from '@contentfulClient';
 
 /**
  * Get author given their ids. This returns full author information

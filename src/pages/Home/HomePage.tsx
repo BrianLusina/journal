@@ -1,7 +1,5 @@
-import HeroSection from "@components/HeroSection";
-import IntroSection from "@components/IntroSection";
-import FeaturedArticles from "@/features/FeaturedArticles";
-import NewsLetterSection from "@/features/NewsLetter";
+import {IntroSection, HeroSection } from "@components";
+import {FeaturedArticles, NewsLetterSection} from "@features";
 
 const HomePage = () => {
   return (

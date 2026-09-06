@@ -1,7 +1,5 @@
 import { FC } from 'react';
-import Header from '@components/Header';
-import Navbar from '@components/Navbar';
-import Footer from '@components/Footer';
+import { Header, Navbar, Footer } from '@components';
 import Search from '@/features/Search';
 
 const MainLayout: FC<{ children: React.ReactNode }> = ({ children }) => (
