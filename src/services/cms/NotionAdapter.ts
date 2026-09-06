@@ -1,12 +1,4 @@
-import { Client } from '@notionhq/client';
-import { NotionToMarkdown } from 'notion-to-md';
 import { CMSAdapter } from './CMSAdapter';
-
-const notion = new Client({
-  auth: import.meta.env.VITE_NOTION_API_KEY,
-});
-const n2m = new NotionToMarkdown({ notionClient: notion });
-const databaseId = import.meta.env.VITE_NOTION_DATABASE_ID;
 
 /**
  * Maps a Notion Page object to the UnifiedPost domain model.
@@ -69,76 +61,40 @@ export class NotionAdapter implements CMSAdapter {
   public readonly source: CMSSource = 'notion';
 
   async getPosts(options?: CMSPaginationOptions): Promise<PaginatedUnifiedPosts> {
-    if (!databaseId) {
-      return { items: [], total: 0, limit: options?.limit || 100, skip: options?.skip || 0 };
+    const skip = options?.skip || 0;
+    const limit = options?.limit || 100;
+    const params = new URLSearchParams({ limit: String(skip + limit) });
+    if (options?.category) params.set('category', options.category);
+    const response = await fetch(`/api/notion/posts?${params}`);
+
+    if (!response.ok) {
+      throw new Error(`Unable to fetch Notion posts: ${response.status}`);
     }
 
-    // For simplistic pagination, Notion uses start_cursor. 
-    // Implementing strict offset/limit requires cursors. 
-    // Here we map limit to page_size, ignoring skip for a basic implementation.
-    const filter: any = {
-      and: [
-        {
-          property: 'Status',
-          status: {
-            equals: 'Published',
-          },
-        }
-      ]
-    };
-
-    if (options?.category) {
-      filter.and.push({
-        property: 'Category',
-        select: {
-          equals: options.category,
-        },
-      });
-    }
-
-    const response = await notion.databases.query({
-      database_id: databaseId,
-      page_size: options?.limit || 100,
-      sorts: [
-        {
-          property: 'Date',
-          direction: 'descending',
-        },
-      ],
-      filter,
-    });
+    const payload = await response.json();
 
     return {
-      items: response.results.map(mapNotionPageToUnified),
-      total: response.results.length, // Notion doesn't return total count without paginating everything
-      limit: options?.limit || 100,
-      skip: options?.skip || 0,
+      items: payload.results
+        .slice(skip, skip + limit)
+        .map(mapNotionPageToUnified),
+      total: payload.results.length,
+      limit,
+      skip,
+      hasMore: payload.hasMore,
     };
   }
 
   async getPostBySlug(slug: string): Promise<UnifiedPost | null> {
-    if (!databaseId) return null;
+    const response = await fetch(`/api/notion/posts/${encodeURIComponent(slug)}`);
+    if (response.status === 404) return null;
+    if (!response.ok) {
+      throw new Error(`Unable to fetch Notion post: ${response.status}`);
+    }
 
-    const response = await notion.databases.query({
-      database_id: databaseId,
-      filter: {
-        property: 'Slug',
-        rich_text: {
-          equals: slug,
-        },
-      },
-      page_size: 1,
-    });
-
-    if (response.results.length === 0) return null;
-
-    const page = response.results[0];
+    const payload = await response.json();
+    const page = payload.page;
     const post = mapNotionPageToUnified(page);
-
-    // Fetch the markdown body
-    const mdBlocks = await n2m.pageToMarkdown(page.id);
-    const mdString = n2m.toMarkdownString(mdBlocks);
-    post.body = mdString.parent;
+    post.body = payload.body;
 
     return post;
   }

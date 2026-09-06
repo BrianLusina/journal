@@ -88,7 +88,7 @@ declare type GetAllBlogsVariables = {
   limit?: number;
   preview?: boolean;
   locale?: string;
-  where?: BlogPostFilter;
+  where?: Partial<BlogPostFilter>;
   order?: BlogPostOrder[];
 };
 

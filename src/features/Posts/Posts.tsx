@@ -29,7 +29,7 @@ const Posts: FunctionComponent = () => {
   const total = data ? data.total : 0;
 
   let fetchedSize = posts.length;
-  const hasNextPage = fetchedSize < total;
+  const hasNextPage = data?.hasMore ?? fetchedSize < total;
 
   const handleSeeMore = (): void => {
     if (hasNextPage) {

@@ -69,6 +69,22 @@ npm run test:cover
 
 Deployment has been configured to work on any system or static server as necessary. Therefore deployment can be to either a microservice application with this running in its own container, or to a static site or to even github pages.
 
+### Vercel and Notion
+
+The Notion integration uses Vercel Functions under `/api/notion`. Configure these
+server-only environment variables in the Vercel project settings:
+
+```text
+NOTION_API_KEY
+NOTION_DATABASE_ID
+```
+
+Do not prefix either variable with `VITE_`; Vite exposes `VITE_*` variables to
+the browser. For local development, put the same variables in `.env.local` and
+run the frontend with `vercel dev` so the Vite app and API functions share one
+origin. The Notion integration must have access to the configured database (or
+data source) in Notion.
+
 The pipeline set here is to deploy this to a seperate static server when in development in order to do testing and to [github pages](https://pages.github.com/) when finally moving to production. Ideally,this being a blog site which primarily serves static content, that should not matter where it is deployed, as long as it is accessible and can handle incoming traffic.
 
 Tools used for deployment:

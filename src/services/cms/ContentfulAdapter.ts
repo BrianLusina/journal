@@ -39,11 +39,13 @@ export class ContentfulAdapter implements CMSAdapter {
   public readonly source: CMSSource = 'contentful';
 
   async getPosts(options?: CMSPaginationOptions): Promise<PaginatedUnifiedPosts> {
-    const query = options?.category ? GET_ALL_BLOGS : GET_ALL_BLOGS; // Assuming GET_ALL_BLOGS supports where: { category }
+    const query = GET_ALL_BLOGS;
     
-    let variables: any = {
-        skip: options?.skip || 0,
-        limit: options?.limit || 100,
+    const skip = options?.skip || 0;
+    const limit = options?.limit || 100;
+    const variables: GetAllBlogsVariables = {
+        skip,
+        limit,
     };
     
     if (options?.category) {
@@ -61,7 +63,8 @@ export class ContentfulAdapter implements CMSAdapter {
       items: collection.items.map(mapContentfulPostToUnified),
       total: collection.total,
       limit: collection.limit,
-      skip: options?.skip || 0,
+      skip,
+      hasMore: collection.total > skip + collection.items.length,
     };
   }
 

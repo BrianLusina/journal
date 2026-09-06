@@ -2,20 +2,33 @@ import { useState, useEffect } from 'react';
 import { ContentfulAdapter } from '@services/cms/ContentfulAdapter';
 import { NotionAdapter } from '@services/cms/NotionAdapter';
 
-const adapters = [new ContentfulAdapter(), new NotionAdapter()];
+const DEFAULT_LIMIT = 100;
 
 export function usePosts(options?: CMSPaginationOptions) {
   const [data, setData] = useState<PaginatedUnifiedPosts | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const { category, skip: requestedSkip, limit: requestedLimit } = options || {};
 
   useEffect(() => {
     let isMounted = true;
 
     async function fetchPosts() {
       setLoading(true);
+      setError(null);
+
+      const skip = requestedSkip || 0;
+      const limit = requestedLimit || DEFAULT_LIMIT;
+
       try {
-        const promises = adapters.map(adapter => adapter.getPosts(options));
+        // Fetch enough items from every source to build one globally paginated feed.
+        const promises = [new ContentfulAdapter(), new NotionAdapter()].map(adapter =>
+          adapter.getPosts({
+            ...(category ? { category } : {}),
+            skip: 0,
+            limit: skip + limit,
+          }),
+        );
         const results = await Promise.all(promises);
 
         if (!isMounted) return;
@@ -30,18 +43,19 @@ export function usePosts(options?: CMSPaginationOptions) {
           return dateB - dateA;
         });
 
-        // Compute total items and limit
         const total = results.reduce((sum, result) => sum + result.total, 0);
+        const hasMore = results.some(result => result.hasMore || result.total > result.skip + result.items.length);
 
         setData({
-          items: allItems,
+          items: allItems.slice(skip, skip + limit),
           total,
-          limit: options?.limit || 100,
-          skip: options?.skip || 0,
+          limit,
+          skip,
+          hasMore,
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (isMounted) {
-          setError(err);
+          setError(err instanceof Error ? err : new Error('Unable to fetch posts'));
         }
       } finally {
         if (isMounted) {
@@ -55,7 +69,7 @@ export function usePosts(options?: CMSPaginationOptions) {
     return () => {
       isMounted = false;
     };
-  }, [options?.skip, options?.limit]);
+  }, [category, requestedSkip, requestedLimit]);
 
   return { data, loading, error };
 }

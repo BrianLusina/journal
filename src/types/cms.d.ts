@@ -57,4 +57,5 @@ declare type PaginatedUnifiedPosts = {
   total: number;
   limit: number;
   skip: number;
+  hasMore?: boolean;
 };
