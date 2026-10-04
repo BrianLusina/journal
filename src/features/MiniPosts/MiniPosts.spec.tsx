@@ -15,7 +15,7 @@ jest.mock('@monitoring', () => {
   };
 });
 
-jest.mock('@hooks/cms/usePosts');
+jest.mock('@/hooks/cms/usePosts');
 
 describe('MiniPosts', () => {
   afterEach(() => {

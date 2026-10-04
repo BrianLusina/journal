@@ -1,7 +1,7 @@
 import { FunctionComponent } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 import { captureException, captureScope, Severity } from '@monitoring';
-import {PageLoader, Pagination} from '@components';
+import { PageLoader } from '@components';
 import { humanizeDateTime } from '@timeUtils';
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';
 import ArticleCard from '@/components/ArticleCard';
@@ -57,7 +57,7 @@ const ArticlesByTagPage: FunctionComponent = () => {
                 DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss,
                 DATE_FORMAT_MMMM_D_YYYY,
               )}
-              thumbnail={article.thumbnail.url}
+              thumbnail={article.thumbnail?.url || ''}
             />
           </div>
         ))}

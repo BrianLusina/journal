@@ -15,10 +15,12 @@ jest.mock('@monitoring', () => {
   };
 });
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
+ 
 jest.mock('remark-gfm', () => () => {});
 
-jest.mock('@hooks/cms/usePost');
+jest.mock('@/hooks/cms/usePost');
+jest.mock('@/hooks/cms/usePosts', () => ({ usePosts: () => ({ data: null, loading: true, error: null }) }));
+jest.mock('@/features/AuthorBadge', () => ({ __esModule: true, default: ({ authorId }: { authorId: string }) => <span>author {authorId}</span> }));
 
 describe('ArticlePage', () => {
   afterEach(() => {
@@ -60,5 +62,43 @@ describe('ArticlePage', () => {
 
     expect(Monitoring.captureException).toBeCalledTimes(1);
     expect(Monitoring.captureScope).toBeCalledTimes(1);
+  });
+
+  it('renders the article with its tags and authors', async () => {
+    (usePost as jest.Mock).mockReturnValue({
+      data: {
+        id: 'n1',
+        source: 'notion',
+        title: 'Walking the Alps',
+        subtitle: 'A slow route',
+        category: 'Travel',
+        slug: 'walking-the-alps',
+        body: 'Body text',
+        publishDate: '2024-02-01',
+        tags: ['Hiking'],
+        authors: [{ id: 'a1', name: 'Ada' }],
+      },
+      loading: false,
+      error: null,
+    });
+
+    await act(async () => {
+      render(<ArticlePage />);
+    });
+
+    expect(screen.getByRole('heading', { name: 'Walking the Alps' })).toBeInTheDocument();
+    expect(screen.getByText('February 1, 2024', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('#Hiking').closest('a')).toHaveAttribute('href', '/article/tag/hiking');
+    expect(screen.getByText('author a1')).toBeInTheDocument();
+  });
+
+  it('redirects to the 404 page when no source has the post', async () => {
+    (usePost as jest.Mock).mockReturnValue({ data: null, loading: false, error: null });
+
+    await act(async () => {
+      render(<ArticlePage />);
+    });
+
+    expect(window.location.pathname).toBe('/404');
   });
 });

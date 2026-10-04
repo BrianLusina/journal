@@ -42,7 +42,7 @@ const AuthorCardTile: FunctionComponent<AuthorCardTileProps> = ({
       <div className="flex items-center gap-3">
         {email && (
           <a
-            href={email}
+            href={`mailto:${email}`}
             className="w-10 h-10 rounded-full border border-border hover:border-primary hover:bg-muted transition-all flex items-center justify-center"
             aria-label="Email"
           >
