@@ -1,5 +1,8 @@
-// const { pathsToModuleNameMapper } = require('ts-jest');
-// const { compilerOptions } = require('./tsconfig.json');
+const ts = require('typescript');
+const { pathsToModuleNameMapper } = require('ts-jest');
+
+// tsconfig.app.json is the single source of truth for path aliases (Vite reads it too).
+const { config: tsconfigApp } = ts.readConfigFile('./tsconfig.app.json', ts.sys.readFile);
 
 module.exports = {
   roots: ['<rootDir>'],
@@ -118,35 +121,7 @@ module.exports = {
   moduleNameMapper: {
     '^react-native$': 'react-native-web',
     '^.+\\.module\\.(css|sass|scss)$': 'identity-obj-proxy',
-    // ...pathsToModuleNameMapper(compilerOptions.paths),
-    '^@/(.*)$': '<rootDir>/src/$1',
-    '^@assets/(.*)$': '<rootDir>/src/assets/$1',
-    '^@icons/(.*)$': '<rootDir>/src/assets/icons/$1',
-    '^@images/(.*)$': '<rootDir>/src/assets/images/$1',
-    '^@fonts/(.*)$': '<rootDir>/src/assets/fonts/$1',
-    '^@app': '<rootDir>/src/app/index.ts',
-    '^@config': '<rootDir>/src/config/index.ts',
-    '^@apiConfig': '<rootDir>/src/config/api.ts',
-    '^@graphQl/(.*)$': '<rootDir>/src/api/graphql/$1',
-    '^@graphQlClient': '<rootDir>/src/api/graphql/GraphqlClient.ts',
-    '^@providers/(.*)$': '<rootDir>/src/providers/$1',
-    '^@components/(.*)$': '<rootDir>/src/components/$1',
-    '^@containers/(.*)$': '<rootDir>/src/containers/$1',
-    '^@features/(.*)$': '<rootDir>/src/features/$1',
-    '^@pages/(.*)$': '<rootDir>/src/pages/$1',
-    '^@layouts/(.*)$': '<rootDir>/src/layouts/$1',
-    '^@routes': '<rootDir>/src/config/routes.ts',
-    '^@utils': '<rootDir>/src/utils/utils.ts',
-    '^@timeUtils': '<rootDir>/src/utils/time/timeUtils.ts',
-    '^@timeConstants': '<rootDir>/src/utils/time/constants.ts',
-    '^@hooks/(.*)$': '<rootDir>/src/hooks/$1',
-    '^@services/(.*)$': '<rootDir>/src/services/$1',
-    '^@monitoring': '<rootDir>/src/services/monitoring/index.ts',
-    '^@analytics': '<rootDir>/src/services/analytics/index.ts',
-    '^@testUtils/(.*)$': '<rootDir>/src/test/$1',
-    '^@styles/(.*)$': '<rootDir>/src/styles/$1',
-    '^@scss/(.*)$': '<rootDir>/src/styles/scss/$1',
-    '^@css/(.*)$': '<rootDir>/src/styles/css/$1',
+    ...pathsToModuleNameMapper(tsconfigApp.compilerOptions.paths, { prefix: '<rootDir>/' }),
     'react-markdown': '<rootDir>/config/mocks/react-markdown.js',
   },
   moduleFileExtensions: [

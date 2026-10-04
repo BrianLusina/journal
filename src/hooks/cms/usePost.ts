@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
-import { ContentfulAdapter } from '@services';
-import { NotionAdapter } from '@cmsService';
+import { cmsAdapters, findPostBySlug } from '@cmsService';
 
+/**
+ * Loads a post by slug from whichever source has it. `data` is null with no `error` when no
+ * source has the slug, so callers can tell "not found" apart from "failed to load".
+ */
 export function usePost(slug: string | undefined) {
   const [data, setData] = useState<UnifiedPost | null>(null);
   const [loading, setLoading] = useState(true);
@@ -17,43 +20,16 @@ export function usePost(slug: string | undefined) {
 
     let isMounted = true;
 
-    async function fetchPost() {
+    async function fetchPost(postSlug: string) {
       setLoading(true);
       setError(null);
 
       try {
-        // Query adapters sequentially or concurrently. 
-        // We'll try them concurrently and return the first one that has the post.
-        const promises = [new ContentfulAdapter(), new NotionAdapter()].map(adapter =>
-          adapter.getPostBySlug(slug),
-        );
-        const results = await Promise.allSettled(promises);
-
-        if (!isMounted) return;
-
-        let foundPost: UnifiedPost | null = null;
-
-        for (const result of results) {
-          if (result.status === 'fulfilled' && result.value) {
-            foundPost = result.value;
-            break;
-          }
-        }
-
-        if (foundPost) {
-          setData(foundPost);
-          return;
-        }
-
-        const failedRequest = results.find(result => result.status === 'rejected');
-        if (failedRequest && failedRequest.status === 'rejected') {
-          const reason = failedRequest.reason;
-          setError(reason instanceof Error ? reason : new Error('Unable to fetch post'));
-        } else {
-          setError(new Error('Post not found'));
-        }
+        const post = await findPostBySlug(cmsAdapters, postSlug);
+        if (isMounted) setData(post);
       } catch (err: unknown) {
         if (isMounted) {
+          setData(null);
           setError(err instanceof Error ? err : new Error('Unable to fetch post'));
         }
       } finally {
@@ -61,7 +37,7 @@ export function usePost(slug: string | undefined) {
       }
     }
 
-    fetchPost();
+    fetchPost(slug);
 
     return () => {
       isMounted = false;

@@ -2,7 +2,7 @@ import { FunctionComponent } from 'react';
 import { useQuery } from '@apollo/client';
 import { GET_SOCIAL_INFO } from '@contentfulClient';
 import { captureException, captureScope, Severity } from '@monitoring';
-import SocialCard from '@components/SocialCard';
+import SocialCard from '@/components/SocialCard';
 
 const Social: FunctionComponent = () => {
   const { loading, error, data } = useQuery<SocialsData>(GET_SOCIAL_INFO);

@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
-import { ContentfulAdapter, NotionAdapter } from '@services';
-
-const DEFAULT_LIMIT = 100;
+import { captureException } from '@monitoring';
+import { cmsAdapters, fetchMergedPosts } from '@cmsService';
 
 export function usePosts(options?: CMSPaginationOptions) {
   const [data, setData] = useState<PaginatedUnifiedPosts | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { category, skip: requestedSkip, limit: requestedLimit } = options || {};
+  const { category, skip, limit } = options || {};
 
   useEffect(() => {
     let isMounted = true;
@@ -16,42 +15,13 @@ export function usePosts(options?: CMSPaginationOptions) {
       setLoading(true);
       setError(null);
 
-      const skip = requestedSkip || 0;
-      const limit = requestedLimit || DEFAULT_LIMIT;
-
       try {
-        // Fetch enough items from every source to build one globally paginated feed.
-        const promises = [new ContentfulAdapter(), new NotionAdapter()].map(adapter =>
-          adapter.getPosts({
-            ...(category ? { category } : {}),
-            skip: 0,
-            limit: skip + limit,
-          }),
-        );
-        const results = await Promise.all(promises);
-
+        const { errors, ...posts } = await fetchMergedPosts(cmsAdapters, { category, skip, limit });
         if (!isMounted) return;
 
-        // Combine all items
-        const allItems = results.flatMap(result => result.items);
-
-        // Sort items by publishDate descending
-        allItems.sort((a, b) => {
-          const dateA = new Date(a.publishDate).getTime();
-          const dateB = new Date(b.publishDate).getTime();
-          return dateB - dateA;
-        });
-
-        const total = results.reduce((sum, result) => sum + result.total, 0);
-        const hasMore = results.some(result => result.hasMore || result.total > result.skip + result.items.length);
-
-        setData({
-          items: allItems.slice(skip, skip + limit),
-          total,
-          limit,
-          skip,
-          hasMore,
-        });
+        // A failing source degrades the feed instead of hiding it, so report it rather than surface it.
+        errors.forEach(sourceError => captureException(sourceError));
+        setData(posts);
       } catch (err: unknown) {
         if (isMounted) {
           setError(err instanceof Error ? err : new Error('Unable to fetch posts'));
@@ -68,7 +38,7 @@ export function usePosts(options?: CMSPaginationOptions) {
     return () => {
       isMounted = false;
     };
-  }, [category, requestedSkip, requestedLimit]);
+  }, [category, skip, limit]);
 
   return { data, loading, error };
 }

@@ -1,97 +1,66 @@
-import { act, renderHook } from '@testing-library/react-hooks';
-import { ContentfulAdapter } from '@services/cms/ContentfulAdapter';
-import { NotionAdapter } from '@services/cms/NotionAdapter';
+import { renderHook } from '@testing-library/react-hooks';
+import { captureException } from '@monitoring';
+import { fetchMergedPosts } from '@cmsService';
 import { usePosts } from './usePosts';
 
-jest.mock('@services/cms/ContentfulAdapter', () => ({
-  ContentfulAdapter: jest.fn(),
-}));
+jest.mock('@monitoring', () => ({ captureException: jest.fn() }));
+jest.mock('@cmsService', () => ({ cmsAdapters: ['adapters'], fetchMergedPosts: jest.fn() }));
 
-jest.mock('@services/cms/NotionAdapter', () => ({
-  NotionAdapter: jest.fn(),
-}));
-
-const contentfulPosts = [
-  {
-    id: 'contentful-1',
-    source: 'contentful',
-    title: 'Older',
-    slug: 'older',
-    publishDate: '2024-01-01',
-    tags: [],
-    authors: [],
-  },
-];
-
-const notionPosts = [
-  {
-    id: 'notion-1',
-    source: 'notion',
-    title: 'Newer',
-    slug: 'newer',
-    publishDate: '2024-02-01',
-    tags: [],
-    authors: [],
-  },
-];
+const posts: PaginatedUnifiedPosts = {
+  items: [{ id: 'n1', source: 'notion', title: 'Post', slug: 'post', publishDate: '2024-02-01', tags: [], authors: [] }],
+  total: 1,
+  limit: 3,
+  skip: 0,
+  hasMore: false,
+};
 
 describe('usePosts', () => {
-  const getContentfulPosts = jest.fn();
-  const getNotionPosts = jest.fn();
-
   beforeEach(() => {
-    jest.clearAllMocks();
-    (ContentfulAdapter as jest.Mock).mockImplementation(() => ({
-      getPosts: getContentfulPosts,
-    }));
-    (NotionAdapter as jest.Mock).mockImplementation(() => ({
-      getPosts: getNotionPosts,
-    }));
-    getContentfulPosts.mockResolvedValue({
-      items: contentfulPosts,
-      total: 1,
-      limit: 2,
-      skip: 0,
-    });
-    getNotionPosts.mockResolvedValue({
-      items: notionPosts,
-      total: 1,
-      limit: 2,
-      skip: 0,
-    });
+    (fetchMergedPosts as jest.Mock).mockResolvedValue({ ...posts, errors: [] });
   });
 
-  it('merges sources and applies pagination after sorting', async () => {
-    const { result, waitForNextUpdate } = renderHook(() => usePosts({ limit: 1 }));
+  it('loads the merged feed from the registered adapters', async () => {
+    const { result, waitForNextUpdate } = renderHook(() => usePosts({ limit: 3 }));
 
-    await act(async () => {
-      await waitForNextUpdate();
-    });
+    expect(result.current.loading).toBe(true);
+    await waitForNextUpdate();
 
-    expect(result.current.data?.items.map(post => post.id)).toEqual(['notion-1']);
-    expect(getContentfulPosts).toHaveBeenCalledWith({ limit: 1, skip: 0 });
-    expect(getNotionPosts).toHaveBeenCalledWith({ limit: 1, skip: 0 });
+    expect(fetchMergedPosts).toHaveBeenCalledWith(['adapters'], { category: undefined, skip: undefined, limit: 3 });
+    expect(result.current).toEqual({ data: posts, loading: false, error: null });
+  });
+
+  it('keeps the feed and reports sources that failed', async () => {
+    const sourceError = new Error('Notion is down');
+    (fetchMergedPosts as jest.Mock).mockResolvedValue({ ...posts, errors: [sourceError] });
+
+    const { result, waitForNextUpdate } = renderHook(() => usePosts({ limit: 3 }));
+    await waitForNextUpdate();
+
+    expect(result.current.data).toEqual(posts);
+    expect(result.current.error).toBeNull();
+    expect(captureException).toHaveBeenCalledWith(sourceError);
+  });
+
+  it('surfaces an error when no source could be loaded', async () => {
+    const error = new Error('Everything is down');
+    (fetchMergedPosts as jest.Mock).mockRejectedValue(error);
+
+    const { result, waitForNextUpdate } = renderHook(() => usePosts());
+    await waitForNextUpdate();
+
+    expect(result.current.error).toBe(error);
+    expect(result.current.loading).toBe(false);
   });
 
   it('refetches when the category changes', async () => {
-    const { result, rerender, waitForNextUpdate } = renderHook(
-      ({ category }) => usePosts({ category, limit: 3 }),
-      { initialProps: { category: 'news' } },
-    );
-
-    await act(async () => {
-      await waitForNextUpdate();
+    const { rerender, waitForNextUpdate } = renderHook(({ category }) => usePosts({ category, limit: 3 }), {
+      initialProps: { category: 'news' },
     });
+    await waitForNextUpdate();
+
     rerender({ category: 'guides' });
+    await waitForNextUpdate();
 
-    await act(async () => {
-      await waitForNextUpdate();
-    });
-
-    expect(getContentfulPosts).toHaveBeenLastCalledWith({
-      category: 'guides',
-      limit: 3,
-      skip: 0,
-    });
+    expect(fetchMergedPosts).toHaveBeenLastCalledWith(['adapters'], { category: 'guides', skip: undefined, limit: 3 });
   });
 });
