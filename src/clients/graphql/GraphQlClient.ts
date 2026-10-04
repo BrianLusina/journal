@@ -1,4 +1,4 @@
-import { ApolloClient, concat } from '@apollo/client';
+import { ApolloClient, concat, from } from '@apollo/client';
 import config from '@config';
 import { authMiddleware, RetryMiddleware, Cache, errorMiddleware, httpLink } from './middleware';
 
@@ -13,7 +13,8 @@ type ClientParams = {
 
 const graphQlClient = ({ uri, authKey }: ClientParams) => {
   const http = httpLink(uri);
-  let link = RetryMiddleware.concat(http).concat(errorMiddleware);
+  // HttpLink is terminating, so it must be last; anything after it never runs.
+  let link = from([errorMiddleware, RetryMiddleware, http]);
 
   if (!authKey) {
     return new ApolloClient({

@@ -1,5 +1,5 @@
-import { getUnixTime, formatDistance, formatDistanceStrict, formatDistanceToNow, format, parse, isValid } from 'date-fns';
-// eslint-disable-next-line camelcase
+import { getUnixTime, formatDistance, formatDistanceStrict, formatDistanceToNow, format, parse, parseISO, isValid } from 'date-fns';
+ 
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_TIME_FORMAT_MMMM_D_ha } from './constants';
 
 /**
@@ -22,16 +22,16 @@ const momentToDateFnsFormat = (momentFormat: string): string => {
 };
 
 const safeParse = (time: string, formatStr: string): Date => {
+  if (!time) {
+    return new Date(NaN);
+  }
   const dfnsFormat = momentToDateFnsFormat(formatStr);
   const parsedDate = parse(time, dfnsFormat, new Date());
   if (isValid(parsedDate)) {
     return parsedDate;
   }
-  const fallbackDate = new Date(time);
-  if (isValid(fallbackDate)) {
-    return fallbackDate;
-  }
-  return parsedDate; // Return the invalid date, it will throw RangeError later as before
+  // parseISO, unlike new Date(), reads date-only strings (e.g. Notion's '2024-02-01') as local time.
+  return parseISO(time);
 };
 
 /**
@@ -110,6 +110,9 @@ export const humanizeDateTime = (
   toFormat = DATE_TIME_FORMAT_MMMM_D_ha,
 ): string => {
   const parsedDate = safeParse(time, fromFormat);
+  if (!isValid(parsedDate)) {
+    return '';
+  }
   return format(parsedDate, momentToDateFnsFormat(toFormat));
 };
 

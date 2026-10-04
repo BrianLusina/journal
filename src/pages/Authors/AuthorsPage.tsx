@@ -63,7 +63,7 @@ const AuthorsPage = () => {
               bio={author.shortBio}
               articles={author.linkedFrom.entryCollection.total}
               twitter={author.twitter}
-              linkedIn={author.linkedin}
+              linkedIn={author.linkedIn}
               instagram={author.instagram}
               email={author.email}
               github={author.github}

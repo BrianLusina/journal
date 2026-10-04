@@ -6,6 +6,7 @@ import {
   fromNow,
   getHumanizedDuration,
 } from './timeUtils';
+import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from './constants';
 
 describe('TimeUtils', () => {
   describe('getTime24Hours', () => {
@@ -77,6 +78,16 @@ describe('TimeUtils', () => {
       const actual = humanizeDateTime(input);
 
       expect(actual).toEqual(expected);
+    });
+    it('should keep a date-only ISO string on the same calendar day in any timezone', () => {
+      expect(humanizeDateTime('2024-02-01', DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY)).toEqual(
+        'February 1, 2024',
+      );
+    });
+
+    it('should return an empty string instead of throwing for a missing or invalid date', () => {
+      expect(humanizeDateTime(undefined as unknown as string)).toEqual('');
+      expect(humanizeDateTime('not a date')).toEqual('');
     });
   });
 

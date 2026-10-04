@@ -12,12 +12,12 @@ const Tag: React.FC<{ name: string }> = ({ name }) => {
   );
 };
 
-const Tags: React.FC<{ tags: { id: string; name: string }[] }> = ({ tags }) => {
+const Tags: React.FC<{ tags: string[] }> = ({ tags }) => {
   return (
     <div className="mb-12 pb-12 border-b border-border">
       <div className="flex flex-wrap gap-3">
         {tags.map((tag) => (
-          <Tag key={tag.id} name={tag.name} />
+          <Tag key={tag} name={tag} />
         ))}
       </div>
     </div>

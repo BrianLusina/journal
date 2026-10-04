@@ -144,7 +144,7 @@ declare type Author = {
   email?: string;
   facebook?: string;
   github: string;
-  linkedin: string;
+  linkedIn: string;
   medium: string;
   shortBio: string;
   tagline: string;

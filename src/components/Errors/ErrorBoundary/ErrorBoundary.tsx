@@ -91,10 +91,12 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
       if (FallbackComponent) {
         return <FallbackComponent {...props} />;
       }
-      <div>
-        <h1 className="font-sans font-medium text-4xl text-center text-[#181818]">{title}</h1>
-        <p className="font-sans font-medium text-base text-center text-[#181818] my-[0.1em]">{message}</p>
-      </div>
+      return (
+        <div>
+          <h1 className="font-sans font-medium text-4xl text-center text-[#181818]">{title}</h1>
+          <p className="font-sans font-medium text-base text-center text-[#181818] my-[0.1em]">{message}</p>
+        </div>
+      );
     }
     return children;
   }
