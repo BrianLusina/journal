@@ -9,51 +9,37 @@ jobs:
   test:
     name: Unit Tests
 
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, ubuntu-latest]
-        node-version: [14.x, 16.x]
-
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
-    - name: Use NodeJS ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
+    - name: Use NodeJS
+      uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version-file: .nvmrc
 
-    - name: Get yarn cache directory path
-      id: cache-dir-path
-      run: echo "::set-output name=dir::$(yarn cache dir)"
-
-    - uses: actions/cache@v2
-      id: cache # use this to check for `cache-hit` (`steps.cache.outputs.cache-hit != 'true'`)
-      with:
-        path: |
-          **/node_modules
-          **/.eslintcache
-          ${{ steps.cache-dir-path.outputs.dir }}          
-        key: ${{ runner.os }}-cache-${{ hashFiles('**/yarn.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-cache-${{ hashFiles('**/yarn.lock') }}
+    - name: Use Bun
+      uses: oven-sh/setup-bun@v2
 
     - name: Install dependencies
-      if: steps.cache.outputs.cache-hit != 'true'    
-      run: yarn install
-    
+      run: bun install --frozen-lockfile
+      env:
+        CYPRESS_INSTALL_BINARY: 0
+
     - name: Unit Tests
-      run: yarn test:coverage
+      run: bun run test:coverage
       env:
         CI: true
-    
-    # Ref: https://github.com/codecov/codecov-action        
+
+    # Ref: https://github.com/codecov/codecov-action
+    # The 85% coverage threshold is enforced by Jest above; the upload only feeds the Codecov
+    # dashboard, so an upload hiccup does not fail the build.
     - name: Upload Test Coverage
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v5
       with:
+        token: ${{ secrets.CODECOV_TOKEN }}
         flags: unittests
-        fail_ci_if_error: true
+        fail_ci_if_error: false
         verbose: true

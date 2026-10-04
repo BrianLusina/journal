@@ -1,9 +1,30 @@
 import CMSAdapter from './CMSAdapter';
 
+type NotionText = { plain_text?: string }[];
+
+/**
+ * The subset of a Notion page object (as returned by the api/notion routes) that the adapter
+ * reads. Property names match the columns of the Notion posts database.
+ */
+type NotionPage = {
+  id: string;
+  created_time: string;
+  cover?: { type: 'external' | 'file'; external?: { url: string }; file?: { url: string } } | null;
+  properties: {
+    Title?: { title?: NotionText };
+    Slug?: { rich_text?: NotionText };
+    Description?: { rich_text?: NotionText };
+    Category?: { select?: { name: string } | null };
+    Date?: { date?: { start: string } | null };
+    Tags?: { multi_select?: { name: string }[] };
+    Author?: { people?: { id: string; name?: string; avatar_url?: string }[]; rich_text?: NotionText };
+  };
+};
+
 /**
  * Maps a Notion Page object to the UnifiedPost domain model.
  */
-function mapNotionPageToUnified(page: any): UnifiedPost {
+function mapNotionPageToUnified(page: NotionPage): UnifiedPost {
   const properties = page.properties;
 
   // Extract standard properties gracefully
@@ -14,13 +35,13 @@ function mapNotionPageToUnified(page: any): UnifiedPost {
   const publishDate = properties.Date?.date?.start || page.created_time;
   
   // Tags
-  const tags = properties.Tags?.multi_select?.map((tag: any) => tag.name) || [];
+  const tags = properties.Tags?.multi_select?.map(tag => tag.name) || [];
 
   // Authors (assuming people property or relation)
   const authors: UnifiedAuthor[] = [];
   if (properties.Author?.people) {
     authors.push(
-      ...properties.Author.people.map((person: any) => ({
+      ...properties.Author.people.map(person => ({
         id: person.id,
         name: person.name,
         avatarUrl: person.avatar_url,
@@ -36,7 +57,7 @@ function mapNotionPageToUnified(page: any): UnifiedPost {
   // Cover image
   let heroImage: UnifiedAsset | undefined;
   if (page.cover) {
-    const url = page.cover.type === 'external' ? page.cover.external.url : page.cover.file?.url;
+    const url = page.cover.type === 'external' ? page.cover.external?.url : page.cover.file?.url;
     if (url) {
       heroImage = { url, title: 'Cover Image' };
     }

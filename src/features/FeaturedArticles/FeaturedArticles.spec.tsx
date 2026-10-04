@@ -3,7 +3,7 @@ import { render, screen } from '@testUtils/rtlUtils';
 import * as Monitoring from '@monitoring';
 import FeaturedArticles from './FeaturedArticles';
 
-jest.mock('@apollo/client', () => ({ ...jest.requireActual('@apollo/client'), useQuery: jest.fn() }));
+jest.mock('@apollo/client', () => ({ ...(jest.requireActual('@apollo/client') as object), useQuery: jest.fn() }));
 jest.mock('@monitoring', () => ({ captureException: jest.fn(), captureScope: jest.fn(), Severity: { Error: 'error' } }));
 
 const article = (id: string) => ({

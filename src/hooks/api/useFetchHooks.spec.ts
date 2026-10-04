@@ -7,7 +7,7 @@ import useFetchAuthorById from './useFetchAuthorById';
 import useFetchAuthors from './useFetchAuthors';
 import useFetchAuthorsByIds from './useFetchAuthorsByIds';
 
-jest.mock('@apollo/client', () => ({ ...jest.requireActual('@apollo/client'), useQuery: jest.fn() }));
+jest.mock('@apollo/client', () => ({ ...(jest.requireActual('@apollo/client') as object), useQuery: jest.fn() }));
 jest.mock('@contentfulClient', () => ({
   GET_ALL_AUTHORS: 'GET_ALL_AUTHORS',
   GET_ALL_BLOGS_BY_CATEGORY: 'GET_ALL_BLOGS_BY_CATEGORY',

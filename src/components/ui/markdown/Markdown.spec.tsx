@@ -3,7 +3,7 @@ import MarkdownComponents from './Markdown';
 
 describe('MarkdownComponents', () => {
   it.each(['h1', 'h2', 'h3', 'ul', 'ol'] as const)('renders %s with the design-system styles', tag => {
-    const Component = MarkdownComponents[tag] as React.ComponentType<Record<string, unknown>>;
+    const Component = MarkdownComponents[tag] as unknown as React.ComponentType<Record<string, unknown>>;
 
     const { container } = render(<Component node={{}}>content</Component>);
 
@@ -13,7 +13,7 @@ describe('MarkdownComponents', () => {
   });
 
   it('wraps paragraphs and drops the markdown node prop', () => {
-    const Paragraph = MarkdownComponents.p as React.ComponentType<Record<string, unknown>>;
+    const Paragraph = MarkdownComponents.p as unknown as React.ComponentType<Record<string, unknown>>;
 
     const { container } = render(<Paragraph node={{ type: 'element' }}>text</Paragraph>);
 
@@ -22,7 +22,7 @@ describe('MarkdownComponents', () => {
   });
 
   it('renders blockquotes with the Blockquote component', () => {
-    const Quote = MarkdownComponents.blockquote as React.ComponentType<Record<string, unknown>>;
+    const Quote = MarkdownComponents.blockquote as unknown as React.ComponentType<Record<string, unknown>>;
 
     render(<Quote node={{}}>Be curious.</Quote>);
 
