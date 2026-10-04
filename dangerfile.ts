@@ -4,7 +4,7 @@ import { danger, warn, markdown } from 'danger';
 const { pr } = danger.github;
 const modifiedFiles = danger.git.modified_files;
 const packageChanged = modifiedFiles.includes('package.json');
-const lockfileChanged = modifiedFiles.includes('yarn.lock');
+const lockfileChanged = modifiedFiles.includes('bun.lockb');
 
 // Always ensure we assign someone, so that our Slackbot can do its work correctly
 if (pr.assignee === null) {
@@ -20,7 +20,7 @@ if (pr.additions + pr.deletions > bigPRThreshold) {
 }
 
 if (packageChanged && !lockfileChanged) {
-  const message = 'Changes were made to package.json, but not to yarn.lock';
-  const idea = 'Perhaps you need to run `yarn install`?';
+  const message = 'Changes were made to package.json, but not to bun.lockb';
+  const idea = 'Perhaps you need to run `bun install`?';
   warn(`${message} - <i>${idea}</i>`);
 }
