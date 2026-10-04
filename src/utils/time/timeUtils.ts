@@ -13,7 +13,6 @@ const momentToDateFnsFormat = (momentFormat: string): string => {
     .replace(/D/g, 'd')
     .replace(/MMMM/g, 'LLLL')
     .replace(/MMM/g, 'LLL')
-    .replace(/MM/g, 'MM')
     .replace(/hh/g, 'hh')
     .replace(/HH/g, 'HH')
     .replace(/mm/g, 'mm')
