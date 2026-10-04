@@ -21,7 +21,7 @@ const AboutPage = () => {
   }
 
   // we only need the first item in the collection.
-  const about = data?.aboutCollection.items[0];
+  const about = data?.aboutCollection?.items?.[0];
 
   const title = about?.title;
   const content = about?.content;

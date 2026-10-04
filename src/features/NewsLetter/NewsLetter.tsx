@@ -12,6 +12,7 @@ const NewsLetterSection = () => {
         <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
           <input
             type="email"
+            aria-label="Email address"
             placeholder="Your email"
             className="flex-1 px-6 py-4 rounded-full border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring transition-all"
           />

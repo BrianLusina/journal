@@ -1,5 +1,5 @@
 import { FunctionComponent, useEffect } from 'react';
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const NotFoundPage: FunctionComponent = () => {
   const location = useLocation();
@@ -17,7 +17,7 @@ const NotFoundPage: FunctionComponent = () => {
           <p className="mb-4 text-xl text-gray-600">Oops! Page not found</p>
           <p id="fof__subtitle">Sorry, but the page you were looking for could not be found.</p>
           <p id="fof__link">
-            <a href="/">Return Home</a>.
+            <Link to="/">Return Home</Link>.
           </p>
         </div>
 

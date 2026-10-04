@@ -1,4 +1,4 @@
-import { toast } from 'sonner';
+import { copyCurrentUrl } from '@/lib/clipboard';
 import { Facebook, Twitter, Link2 } from 'lucide-react';
 
 type MobileShareButtonsProps = {
@@ -6,17 +6,12 @@ type MobileShareButtonsProps = {
 };
 
 const MobileShareButtons: React.FC<MobileShareButtonsProps> = ({ title }) => {
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-    toast.success('Link copied to clipboard!');
-  };
-
   return (
     <div className="md:hidden mb-12 pb-12 border-b border-border">
       <p className="text-sm font-semibold mb-4">{title}</p>
       <div className="flex items-center gap-3">
         <button
-          onClick={handleCopyLink}
+          onClick={copyCurrentUrl}
           className="flex-1 py-3 rounded-full border border-border hover:border-primary hover:bg-muted transition-all flex items-center justify-center gap-2"
         >
           <Link2 className="w-4 h-4" />

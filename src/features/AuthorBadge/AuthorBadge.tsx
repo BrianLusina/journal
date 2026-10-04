@@ -33,7 +33,7 @@ const AuthorBadge: FunctionComponent<ArticleAuthorProps> = ({ authorId }) => {
 
   const {
     name,
-    image: { url, title },
+    image: { url },
     shortBio
   } = data;
 

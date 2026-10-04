@@ -12,7 +12,7 @@ export default {
     graphQlUrl: CMS_GRAPHQL_URL || 'https://graphql.contentful.com',
     restApiUrl: CMS_REST_API_URL || 'https://cdn.contentful.com',
     previewRestApiUrl: CMS_PREVIEW_REST_API_URL || 'https://preview.contentful.com',
-    spaceId: CMS_SPACE_ID,
+    spaceId: CMS_SPACE_ID || '',
     environment: CMS_ENVIRONMENT || 'master',
     preview: CMS_PREVIEW === 'true'
 }

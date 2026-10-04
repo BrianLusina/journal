@@ -94,12 +94,15 @@ const Navbar: FunctionComponent = () => {
                 key={name}
                 to={path}
                 className="text-sm font-medium hover:text-accent transition-colors"
-                // onClick={() => setIsMenuOpen(false)}
+                onClick={() => setIsMenuOpen(false)}
               >
                 {name}
               </Link>
             ))}
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full w-full">
+            <Button
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full w-full"
+              onClick={() => setIsMenuOpen(false)}
+            >
               Join Now
             </Button>
           </nav>
