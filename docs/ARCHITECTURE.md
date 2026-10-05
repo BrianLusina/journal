@@ -123,7 +123,7 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 | `VITE_SENTRY_DSN`, `VITE_SENTRY_TRACES_SAMPLE_RATE` | Sentry (production only). |
 | `VITE_FIREBASE_*` | Firebase Analytics (optional, production only). |
 | `VITE_ENV`, `VITE_APP_NAME`, `VITE_APP_TITLE` | Environment label and site naming. |
-| `NOTION_API_KEY`, `NOTION_DATABASE_ID` | **Server only**, read by `api/notion`. See BrianLusina/journal#798 about database ID vs data source ID. |
+| `NOTION_API_KEY`, `NOTION_DATA_SOURCE_ID` (or `NOTION_DATABASE_ID`) | **Server only**, read by `api/notion`. Queries target a data source (Notion API 2025-09-03). `getDataSourceId()` in `api/notion/_shared.ts` uses `NOTION_DATA_SOURCE_ID` as is, or looks up the first data source of `NOTION_DATABASE_ID` once per function instance. |
 | `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` | Build only: source-map upload by `@sentry/vite-plugin`. |
 
 ## Deployment topology
@@ -150,7 +150,6 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 | Area | Issue |
 |---|---|
 | Notion authors are looked up in Contentful and never render | BrianLusina/journal#797 |
-| `NOTION_DATABASE_ID` passed as a `data_source_id` | BrianLusina/journal#798 |
 | Merged pagination refetches from zero; Notion is capped at 100 posts | BrianLusina/journal#799 |
 | Notion posts without a `Slug` link to a 404 | BrianLusina/journal#800 |
 | Home featured articles and tag pages bypass the CMS seam | BrianLusina/journal#801 |

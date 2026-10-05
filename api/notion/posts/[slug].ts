@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { NotionToMarkdown } from 'notion-to-md';
-import { databaseId, isNotionConfigured, notion } from '../_shared';
+import { getDataSourceId, isNotionConfigured, notion } from '../_shared';
 
 const markdown = new NotionToMarkdown({ notionClient: notion });
 
@@ -19,7 +19,7 @@ export default async function handler(
 
   try {
     const result = await notion.dataSources.query({
-      data_source_id: databaseId!,
+      data_source_id: await getDataSourceId(),
       page_size: 1,
       filter: {
         and: [

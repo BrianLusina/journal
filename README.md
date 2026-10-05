@@ -72,10 +72,13 @@ The Notion integration uses Vercel Functions under `/api/notion`. Configure thes
 
 ```text
 NOTION_API_KEY
-NOTION_DATABASE_ID
+NOTION_DATA_SOURCE_ID   # preferred
+NOTION_DATABASE_ID      # alternative: the database's first data source is used
 ```
 
-Do not prefix either variable with `VITE_`, because Vite exposes `VITE_*` variables to the browser. For local development, put the same variables in `.env.local` and run `vercel dev` so the Vite app and the API functions share one origin. The Notion integration must have access to the configured database (or data source) in Notion. BrianLusina/journal#798 tracks the difference between the two IDs.
+Since Notion API version 2025-09-03, queries target a database's *data source*, whose ID differs from the database ID. Copy it from the database's data source settings in Notion; it is not the ID in the database URL. If only `NOTION_DATABASE_ID` is set, the functions look up its first data source once per instance. A value that is already a data source ID also keeps working.
+
+Do not prefix either variable with `VITE_`, because Vite exposes `VITE_*` variables to the browser. For local development, put the same variables in `.env.local` and run `vercel dev` so the Vite app and the API functions share one origin. The Notion integration must have access to the database in Notion.
 
 A static-only host (Surge, the nginx [Dockerfile](./Dockerfile), GitHub Pages) can serve the app with Contentful content only. BrianLusina/journal#807 tracks the Docker and older deploy workflows, which still need porting to bun.
 
