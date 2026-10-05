@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-LJournal is a personal blog and journal website. It displays blog posts sourced from a headless CMS (Contentful) via GraphQL and REST APIs. The site includes article feeds, author pages, tag-based filtering, search, and a newsletter signup.
+LJournal is a personal blog and journal website. It displays blog posts from more than one headless CMS (Contentful and Notion) through a CMS adapter layer; see [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md). The site includes article feeds, author pages, tag-based filtering, search, and a newsletter signup.
 
 ## Technology Stack
 
@@ -33,7 +33,7 @@ LJournal is a personal blog and journal website. It displays blog posts sourced 
 ## Commands
 
 - **Run dev server**: `bun dev`
-- **Run tests**: `bun test`
+- **Run tests**: `bun run test` (Jest; `bun test` starts Bun's own runner, which ignores `jest.config.js`)
 - **Run linting**: `bun lint`
 - **Build**: `bun run build`
 - **Preview production build**: `bun run preview`
@@ -42,7 +42,7 @@ LJournal is a personal blog and journal website. It displays blog posts sourced 
 ## Building and Testing
 
 - Format and lint the code before committing with `bun lint`
-- Run tests with `bun test`
+- Run tests with `bun run test`
 - Build the project with `bun run build`
 
 ## Commits and PRs
@@ -63,7 +63,7 @@ Alternative is to use [Chris Beams](https://chris.beams.io/git-commit) style for
 
 ## Review Checklist
 
-- All tests from `bun test` must succeed.
+- All tests from `bun run test` must succeed.
 - Add new tests for any new feature or bug fix.
 - Update documentation for user-facing changes.
 

@@ -4,7 +4,9 @@
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-Personal blog built with [ReactJS](https://reactjs.org/) and [Gatsby](https://www.gatsbyjs.org/).
+Personal blog and journal built with [React](https://react.dev/), [Vite](https://vitejs.dev/) and [Tailwind CSS](https://tailwindcss.com/). Posts come from more than one headless CMS: [Contentful](https://www.contentful.com/) today, with [Notion](https://developers.notion.com/) added through a CMS adapter layer.
+
+How the code is organised, how content flows from each CMS to the page, and how to add another content source are covered in [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
 
 **Why document and open source my blog site?**
 
@@ -12,138 +14,80 @@ Part of the belief that OSS is the future and also fosters a community of develo
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+### Prerequisites
 
-Clone the repository:
+1. [Node.js](https://nodejs.org/) at the version in [.nvmrc](./.nvmrc) (22.x). Jest and the Vite tooling run on Node.
+2. [Bun](https://bun.sh), the package manager and script runner. The lockfile is `bun.lockb`.
 
-```bash
-# if using ssh
-git clone git@github.com:BrianLusina/brianlusina.github.io.git
-# or if using https
-git clone https://github.com/BrianLusina/brianlusina.github.io.git
-```
-
-## Prerequisites
-
-A couple of things you will need to install in order to run this project:
-
-1. [Node and NPM](https://nodejs.org/en/)
-
-   Node is a JavaScript Runtime Environment. Installation instructions can be found in the link provided. By installing Node, you will also be installing npm. Node version used is **10.x**
-
-2. [Yarn](https://yarnpkg.com) - (Optional)
-
-   Yarn is an alternative package manager to npm. It is not necessary to use, but, if you prefer using yarn, then follow the instructions set out in the download section of the link provided. It is advised, that one package manager is picked due to how differently the dependency graph is managed by both.
-
-## Installing
-
-Installing dependencies is straight forward:
+### Installing
 
 ```bash
-npm install
-# or
-yarn install
+git clone https://github.com/BrianLusina/journal.git
+cd journal
+bun install
+cp .env.sample .env.local   # then fill in the values you have
 ```
 
-This should set you up to install the dependencies as needed and get you running.
+Every variable in `.env.sample` is described in [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md#configuration). Firebase and Sentry settings are optional. Without Contentful settings the app still renders, but with no Contentful posts.
+
+### Running locally
+
+```bash
+bun dev          # Vite dev server on http://localhost:8080 (Contentful only)
+vercel dev       # Vite plus the api/notion functions, needed for Notion content
+```
+
+`bun dev` does not run the `api/` functions, so Notion posts only appear under `vercel dev` (see BrianLusina/journal#802).
 
 ## Running tests
 
-Tests have been written with [Jest](https://facebook.github.io/jest/) and [Enzyme](https://github.com/airbnb/enzyme). Running the tests can be done as follows:
+Tests use [Jest](https://jestjs.io/) and [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/), with specs next to the code they test (`*.spec.ts(x)`).
 
 ```bash
-yarn test
-# or
-npm run test
+bun run test            # Jest
+bun run test:coverage   # Jest with the 85% coverage gate CI enforces
 ```
 
-To generate a coverate report:
+Use `bun run test`, not `bun test`. `bun test` starts Bun's own test runner, which ignores `jest.config.js` and fails.
+
+Linting and building:
 
 ```bash
-yarn test:cover
-# or
-npm run test:cover
+bun run lint          # ESLint
+bun run lint:styles   # stylelint
+bun run build         # production build into dist/
 ```
 
 ## Deployment
 
-Deployment has been configured to work on any system or static server as necessary. Therefore deployment can be to either a microservice application with this running in its own container, or to a static site or to even github pages.
+The build output in `dist/` is a static single-page app. Every pull request gets a Vercel preview deployment.
 
 ### Vercel and Notion
 
-The Notion integration uses Vercel Functions under `/api/notion`. Configure these
-server-only environment variables in the Vercel project settings:
+The Notion integration uses Vercel Functions under `/api/notion`. Configure these server-only environment variables in the Vercel project settings:
 
 ```text
 NOTION_API_KEY
 NOTION_DATABASE_ID
 ```
 
-Do not prefix either variable with `VITE_`; Vite exposes `VITE_*` variables to
-the browser. For local development, put the same variables in `.env.local` and
-run the frontend with `vercel dev` so the Vite app and API functions share one
-origin. The Notion integration must have access to the configured database (or
-data source) in Notion.
+Do not prefix either variable with `VITE_`, because Vite exposes `VITE_*` variables to the browser. For local development, put the same variables in `.env.local` and run `vercel dev` so the Vite app and the API functions share one origin. The Notion integration must have access to the configured database (or data source) in Notion. BrianLusina/journal#798 tracks the difference between the two IDs.
 
-The pipeline set here is to deploy this to a seperate static server when in development in order to do testing and to [github pages](https://pages.github.com/) when finally moving to production. Ideally,this being a blog site which primarily serves static content, that should not matter where it is deployed, as long as it is accessible and can handle incoming traffic.
-
-Tools used for deployment:
-
-- [Docker](https://www.docker.com/)
-
-  There is a [Dockerfile](./Dockerfile) available at the root of the project. Which entails instructions on how to deploy this to a system/server that supports running dockerized applications.
-
-- [Surge](https://surge.sh)
-
-  Surge is a static hosting site and is used when deploying in development. In order to use this, ensure that you have an account with surge and have the necessary credentials in order to deployto a static site. In its place, any other static hosting site can be used, e.g. [Netlify](https://www.netlify.com/).
-
-  To publish directly, you can use:
-
-  ```bash
-  yarn publish:staging
-  ```
-
-  > this will run a build and then publish to surge, ensure you change the domain name to something else though :)
-
-- [Github Pages](https://pages.github.com/)
-
-  Github Pages has been used as the production site for the blog. This can be changed to something else however. In its place, anything else can be used.
-  To publish to github pages, you can run the following command:
-
-  ```bash
-  yarn publish:prod
-  ```
-
-  > this runs a buld and publishes to github pages.
-
-  > NB: Ensure that you change the [homepage](./package.json#homepage) attribute in the [package.json](./package.json) file to something else however.
-
-  You may add a Google Analytics Tracking ID, however,this is not necessary. To do so you will need to add it as an environment variable ANALYTICS_TRACKING_ID in any of the `.env.<ENVIRONMENT>` of your choice. Sample environments have been provided to give more context:
-
-  ```plain
-  .
-  ├── .env.development.sample
-  ├── .env.production.sample
-  ├── .env.staging.sample
-  └── .env.testing.sample
-  ```
-  > Some of the environments available
-
-  In order to use any of them, simply rename the file you intend to use by removing the `.sample` suffix.
-
-  The environment variables will be picked up at build time.
+A static-only host (Surge, the nginx [Dockerfile](./Dockerfile), GitHub Pages) can serve the app with Contentful content only. BrianLusina/journal#807 tracks the Docker and older deploy workflows, which still need porting to bun.
 
 ## Built With
 
-1. [JavaScript Language](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/First_steps/What_is_JavaScript) - Programming language
-2. [ReactJS](https://reactjs.org/) - JavaScript library for building UI.
-3. [Gatsby](https://www.gatsbyjs.org/) - Static site generator
-4. [Redux](https://redux.js.org/) - Predictable State container for JS apps.
-5. [React-Redux](https://github.com/reduxjs/react-redux) - React Bindings for Redux
+1. [TypeScript](https://www.typescriptlang.org/)
+2. [React 18](https://react.dev/) and [React Router 6](https://reactrouter.com/)
+3. [Vite](https://vitejs.dev/) with SWC
+4. [Tailwind CSS](https://tailwindcss.com/) and [shadcn/ui](https://ui.shadcn.com/) (Radix primitives)
+5. [Apollo Client](https://www.apollographql.com/docs/react/) for Contentful GraphQL
+6. [Notion API](https://developers.notion.com/) through [Vercel Functions](https://vercel.com/docs/functions)
+7. [Sentry](https://sentry.io/) for monitoring and [Firebase Analytics](https://firebase.google.com/docs/analytics)
 
 ## Versioning
 
-[SemVer](https://semver.org/) is used for versioning. For the versions available, see the [tags](https://github.com/BrianLusina/brianlusina.github.io/tags) on this repository.
+[SemVer](https://semver.org/) is used for versioning. For the versions available, see the [tags](https://github.com/BrianLusina/journal/tags) on this repository.
 
 ## License
 
