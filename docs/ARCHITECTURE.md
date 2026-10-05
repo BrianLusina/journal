@@ -57,6 +57,8 @@ Add new aliases there only. Before this was consolidated, three hand-copied list
 
 Every source maps its content onto `UnifiedPost` (`src/types/cms.d.ts`): `id`, `source`, `title`, `slug`, `publishDate`, `tags: string[]`, `authors: UnifiedAuthor[]`, and optional `subtitle`, `description`, `category`, `body` (Markdown), `heroImage`, `thumbnail`. UI code that renders posts should depend on this model only, never on a CMS's own types.
 
+`UnifiedAuthor` (`id`, `source`, `name`, `avatarUrl`, `shortBio`) carries everything `AuthorBadge` displays, so authors are never fetched again per badge. An author's `id` is only meaningful within its `source`; only Contentful authors link to the authors page. Notion returns people's names and avatars only when the integration has the **Read user information** capability; without it, Notion authors have no name and are not shown.
+
 ### Adapters
 
 ```ts
@@ -149,7 +151,6 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 
 | Area | Issue |
 |---|---|
-| Notion authors are looked up in Contentful and never render | BrianLusina/journal#797 |
 | Merged pagination refetches from zero; Notion is capped at 100 posts | BrianLusina/journal#799 |
 | Notion posts without a `Slug` link to a 404 | BrianLusina/journal#800 |
 | Home featured articles and tag pages bypass the CMS seam | BrianLusina/journal#801 |
