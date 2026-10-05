@@ -42,3 +42,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 dist/
+
+# bun is the package manager (bun.lockb); lockfiles from other managers must not be committed
+yarn.lock
+package-lock.json
+pnpm-lock.yaml

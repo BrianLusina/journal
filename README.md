@@ -19,6 +19,10 @@ Part of the belief that OSS is the future and also fosters a community of develo
 1. [Node.js](https://nodejs.org/) at the version in [.nvmrc](./.nvmrc) (22.x). Jest and the Vite tooling run on Node.
 2. [Bun](https://bun.sh), the package manager and script runner. The lockfile is `bun.lockb`.
 
+### Package manager
+
+This project uses **[bun](https://bun.sh) only** (version pinned in `packageManager` in [package.json](./package.json)), with `bun.lockb` as the single lockfile. It moved off yarn during the Vite migration, so `yarn.lock` has been removed and is git-ignored together with `package-lock.json` and `pnpm-lock.yaml`. Install, add and remove dependencies with `bun install`, `bun add` and `bun remove` so `bun.lockb` stays in sync. Mixing in npm or yarn would create a second, divergent lockfile. CI installs with `bun install --frozen-lockfile` and fails if `bun.lockb` is out of date.
+
 ### Installing
 
 ```bash

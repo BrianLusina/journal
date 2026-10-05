@@ -2,6 +2,7 @@
   "name": "journal",
   "version": "3.0.0",
   "private": true,
+  "packageManager": "bun@1.3.14",
   "description": "Blog and Journal Site",
   "author": "Brian Lusina <12752833+BrianLusina@users.noreply.github.com>",
   "license": "The MIT License (MIT)",
