@@ -43,7 +43,9 @@ yarn-debug.log*
 yarn-error.log*
 dist/
 
-# bun is the package manager (bun.lockb); lockfiles from other managers must not be committed
+# bun is the package manager and bun.lock (text) its only lockfile; other lockfiles,
+# including bun's legacy binary bun.lockb, must not be committed
+bun.lockb
 yarn.lock
 package-lock.json
 pnpm-lock.yaml

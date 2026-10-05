@@ -5,7 +5,7 @@ const { pr } = danger.github;
 const modifiedFiles = danger.git.modified_files;
 const packageChanged = modifiedFiles.includes('package.json');
 // A lockfile added by the PR counts as changed too.
-const lockfileChanged = [...modifiedFiles, ...danger.git.created_files].includes('bun.lockb');
+const lockfileChanged = [...modifiedFiles, ...danger.git.created_files].includes('bun.lock');
 
 // Always ensure we assign someone, so that our Slackbot can do its work correctly
 if (pr.assignee === null) {
@@ -21,7 +21,7 @@ if (pr.additions + pr.deletions > bigPRThreshold) {
 }
 
 if (packageChanged && !lockfileChanged) {
-  const message = 'Changes were made to package.json, but not to bun.lockb';
+  const message = 'Changes were made to package.json, but not to bun.lock';
   const idea = 'Perhaps you need to run `bun install`?';
   warn(`${message} - <i>${idea}</i>`);
 }
