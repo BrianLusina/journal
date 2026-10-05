@@ -1,31 +1,18 @@
-import { FunctionComponent, useState } from 'react';
+import { FunctionComponent } from 'react';
 import ArticleCard from '@/components/ArticleCard';
 import { captureException, captureScope, Severity } from '@monitoring';
-import { useQuery } from '@apollo/client';
-import { GET_ALL_BLOGS } from '@contentfulClient';
+import { usePosts } from '@hooks';
 import { humanizeDateTime } from '@timeUtils';
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';
 import { Link } from 'react-router-dom';
 import { ARTICLES_PAGE_ROUTE } from '@/routes/links';
 
 type FeaturedArticlesProps = {
-  itemsPerPage?: number;
   featuredCount?: number;
 };
 
-const FeaturedArticles: FunctionComponent<FeaturedArticlesProps> = ({
-  itemsPerPage = 10,
-  featuredCount = 6,
-}) => {
-  const [currentSize, _] = useState<number>(itemsPerPage);
-  const { loading, error, data, fetchMore } = useQuery<BlogPostsData, GetAllBlogsVariables>(
-    GET_ALL_BLOGS,
-    {
-      variables: {
-        limit: currentSize,
-      },
-    },
-  );
+const FeaturedArticles: FunctionComponent<FeaturedArticlesProps> = ({ featuredCount = 6 }) => {
+  const { loading, error, data } = usePosts({ limit: featuredCount });
 
   // FIXME: use a component loader for this. Preferably a Skeleton loader
   if (loading) return <div>Loading...</div>;
@@ -39,9 +26,7 @@ const FeaturedArticles: FunctionComponent<FeaturedArticlesProps> = ({
     return <p>Yikes! Something terrible has happened. Looking into this :)</p>;
   }
 
-  const { items: posts } = data ? data.blogPostCollection : { items: [] };
-
-  const featuredArticles = posts.slice(0, featuredCount);
+  const featuredArticles = data ? data.items : [];
 
   return (
     <section id="articles" className="py-12">
@@ -58,15 +43,15 @@ const FeaturedArticles: FunctionComponent<FeaturedArticlesProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {featuredArticles.map((article, index) => (
           <div
-            key={article.sys.id}
+            key={article.id}
             className={`animate-slide-up stagger-${Math.min(index + 1, 6)}`}
           >
             <ArticleCard
               size="small"
-              id={article.sys.id}
+              id={article.id}
               slug={article.slug}
               title={article.title}
-              category={article.category}
+              category={article.category || ''}
               date={humanizeDateTime(
                 article.publishDate,
                 DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss,

@@ -86,6 +86,14 @@ describe('NotionAdapter', () => {
     expect(result.nextCursor).toBe('cursor-2');
   });
 
+  it('passes the tag to the API route', async () => {
+    mockFetch(200, { results: [], nextCursor: null });
+
+    await adapter.getPosts({ limit: 5, tag: 'personalGrowth' });
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/notion/posts?limit=5&tag=personalGrowth');
+  });
+
   it('requests the first page without a cursor', async () => {
     mockFetch(200, { results: [], nextCursor: null });
 

@@ -6,20 +6,21 @@ const DEFAULT_LIMIT = 100;
 
 /**
  * The first `limit` posts across every CMS, newest first. Raising `limit` (e.g. "Load more")
- * reads on from where the feed stopped rather than refetching; a new category starts a new feed.
+ * reads on from where the feed stopped rather than refetching; a new category or tag starts a new
+ * feed.
  */
 export function usePosts(options?: CMSPaginationOptions) {
   const [data, setData] = useState<PaginatedUnifiedPosts | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { category, limit = DEFAULT_LIMIT } = options || {};
-  const feed = useRef<{ category?: string; feed: MergedFeed } | null>(null);
+  const { category, tag, limit = DEFAULT_LIMIT } = options || {};
+  const feed = useRef<{ category?: string; tag?: string; feed: MergedFeed } | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
-    if (!feed.current || feed.current.category !== category) {
-      feed.current = { category, feed: createMergedFeed(cmsAdapters, category) };
+    if (!feed.current || feed.current.category !== category || feed.current.tag !== tag) {
+      feed.current = { category, tag, feed: createMergedFeed(cmsAdapters, { category, tag }) };
     }
     const current = feed.current.feed;
 
@@ -50,7 +51,7 @@ export function usePosts(options?: CMSPaginationOptions) {
     return () => {
       isMounted = false;
     };
-  }, [category, limit]);
+  }, [category, tag, limit]);
 
   return { data, loading, error };
 }

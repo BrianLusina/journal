@@ -26,7 +26,7 @@ describe('usePosts', () => {
     expect(result.current.loading).toBe(true);
     await waitForNextUpdate();
 
-    expect(createMergedFeed).toHaveBeenCalledWith(['adapters'], undefined);
+    expect(createMergedFeed).toHaveBeenCalledWith(['adapters'], {});
     expect(load).toHaveBeenCalledWith(3);
     expect(result.current).toEqual({ data: { items: [post('p0'), post('p1'), post('p2')], hasMore: true }, loading: false, error: null });
   });
@@ -67,8 +67,21 @@ describe('usePosts', () => {
     rerender({ category: 'guides' });
     await waitForNextUpdate();
 
-    expect(createMergedFeed).toHaveBeenNthCalledWith(1, ['adapters'], 'news');
-    expect(createMergedFeed).toHaveBeenNthCalledWith(2, ['adapters'], 'guides');
+    expect(createMergedFeed).toHaveBeenNthCalledWith(1, ['adapters'], { category: 'news' });
+    expect(createMergedFeed).toHaveBeenNthCalledWith(2, ['adapters'], { category: 'guides' });
+  });
+
+  it('starts a new feed when the tag changes', async () => {
+    const { rerender, waitForNextUpdate } = renderHook(({ tag }) => usePosts({ tag, limit: 3 }), {
+      initialProps: { tag: 'travel' },
+    });
+    await waitForNextUpdate();
+
+    rerender({ tag: 'personalGrowth' });
+    await waitForNextUpdate();
+
+    expect(createMergedFeed).toHaveBeenNthCalledWith(1, ['adapters'], { tag: 'travel' });
+    expect(createMergedFeed).toHaveBeenNthCalledWith(2, ['adapters'], { tag: 'personalGrowth' });
   });
 
   it('keeps the feed and reports sources that failed', async () => {

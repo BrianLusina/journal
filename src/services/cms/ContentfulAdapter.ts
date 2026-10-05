@@ -39,7 +39,7 @@ function mapContentfulPostToUnified(post: BlogPostItem): UnifiedPost {
 export default class ContentfulAdapter implements CMSAdapter {
   public readonly source: CMSSource = 'contentful';
 
-  async getPosts({ cursor, limit, category }: CMSPageRequest): Promise<CMSPage> {
+  async getPosts({ cursor, limit, category, tag }: CMSPageRequest): Promise<CMSPage> {
     const query = GET_ALL_BLOGS;
 
     // The cursor is the offset of the next post. The merged feed orders every source by publish
@@ -49,7 +49,12 @@ export default class ContentfulAdapter implements CMSAdapter {
       skip,
       limit,
       order: ['publishDate_DESC'],
-      where: { publishDate_exists: true, ...(category ? { category } : {}) },
+      where: {
+        publishDate_exists: true,
+        ...(category ? { category } : {}),
+        // A tag's slug is camelCase(name), which is also the ID Contentful gives a new tag.
+        ...(tag ? { contentfulMetadata: { tags: { id_contains_some: [tag] } } } : {}),
+      },
     };
 
     const { data } = await contentfulClient.query<BlogPostsData, GetAllBlogsVariables>({

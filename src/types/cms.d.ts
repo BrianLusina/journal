@@ -44,11 +44,19 @@ declare type UnifiedPost = {
 };
 
 /**
- * Options for reading the merged feed: the first `limit` posts, optionally in one category.
+ * Narrows a feed to the posts in one category and/or carrying one tag. `tag` is the tag's slug,
+ * `camelCase(name)`, which is what tag links use.
  */
-declare type CMSPaginationOptions = {
-  limit?: number;
+declare type CMSPostFilter = {
   category?: string;
+  tag?: string;
+};
+
+/**
+ * Options for reading the merged feed: the first `limit` posts, optionally filtered.
+ */
+declare type CMSPaginationOptions = CMSPostFilter & {
+  limit?: number;
 };
 
 /**
@@ -63,10 +71,9 @@ declare type PaginatedUnifiedPosts = {
  * A request to one source for its next page of posts, newest first. `cursor` is opaque and comes
  * from the previous page's `nextCursor`; omit it for the first page.
  */
-declare type CMSPageRequest = {
+declare type CMSPageRequest = CMSPostFilter & {
   cursor?: string;
   limit: number;
-  category?: string;
 };
 
 /**

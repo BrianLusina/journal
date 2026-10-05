@@ -1,16 +1,16 @@
 import { FunctionComponent } from 'react';
-import { Navigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { captureException, captureScope, Severity } from '@monitoring';
 import { PageLoader } from '@components';
 import { humanizeDateTime } from '@timeUtils';
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';
 import ArticleCard from '@/components/ArticleCard';
-import useFetchArticlesByTag from '@/hooks/api/useFetchArticlesByTag';
+import { usePosts } from '@hooks';
 import { camelCaseToNormal } from '@/utils/utils';
 
 const ArticlesByTagPage: FunctionComponent = () => {
   const { tag } = useParams();
-  const [loading, error, data] = useFetchArticlesByTag(tag);
+  const { loading, error, data } = usePosts({ tag });
 
   if (loading) {
     return <PageLoader />;
@@ -25,11 +25,7 @@ const ArticlesByTagPage: FunctionComponent = () => {
     return <p>Yikes! Something terrible has happened. Looking into this :)</p>;
   }
 
-  if (!data) {
-    return <Navigate to="/404" replace />;
-  }
-
-  const posts = data.blogPostCollection.items;
+  const posts = data ? data.items : [];
 
   return (
     <main>
@@ -43,15 +39,15 @@ const ArticlesByTagPage: FunctionComponent = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {posts.map((article, index) => (
           <div
-            key={article.sys.id}
+            key={article.id}
             className={`animate-slide-up stagger-${Math.min(index + 1, 6)}`}
           >
             <ArticleCard
               size="small"
-              id={article.sys.id}
+              id={article.id}
               slug={article.slug}
               title={article.title}
-              category={article.category}
+              category={article.category || ''}
               date={humanizeDateTime(
                 article.publishDate,
                 DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss,

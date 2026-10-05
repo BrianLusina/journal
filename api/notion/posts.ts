@@ -1,5 +1,18 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import camelCase from 'lodash/camelCase';
 import { getDataSourceId, getLimit, isNotionConfigured, notion } from './_shared';
+
+/**
+ * The Tags options whose slug is `tag`. Tag links use camelCase(name) as the slug, but Notion only
+ * filters a multi-select by an option's exact name, so the slug is matched against the schema.
+ */
+async function tagOptionNames(dataSourceId: string, tag: string): Promise<string[]> {
+  const dataSource = await notion.dataSources.retrieve({ data_source_id: dataSourceId });
+  const tags = dataSource.properties.Tags;
+  if (tags?.type !== 'multi_select') return [];
+
+  return tags.multi_select.options.map(option => option.name).filter(name => camelCase(name) === tag);
+}
 
 export default async function handler(
   request: VercelRequest,
@@ -23,6 +36,10 @@ export default async function handler(
     typeof request.query.category === 'string'
       ? request.query.category
       : undefined;
+  const tag =
+    typeof request.query.tag === 'string' && request.query.tag
+      ? request.query.tag
+      : undefined;
   const publishedFilter = {
     property: 'Status',
     status: { equals: 'Published' },
@@ -38,28 +55,38 @@ export default async function handler(
     date: { is_not_empty: true as const },
   };
   const listedFilters = [publishedFilter, hasSlugFilter, hasDateFilter];
-  const filter = category
-    ? {
-        and: [
-          ...listedFilters,
-          {
-            property: 'Category',
-            select: { equals: category },
-          },
-        ],
-      }
-    : { and: listedFilters };
-
-  /*
-   * The Notion SDK models each property filter as a discriminated union.
-   * Building the complete filter first preserves that type information.
-   */
-  const queryFilter = filter;
+  const categoryFilters = category
+    ? [
+        {
+          property: 'Category',
+          select: { equals: category },
+        },
+      ]
+    : [];
 
   try {
+    const dataSourceId = await getDataSourceId();
+    const tagNames = tag ? await tagOptionNames(dataSourceId, tag) : [];
+    if (tag && tagNames.length === 0) {
+      response.setHeader(
+        'Cache-Control',
+        's-maxage=60, stale-while-revalidate=300',
+      );
+      return response.status(200).json({ results: [], nextCursor: null });
+    }
+    const tagFilters = tag
+      ? [{ or: tagNames.map(name => ({ property: 'Tags', multi_select: { contains: name } })) }]
+      : [];
+
+    /*
+     * The Notion SDK models each property filter as a discriminated union.
+     * Building the complete filter first preserves that type information.
+     */
+    const queryFilter = { and: [...listedFilters, ...categoryFilters, ...tagFilters] };
+
     // One page per request: the client follows nextCursor, so no request reads from the start.
     const result = await notion.dataSources.query({
-      data_source_id: await getDataSourceId(),
+      data_source_id: dataSourceId,
       page_size: limit,
       start_cursor: cursor,
       sorts: [{ property: 'Date', direction: 'descending' }],
