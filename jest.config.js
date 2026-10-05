@@ -107,6 +107,7 @@ module.exports = {
     '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
     '<rootDir>/src/**/*.{spec,test}.{js,jsx,ts,tsx}',
     '<rootDir>/api/**/*.{spec,test}.{js,ts}',
+    '<rootDir>/scripts/**/*.{spec,test}.{js,ts}',
   ],
   testEnvironment: 'jsdom',
   testRunner: '<rootDir>/node_modules/jest-circus/runner.js',

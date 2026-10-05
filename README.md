@@ -17,11 +17,11 @@ Part of the belief that OSS is the future and also fosters a community of develo
 ### Prerequisites
 
 1. [Node.js](https://nodejs.org/) at the version in [.nvmrc](./.nvmrc) (22.x). Jest and the Vite tooling run on Node.
-2. [Bun](https://bun.sh), the package manager and script runner. The lockfile is `bun.lockb`.
+2. [Bun](https://bun.sh), the package manager and script runner. The lockfile is the text `bun.lock`.
 
 ### Package manager
 
-This project uses **[bun](https://bun.sh) only** (version pinned in `packageManager` in [package.json](./package.json)), with `bun.lockb` as the single lockfile. It moved off yarn during the Vite migration, so `yarn.lock` has been removed and is git-ignored together with `package-lock.json` and `pnpm-lock.yaml`. Install, add and remove dependencies with `bun install`, `bun add` and `bun remove` so `bun.lockb` stays in sync. Mixing in npm or yarn would create a second, divergent lockfile. CI installs with `bun install --frozen-lockfile` and fails if `bun.lockb` is out of date.
+This project uses **[bun](https://bun.sh) only** (version pinned in `packageManager` in [package.json](./package.json)), with the text `bun.lock` as the single lockfile (bun's older binary `bun.lockb` is no longer used, since Dependabot can only update the text format). It moved off yarn during the Vite migration, so `yarn.lock` has been removed and is git-ignored together with `package-lock.json` and `pnpm-lock.yaml`. Install, add and remove dependencies with `bun install`, `bun add` and `bun remove` so `bun.lock` stays in sync. Mixing in npm or yarn would create a second, divergent lockfile. CI installs with `bun install --frozen-lockfile` and fails if `bun.lock` is out of date. `scripts/repo-policy.spec.ts` fails the test suite if any other lockfile is committed.
 
 ### Installing
 

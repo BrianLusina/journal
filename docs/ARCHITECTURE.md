@@ -144,7 +144,7 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
   - Per-CMS mapping goes in adapter specs (Apollo client or `fetch` mocked).
   - Hooks are tested against a mocked aggregator.
   - Pages and features are tested against mocked hooks.
-- **CI:** GitHub Actions runs tests with coverage, ESLint and stylelint, and a production build on every push. All use bun with the committed `bun.lockb`.
+- **CI:** GitHub Actions runs tests with coverage, ESLint and stylelint, and a production build on every push. All use bun with the committed text lockfile `bun.lock`. Dependabot updates it through the `bun` ecosystem.
 - **Not yet in CI:** type-checking with `tsc` (BrianLusina/journal#804). `vite build` does not type-check.
 
 ## Known limits and follow-ups
