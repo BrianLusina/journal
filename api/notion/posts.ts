@@ -28,18 +28,18 @@ export default async function handler(
     property: 'Slug',
     rich_text: { is_not_empty: true as const },
   };
+  const listedFilters = [publishedFilter, hasSlugFilter];
   const filter = category
     ? {
         and: [
-          publishedFilter,
-          hasSlugFilter,
+          ...listedFilters,
           {
             property: 'Category',
             select: { equals: category },
           },
         ],
       }
-    : { and: [publishedFilter, hasSlugFilter] };
+    : { and: listedFilters };
 
   /*
    * The Notion SDK models each property filter as a discriminated union.

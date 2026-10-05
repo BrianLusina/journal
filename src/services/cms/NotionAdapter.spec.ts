@@ -48,13 +48,14 @@ describe('NotionAdapter', () => {
     });
   });
 
-  it('falls back for missing title, slug, date, cover and people authors', async () => {
+  it('falls back for missing title, date, cover and people authors, and joins a slug split across segments', async () => {
     mockFetch(200, {
       results: [
         notionPage(
           {
             Title: { title: [] },
-            Slug: { rich_text: [] },
+            // The slug route matches the whole Slug text, so every segment must be part of the link.
+            Slug: { rich_text: [{ plain_text: 'my-' }, { plain_text: 'post' }] },
             Date: { date: null },
             Author: { rich_text: [{ plain_text: 'Guest ' }, { plain_text: 'writer' }] },
           },
@@ -68,7 +69,7 @@ describe('NotionAdapter', () => {
 
     expect(items[0]).toMatchObject({
       title: 'Untitled',
-      slug: 'page-1',
+      slug: 'my-post',
       publishDate: '2024-01-05T00:00:00.000Z',
       heroImage: { url: 'https://files/cover.png', title: 'Cover Image' },
       authors: [{ id: 'notion-author', source: 'notion', name: 'Guest writer' }],
