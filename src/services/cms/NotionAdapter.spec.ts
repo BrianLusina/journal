@@ -56,7 +56,7 @@ describe('NotionAdapter', () => {
             Title: { title: [] },
             Slug: { rich_text: [] },
             Date: { date: null },
-            Author: { rich_text: [{ plain_text: 'Guest writer' }] },
+            Author: { rich_text: [{ plain_text: 'Guest ' }, { plain_text: 'writer' }] },
           },
           { cover: { type: 'file', file: { url: 'https://files/cover.png' } } },
         ),

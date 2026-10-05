@@ -52,7 +52,8 @@ function mapNotionPageToUnified(page: NotionPage): UnifiedPost {
      authors.push({
          id: 'notion-author',
          source: 'notion',
-         name: properties.Author.rich_text[0]?.plain_text
+         // A name can span several rich-text segments (e.g. partly bold), so join them all.
+         name: properties.Author.rich_text.map(text => text.plain_text).join('')
      });
   }
 

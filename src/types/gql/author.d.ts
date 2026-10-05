@@ -122,8 +122,6 @@ declare type PersonOrder =
   | 'sys_publishedVersion_ASC'
   | 'sys_publishedVersion_DESC';
 
-declare type GetAuthorVariables = {} & GetItemVariables;
-
 declare type GetAllAuthorsVariables = {
   where?: PersonFilter;
   order?: PersonOrder[];
