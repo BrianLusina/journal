@@ -5,10 +5,10 @@ export default interface CMSAdapter {
   readonly source: CMSSource;
 
   /**
-   * Retrieves a paginated list of posts.
-   * @param options Pagination options (skip, limit).
+   * Retrieves the next page of posts, newest first by publish date, so the aggregator can merge
+   * sources page by page.
    */
-  getPosts(options?: CMSPaginationOptions): Promise<PaginatedUnifiedPosts>;
+  getPosts(request: CMSPageRequest): Promise<CMSPage>;
 
   /**
    * Retrieves a single post by its slug.

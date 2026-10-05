@@ -1,22 +1,34 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { captureException } from '@monitoring';
-import { cmsAdapters, fetchMergedPosts } from '@cmsService';
+import { cmsAdapters, createMergedFeed, type MergedFeed } from '@cmsService';
 
+const DEFAULT_LIMIT = 100;
+
+/**
+ * The first `limit` posts across every CMS, newest first. Raising `limit` (e.g. "Load more")
+ * reads on from where the feed stopped rather than refetching; a new category starts a new feed.
+ */
 export function usePosts(options?: CMSPaginationOptions) {
   const [data, setData] = useState<PaginatedUnifiedPosts | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const { category, skip, limit } = options || {};
+  const { category, limit = DEFAULT_LIMIT } = options || {};
+  const feed = useRef<{ category?: string; feed: MergedFeed } | null>(null);
 
   useEffect(() => {
     let isMounted = true;
+
+    if (!feed.current || feed.current.category !== category) {
+      feed.current = { category, feed: createMergedFeed(cmsAdapters, category) };
+    }
+    const current = feed.current.feed;
 
     async function fetchPosts() {
       setLoading(true);
       setError(null);
 
       try {
-        const { errors, ...posts } = await fetchMergedPosts(cmsAdapters, { category, skip, limit });
+        const { errors, ...posts } = await current.load(limit);
         if (!isMounted) return;
 
         // A failing source degrades the feed instead of hiding it, so report it rather than surface it.
@@ -38,7 +50,7 @@ export function usePosts(options?: CMSPaginationOptions) {
     return () => {
       isMounted = false;
     };
-  }, [category, skip, limit]);
+  }, [category, limit]);
 
   return { data, loading, error };
 }

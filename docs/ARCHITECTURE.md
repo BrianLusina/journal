@@ -64,13 +64,14 @@ Every source maps its content onto `UnifiedPost` (`src/types/cms.d.ts`): `id`, `
 ```ts
 interface CMSAdapter {
   readonly source: CMSSource;
-  getPosts(options?: { skip?; limit?; category? }): Promise<PaginatedUnifiedPosts>;
+  // Next page of posts, newest first by publish date. Pass the previous page's nextCursor.
+  getPosts(request: { cursor?: string; limit: number; category?: string }): Promise<{ items: UnifiedPost[]; nextCursor: string | null }>;
   getPostBySlug(slug: string): Promise<UnifiedPost | null>;
 }
 ```
 
-- **`ContentfulAdapter`** queries Contentful with the shared Apollo client (`network-only`) and maps `BlogPostItem` to `UnifiedPost`.
-- **`NotionAdapter`** calls `/api/notion/posts` and `/api/notion/posts/:slug`, and maps Notion page properties (`Title`, `Slug`, `Description`, `Category`, `Date`, `Tags`, `Author`, cover image). The `[slug]` function converts the page body to Markdown with `notion-to-md`, so both sources produce Markdown for `ArticlePage`. A Notion page is listed only when its `Status` is `Published` **and** its `Slug` is not empty, since a post without a slug could never be opened.
+- **`ContentfulAdapter`** queries Contentful with the shared Apollo client (`network-only`), ordered by `publishDate_DESC`, and maps `BlogPostItem` to `UnifiedPost`. Its cursor is the offset of the next post. Listings only include posts that have a `publishDate`, the key the feed merges on.
+- **`NotionAdapter`** calls `/api/notion/posts` and `/api/notion/posts/:slug`, and maps Notion page properties (`Title`, `Slug`, `Description`, `Category`, `Date`, `Tags`, `Author`, cover image). The `[slug]` function converts the page body to Markdown with `notion-to-md`, so both sources produce Markdown for `ArticlePage`. Its cursor is Notion's own `next_cursor`, passed through `/api/notion/posts?cursor=…`; each request reads one Notion page (at most 100 posts), so there is no limit on how far the feed can go. A Notion page is listed only when its `Status` is `Published`, its `Slug` is not empty (a post without a slug could never be opened) **and** its `Date` is set (the feed merges on publish date, so an undated post has no place in it).
 
 `src/services/cms/adapters.ts` is the registry: an ordered array of adapter instances. Array order is priority order when two sources publish the same slug.
 
@@ -78,14 +79,15 @@ interface CMSAdapter {
 
 `src/services/cms/aggregator.ts` holds the multi-source logic as plain async functions, testable without React:
 
-- **`fetchMergedPosts(adapters, { skip, limit, category })`**
-  - Each source can only page its own content, so each is asked for its first `skip + limit` posts.
-  - The results are merged newest first by `publishDate`, and the requested page is sliced out.
-  - `hasMore` is true when merged posts were cut off by the slice, or when any source reports more.
-  - **Partial failure:** a failing source does not hide the others. Its error is returned in `errors`, and the call only rejects when every source fails.
+- **`createMergedFeed(adapters, category?)`** returns a feed with `load(count)`, which resolves to the first `count` posts across all sources, newest first.
+  - Every adapter returns its posts newest first, so the feed is a k-way merge: it keeps a cursor and a buffer per source and only fetches a source's next page when its buffer runs out. A larger `count` reads on from where the feed stopped and never refetches.
+  - Loads are serialized, so overlapping calls never fetch the same cursor twice.
+  - `hasMore` is true while any source has buffered or unread posts.
+  - Each request asks for at least 10 posts, a page can come back empty while the source still has more, and a post is shown once even if offset pages overlap because a post was published between requests. If a post is unpublished between requests instead, the next offset page skips one post until the feed is recreated.
+  - **Partial failure:** a failing source is left out of the load instead of hiding the others, and its error is returned in that load's `errors`. The next load retries it from its cursor; any of its posts newer than those already shown then appear after them. A load only rejects when every source failed in it and nothing was read.
 - **`findPostBySlug(adapters, slug)`** queries all sources concurrently and returns the first hit in priority order. It resolves to `null` only when every source answered "not found". If the post wasn't found and any source failed, it rejects, because the post might exist in the failed source.
 
-The hooks are thin. `usePosts` reports partial-failure errors to Sentry and exposes `{ data, loading, error }`. `usePost` turns `null` into "no data, no error", which `ArticlePage` turns into a redirect to `/404`.
+The hooks are thin. `usePosts({ limit, category })` keeps one feed per category, so raising `limit` ("Load more") only fetches the missing posts; it reports partial-failure errors to Sentry and exposes `{ data, loading, error }`. `usePost` turns `null` into "no data, no error", which `ArticlePage` turns into a redirect to `/404`.
 
 ### Adding a content source
 
@@ -151,7 +153,6 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 
 | Area | Issue |
 |---|---|
-| Merged pagination refetches from zero; Notion is capped at 100 posts | BrianLusina/journal#799 |
 | Home featured articles and tag pages bypass the CMS seam | BrianLusina/journal#801 |
 | Notion doesn't work under `vite dev` | BrianLusina/journal#802 |
 | Unused shadcn/ui primitives | BrianLusina/journal#803 |

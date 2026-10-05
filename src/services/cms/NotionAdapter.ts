@@ -86,11 +86,10 @@ function mapNotionPageToUnified(page: NotionPage): UnifiedPost {
 export default class NotionAdapter implements CMSAdapter {
   public readonly source: CMSSource = 'notion';
 
-  async getPosts(options?: CMSPaginationOptions): Promise<PaginatedUnifiedPosts> {
-    const skip = options?.skip || 0;
-    const limit = options?.limit || 100;
-    const params = new URLSearchParams({ limit: String(skip + limit) });
-    if (options?.category) params.set('category', options.category);
+  async getPosts({ cursor, limit, category }: CMSPageRequest): Promise<CMSPage> {
+    const params = new URLSearchParams({ limit: String(limit) });
+    if (category) params.set('category', category);
+    if (cursor) params.set('cursor', cursor);
     const response = await fetch(`/api/notion/posts?${params}`);
 
     if (!response.ok) {
@@ -100,13 +99,8 @@ export default class NotionAdapter implements CMSAdapter {
     const payload = await response.json();
 
     return {
-      items: payload.results
-        .slice(skip, skip + limit)
-        .map(mapNotionPageToUnified),
-      total: payload.results.length,
-      limit,
-      skip,
-      hasMore: payload.hasMore,
+      items: payload.results.map(mapNotionPageToUnified),
+      nextCursor: payload.nextCursor,
     };
   }
 

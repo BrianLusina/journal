@@ -15,6 +15,10 @@ export default async function handler(
   }
 
   const limit = getLimit(request.query.limit);
+  const cursor =
+    typeof request.query.cursor === 'string' && request.query.cursor
+      ? request.query.cursor
+      : undefined;
   const category =
     typeof request.query.category === 'string'
       ? request.query.category
@@ -28,7 +32,12 @@ export default async function handler(
     property: 'Slug',
     rich_text: { is_not_empty: true as const },
   };
-  const listedFilters = [publishedFilter, hasSlugFilter];
+  // The merged feed orders every source by publish date, so a post without one has no place in it.
+  const hasDateFilter = {
+    property: 'Date',
+    date: { is_not_empty: true as const },
+  };
+  const listedFilters = [publishedFilter, hasSlugFilter, hasDateFilter];
   const filter = category
     ? {
         and: [
@@ -48,24 +57,14 @@ export default async function handler(
   const queryFilter = filter;
 
   try {
-    const dataSourceId = await getDataSourceId();
-    const pages = [];
-    let cursor: string | undefined;
-    let hasMore = true;
-
-    while (hasMore && pages.length < limit) {
-      const result = await notion.dataSources.query({
-        data_source_id: dataSourceId,
-        page_size: limit - pages.length,
-        start_cursor: cursor,
-        sorts: [{ property: 'Date', direction: 'descending' }],
-        filter: queryFilter,
-      });
-
-      pages.push(...result.results);
-      hasMore = result.has_more;
-      cursor = result.next_cursor || undefined;
-    }
+    // One page per request: the client follows nextCursor, so no request reads from the start.
+    const result = await notion.dataSources.query({
+      data_source_id: await getDataSourceId(),
+      page_size: limit,
+      start_cursor: cursor,
+      sorts: [{ property: 'Date', direction: 'descending' }],
+      filter: queryFilter,
+    });
 
     response.setHeader(
       'Cache-Control',
@@ -73,8 +72,8 @@ export default async function handler(
     );
 
     return response.status(200).json({
-      results: pages,
-      hasMore,
+      results: result.results,
+      nextCursor: result.has_more ? result.next_cursor : null,
     });
   } catch {
     return response.status(502).json({ error: 'Unable to fetch Notion posts' });
