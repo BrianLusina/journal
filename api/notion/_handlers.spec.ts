@@ -41,6 +41,28 @@ describe('Notion API routes', () => {
     expect(res.json).toHaveBeenCalledWith({ results: [{ id: 'p1' }], hasMore: false });
   });
 
+  it.each([
+    ['without a category', {}, []],
+    ['with a category', { category: 'Travel' }, [{ property: 'Category', select: { equals: 'Travel' } }]],
+  ])('lists only published posts that have a slug, %s', async (_, query, extraFilters) => {
+    (notion.dataSources.query as jest.Mock).mockResolvedValue({ results: [], has_more: false, next_cursor: null });
+
+    await postsHandler(request(query), response() as unknown as VercelResponse);
+
+    // A post without a slug cannot be opened: the slug route looks posts up by Slug.
+    expect(notion.dataSources.query).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filter: {
+          and: [
+            { property: 'Status', status: { equals: 'Published' } },
+            { property: 'Slug', rich_text: { is_not_empty: true } },
+            ...extraFilters,
+          ],
+        },
+      }),
+    );
+  });
+
   it('finds a post by slug in the resolved data source', async () => {
     (notion.dataSources.query as jest.Mock).mockResolvedValue({ results: [{ id: 'p1' }] });
     const res = response();

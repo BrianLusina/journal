@@ -23,17 +23,23 @@ export default async function handler(
     property: 'Status',
     status: { equals: 'Published' },
   };
+  // A post without a slug cannot be opened: the slug route looks posts up by Slug.
+  const hasSlugFilter = {
+    property: 'Slug',
+    rich_text: { is_not_empty: true as const },
+  };
   const filter = category
     ? {
         and: [
           publishedFilter,
+          hasSlugFilter,
           {
             property: 'Category',
             select: { equals: category },
           },
         ],
       }
-    : { and: [publishedFilter] };
+    : { and: [publishedFilter, hasSlugFilter] };
 
   /*
    * The Notion SDK models each property filter as a discriminated union.
