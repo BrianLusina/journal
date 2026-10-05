@@ -20,7 +20,7 @@ jest.mock('remark-gfm', () => () => {});
 
 jest.mock('@/hooks/cms/usePost');
 jest.mock('@/hooks/cms/usePosts', () => ({ usePosts: () => ({ data: null, loading: true, error: null }) }));
-jest.mock('@/features/AuthorBadge', () => ({ __esModule: true, default: ({ authorId }: { authorId: string }) => <span>author {authorId}</span> }));
+jest.mock('@/features/AuthorBadge', () => ({ __esModule: true, default: ({ author }: { author: UnifiedAuthor }) => <span>author {author.id}</span> }));
 
 describe('ArticlePage', () => {
   afterEach(() => {
@@ -76,7 +76,7 @@ describe('ArticlePage', () => {
         body: 'Body text',
         publishDate: '2024-02-01',
         tags: ['Hiking'],
-        authors: [{ id: 'a1', name: 'Ada' }],
+        authors: [{ id: 'a1', source: 'notion', name: 'Ada' }],
       },
       loading: false,
       error: null,

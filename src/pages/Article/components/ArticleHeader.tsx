@@ -40,7 +40,7 @@ const ArticleHeader: React.FC<ArticleHeaderProps> = ({
       <div className="flex items-center justify-between border-t border-b border-border py-6">
         <div className="flex items-center gap-4">
           {authors.map((author) => (
-            <AuthorBadge key={author.id} authorId={author.id} />
+            <AuthorBadge key={author.id} author={author} />
           ))}
         </div>
 

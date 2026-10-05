@@ -20,7 +20,9 @@ const blogPost = (overrides: Record<string, unknown> = {}) => ({
   heroImage: { url: 'https://images/hero.png', description: 'Hero', title: 'Hero title' },
   thumbnail: { url: 'https://images/thumb.png', description: 'Thumb', title: 'Thumb title' },
   contentfulMetadata: { tags: [{ id: 'mindfulness', name: 'Mindfulness' }] },
-  authorsCollection: { items: [{ sys: { id: 'author-1' } }] },
+  authorsCollection: {
+    items: [{ sys: { id: 'author-1' }, name: 'Ada', shortBio: 'Writes.', image: { url: 'https://images/ada.png' } }],
+  },
   ...overrides,
 });
 
@@ -50,7 +52,7 @@ describe('ContentfulAdapter', () => {
       heroImage: { url: 'https://images/hero.png', description: 'Hero', title: 'Hero title' },
       thumbnail: { url: 'https://images/thumb.png', description: 'Thumb', title: 'Thumb title' },
       tags: ['Mindfulness'],
-      authors: [{ id: 'author-1', name: undefined, avatarUrl: undefined }],
+      authors: [{ id: 'author-1', source: 'contentful', name: 'Ada', avatarUrl: 'https://images/ada.png', shortBio: 'Writes.' }],
     });
   });
 

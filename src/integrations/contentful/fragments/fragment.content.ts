@@ -79,6 +79,11 @@ export const BlogFragment = gql`
         sys {
           id
         }
+        name
+        shortBio
+        image {
+          url
+        }
       }
     }
   }

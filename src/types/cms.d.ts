@@ -4,12 +4,15 @@
 declare type CMSSource = 'contentful' | 'notion';
 
 /**
- * A unified author model.
+ * A unified author model. It carries everything needed to display the author, so the UI never
+ * looks an author up again; `id` is only meaningful within `source`.
  */
 declare type UnifiedAuthor = {
   id: string;
+  source: CMSSource;
   name?: string;
   avatarUrl?: string;
+  shortBio?: string;
 };
 
 /**
