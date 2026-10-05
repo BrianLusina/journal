@@ -29,7 +29,9 @@ function mapNotionPageToUnified(page: NotionPage): UnifiedPost {
 
   // Extract standard properties gracefully
   const title = properties.Title?.title?.[0]?.plain_text || 'Untitled';
-  const slug = properties.Slug?.rich_text?.[0]?.plain_text || page.id;
+  // The posts routes only return pages with a Slug, and the slug route matches the whole Slug
+  // text, so join every segment rather than taking the first.
+  const slug = (properties.Slug?.rich_text ?? []).map(text => text.plain_text).join('');
   const description = properties.Description?.rich_text?.[0]?.plain_text;
   const category = properties.Category?.select?.name;
   const publishDate = properties.Date?.date?.start || page.created_time;

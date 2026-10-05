@@ -70,7 +70,7 @@ interface CMSAdapter {
 ```
 
 - **`ContentfulAdapter`** queries Contentful with the shared Apollo client (`network-only`) and maps `BlogPostItem` to `UnifiedPost`.
-- **`NotionAdapter`** calls `/api/notion/posts` and `/api/notion/posts/:slug`, and maps Notion page properties (`Title`, `Slug`, `Description`, `Category`, `Date`, `Tags`, `Author`, cover image). The `[slug]` function converts the page body to Markdown with `notion-to-md`, so both sources produce Markdown for `ArticlePage`.
+- **`NotionAdapter`** calls `/api/notion/posts` and `/api/notion/posts/:slug`, and maps Notion page properties (`Title`, `Slug`, `Description`, `Category`, `Date`, `Tags`, `Author`, cover image). The `[slug]` function converts the page body to Markdown with `notion-to-md`, so both sources produce Markdown for `ArticlePage`. A Notion page is listed only when its `Status` is `Published` **and** its `Slug` is not empty, since a post without a slug could never be opened.
 
 `src/services/cms/adapters.ts` is the registry: an ordered array of adapter instances. Array order is priority order when two sources publish the same slug.
 
@@ -152,7 +152,6 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 | Area | Issue |
 |---|---|
 | Merged pagination refetches from zero; Notion is capped at 100 posts | BrianLusina/journal#799 |
-| Notion posts without a `Slug` link to a 404 | BrianLusina/journal#800 |
 | Home featured articles and tag pages bypass the CMS seam | BrianLusina/journal#801 |
 | Notion doesn't work under `vite dev` | BrianLusina/journal#802 |
 | Unused shadcn/ui primitives | BrianLusina/journal#803 |
