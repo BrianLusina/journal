@@ -4,7 +4,8 @@ import { danger, warn, markdown } from 'danger';
 const { pr } = danger.github;
 const modifiedFiles = danger.git.modified_files;
 const packageChanged = modifiedFiles.includes('package.json');
-const lockfileChanged = modifiedFiles.includes('bun.lockb');
+// A lockfile added by the PR counts as changed too.
+const lockfileChanged = [...modifiedFiles, ...danger.git.created_files].includes('bun.lockb');
 
 // Always ensure we assign someone, so that our Slackbot can do its work correctly
 if (pr.assignee === null) {
