@@ -74,10 +74,17 @@ export const BlogFragment = gql`
     contentfulMetadata {
       ...ContentfulMetadataFragment
     }
-    authorsCollection {
+    # Bounded: Contentful prices an unbounded collection at its default limit of 100 per post,
+    # and each author's linked image adds to that, which can exceed the query cost limit.
+    authorsCollection(limit: 5) {
       items {
         sys {
           id
+        }
+        name
+        shortBio
+        image {
+          url
         }
       }
     }

@@ -9,7 +9,7 @@ const MiniPost: FunctionComponent<MiniPostProps> = ({
   slug,
   link,
   title,
-  authorIds,
+  authors,
   time,
   imgUrl,
 }) => (
@@ -21,8 +21,8 @@ const MiniPost: FunctionComponent<MiniPostProps> = ({
       <time className="published" dateTime={time}>
         {time}
       </time>
-      {authorIds.map((authorId) => (
-        <AuthorBadge key={authorId} authorId={authorId} />
+      {authors.map((author) => (
+        <AuthorBadge key={author.id} author={author} />
       ))}
     </header>
     <Link to={link} className="image">

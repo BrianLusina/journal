@@ -44,7 +44,7 @@ describe('NotionAdapter', () => {
       heroImage: { url: 'https://images/cover.png', title: 'Cover Image' },
       thumbnail: { url: 'https://images/cover.png', title: 'Cover Image' },
       tags: ['Hiking', 'Alps'],
-      authors: [{ id: 'user-1', name: 'Ada', avatarUrl: 'https://images/ada.png' }],
+      authors: [{ id: 'user-1', source: 'notion', name: 'Ada', avatarUrl: 'https://images/ada.png' }],
     });
   });
 
@@ -56,7 +56,7 @@ describe('NotionAdapter', () => {
             Title: { title: [] },
             Slug: { rich_text: [] },
             Date: { date: null },
-            Author: { rich_text: [{ plain_text: 'Guest writer' }] },
+            Author: { rich_text: [{ plain_text: 'Guest ' }, { plain_text: 'writer' }] },
           },
           { cover: { type: 'file', file: { url: 'https://files/cover.png' } } },
         ),
@@ -71,7 +71,7 @@ describe('NotionAdapter', () => {
       slug: 'page-1',
       publishDate: '2024-01-05T00:00:00.000Z',
       heroImage: { url: 'https://files/cover.png', title: 'Cover Image' },
-      authors: [{ id: 'notion-author', name: 'Guest writer' }],
+      authors: [{ id: 'notion-author', source: 'notion', name: 'Guest writer' }],
     });
   });
 

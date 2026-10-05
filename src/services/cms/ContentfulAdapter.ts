@@ -28,8 +28,10 @@ function mapContentfulPostToUnified(post: BlogPostItem): UnifiedPost {
     tags: post.contentfulMetadata?.tags?.map(tag => tag.name) || [],
     authors: post.authorsCollection?.items?.map(author => ({
       id: author.sys.id,
+      source: 'contentful' as const,
       name: author.name,
       avatarUrl: author.image?.url,
+      shortBio: author.shortBio,
     })) || [],
   };
 }

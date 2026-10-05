@@ -43,6 +43,7 @@ function mapNotionPageToUnified(page: NotionPage): UnifiedPost {
     authors.push(
       ...properties.Author.people.map(person => ({
         id: person.id,
+        source: 'notion' as const,
         name: person.name,
         avatarUrl: person.avatar_url,
       }))
@@ -50,7 +51,9 @@ function mapNotionPageToUnified(page: NotionPage): UnifiedPost {
   } else if (properties.Author?.rich_text) {
      authors.push({
          id: 'notion-author',
-         name: properties.Author.rich_text[0]?.plain_text
+         source: 'notion',
+         // A name can span several rich-text segments (e.g. partly bold), so join them all.
+         name: properties.Author.rich_text.map(text => text.plain_text).join('')
      });
   }
 

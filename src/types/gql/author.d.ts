@@ -122,15 +122,23 @@ declare type PersonOrder =
   | 'sys_publishedVersion_ASC'
   | 'sys_publishedVersion_DESC';
 
-declare type GetAuthorVariables = {} & GetItemVariables;
-
 declare type GetAllAuthorsVariables = {
   where?: PersonFilter;
   order?: PersonOrder[];
 } & GetAllItemsVariables;
 
+/**
+ * The author fields BlogFragment fetches for each post.
+ */
+declare type BlogPostAuthor = {
+  sys: { id: string };
+  name?: string;
+  shortBio?: string;
+  image?: { url: string } | null;
+};
+
 declare type AuthorCollection = {
-  items: Entry[];
+  items: BlogPostAuthor[];
   limit: number;
   skip: number;
   total: number;

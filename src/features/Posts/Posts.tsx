@@ -3,7 +3,6 @@ import { Button } from '@components';
 import { captureException, captureScope, Severity } from '@monitoring';
 import { usePosts } from '@hooks';
 import { humanizeDateTime } from '@timeUtils';
-// eslint-disable-next-line camelcase
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';
 import PostItem from './PostItem';
 
@@ -69,7 +68,7 @@ const Posts: FunctionComponent = () => {
             )}
             tags={tags}
             link={`${id}/${slug}`}
-            authorIds={authors.map(author => author.id)}
+            authors={authors}
           />
         ),
       )}

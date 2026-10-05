@@ -13,7 +13,7 @@ const PostItem: FunctionComponent<PostItemProps> = ({
   link,
   excerpt,
   img: { src, alt },
-  authorIds,
+  authors,
   tags,
 }) => (
   <article id={id} className="post">
@@ -28,8 +28,8 @@ const PostItem: FunctionComponent<PostItemProps> = ({
         <time className="published" dateTime={date}>
           {date}
         </time>
-        {authorIds.map((authorId) => (
-          <AuthorBadge key={authorId} authorId={authorId} />
+        {authors.map((author) => (
+          <AuthorBadge key={author.id} author={author} />
         ))}
       </div>
     </header>
