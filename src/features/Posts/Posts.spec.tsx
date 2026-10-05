@@ -77,9 +77,7 @@ describe('Posts', () => {
     (usePosts as jest.Mock).mockReturnValue({
       data: {
         items,
-        total: items.length + 1,
-        limit: 10,
-        skip: 0,
+        hasMore: true,
       },
       loading: false,
       error: null,
@@ -169,9 +167,7 @@ describe('Posts', () => {
         return {
           data: {
             items,
-            total: 2,
-            limit: 10,
-            skip: 0,
+            hasMore: true,
           },
           loading: false,
           error: null,
@@ -182,9 +178,7 @@ describe('Posts', () => {
       return {
           data: {
             items: [...items, newItem],
-            total: 2,
-            limit: 20,
-            skip: 0,
+            hasMore: false,
           },
           loading: false,
           error: null,

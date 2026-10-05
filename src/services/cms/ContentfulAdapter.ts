@@ -39,19 +39,18 @@ function mapContentfulPostToUnified(post: BlogPostItem): UnifiedPost {
 export default class ContentfulAdapter implements CMSAdapter {
   public readonly source: CMSSource = 'contentful';
 
-  async getPosts(options?: CMSPaginationOptions): Promise<PaginatedUnifiedPosts> {
+  async getPosts({ cursor, limit, category }: CMSPageRequest): Promise<CMSPage> {
     const query = GET_ALL_BLOGS;
-    
-    const skip = options?.skip || 0;
-    const limit = options?.limit || 100;
+
+    // The cursor is the offset of the next post. The merged feed orders every source by publish
+    // date, newest first, so a post without one has no place in it.
+    const skip = cursor ? Number(cursor) : 0;
     const variables: GetAllBlogsVariables = {
-        skip,
-        limit,
+      skip,
+      limit,
+      order: ['publishDate_DESC'],
+      where: { publishDate_exists: true, ...(category ? { category } : {}) },
     };
-    
-    if (options?.category) {
-        variables.where = { category: options.category };
-    }
 
     const { data } = await contentfulClient.query<BlogPostsData, GetAllBlogsVariables>({
       query,
@@ -60,12 +59,10 @@ export default class ContentfulAdapter implements CMSAdapter {
     });
 
     const collection = data.blogPostCollection;
+    const next = skip + collection.items.length;
     return {
       items: collection.items.map(mapContentfulPostToUnified),
-      total: collection.total,
-      limit: collection.limit,
-      skip,
-      hasMore: collection.total > skip + collection.items.length,
+      nextCursor: next < collection.total ? String(next) : null,
     };
   }
 

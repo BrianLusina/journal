@@ -29,9 +29,9 @@ describe('NotionAdapter', () => {
   const adapter = new NotionAdapter();
 
   it('maps a Notion page onto the unified post model', async () => {
-    mockFetch(200, { results: [notionPage()], hasMore: false });
+    mockFetch(200, { results: [notionPage()], nextCursor: null });
 
-    const { items } = await adapter.getPosts();
+    const { items } = await adapter.getPosts({ limit: 10 });
 
     expect(items[0]).toEqual({
       id: 'page-1',
@@ -62,10 +62,10 @@ describe('NotionAdapter', () => {
           { cover: { type: 'file', file: { url: 'https://files/cover.png' } } },
         ),
       ],
-      hasMore: false,
+      nextCursor: null,
     });
 
-    const { items } = await adapter.getPosts();
+    const { items } = await adapter.getPosts({ limit: 10 });
 
     expect(items[0]).toMatchObject({
       title: 'Untitled',
@@ -76,20 +76,29 @@ describe('NotionAdapter', () => {
     });
   });
 
-  it('requests enough posts to cover the page from the API route and returns the requested slice', async () => {
-    mockFetch(200, { results: [notionPage({}, { id: 'a' }), notionPage({}, { id: 'b' }), notionPage({}, { id: 'c' })], hasMore: true });
+  it('requests the page after the cursor from the API route and passes on its next cursor', async () => {
+    mockFetch(200, { results: [notionPage({}, { id: 'a' }), notionPage({}, { id: 'b' })], nextCursor: 'cursor-2' });
 
-    const result = await adapter.getPosts({ skip: 1, limit: 2, category: 'Travel' });
+    const result = await adapter.getPosts({ cursor: 'cursor-1', limit: 2, category: 'Travel' });
 
-    expect(global.fetch).toHaveBeenCalledWith('/api/notion/posts?limit=3&category=Travel');
-    expect(result.items.map(item => item.id)).toEqual(['b', 'c']);
-    expect(result).toMatchObject({ skip: 1, limit: 2, hasMore: true });
+    expect(global.fetch).toHaveBeenCalledWith('/api/notion/posts?limit=2&category=Travel&cursor=cursor-1');
+    expect(result.items.map(item => item.id)).toEqual(['a', 'b']);
+    expect(result.nextCursor).toBe('cursor-2');
+  });
+
+  it('requests the first page without a cursor', async () => {
+    mockFetch(200, { results: [], nextCursor: null });
+
+    const result = await adapter.getPosts({ limit: 5 });
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/notion/posts?limit=5');
+    expect(result).toEqual({ items: [], nextCursor: null });
   });
 
   it('throws when the API route fails', async () => {
     mockFetch(502, { error: 'Unable to fetch Notion posts' });
 
-    await expect(adapter.getPosts()).rejects.toThrow('Unable to fetch Notion posts: 502');
+    await expect(adapter.getPosts({ limit: 5 })).rejects.toThrow('Unable to fetch Notion posts: 502');
   });
 
   it('returns a post with its markdown body by slug', async () => {

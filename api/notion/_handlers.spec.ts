@@ -30,32 +30,47 @@ describe('Notion API routes', () => {
     (getDataSourceId as jest.Mock).mockResolvedValue('ds-1');
   });
 
-  it('lists posts from the resolved data source', async () => {
+  it('lists one page of posts from the resolved data source', async () => {
     (notion.dataSources.query as jest.Mock).mockResolvedValue({ results: [{ id: 'p1' }], has_more: false, next_cursor: null });
     const res = response();
 
     await postsHandler(request({ limit: '10' }), res as unknown as VercelResponse);
 
-    expect(notion.dataSources.query).toHaveBeenCalledWith(expect.objectContaining({ data_source_id: 'ds-1', page_size: 10 }));
+    expect(notion.dataSources.query).toHaveBeenCalledTimes(1);
+    expect(notion.dataSources.query).toHaveBeenCalledWith(
+      expect.objectContaining({ data_source_id: 'ds-1', page_size: 10, start_cursor: undefined }),
+    );
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith({ results: [{ id: 'p1' }], hasMore: false });
+    expect(res.json).toHaveBeenCalledWith({ results: [{ id: 'p1' }], nextCursor: null });
+  });
+
+  it('continues from the given cursor and returns the next one while Notion has more', async () => {
+    (notion.dataSources.query as jest.Mock).mockResolvedValue({ results: [{ id: 'p2' }], has_more: true, next_cursor: 'cursor-3' });
+    const res = response();
+
+    await postsHandler(request({ limit: '1', cursor: 'cursor-2' }), res as unknown as VercelResponse);
+
+    expect(notion.dataSources.query).toHaveBeenCalledWith(expect.objectContaining({ page_size: 1, start_cursor: 'cursor-2' }));
+    expect(res.json).toHaveBeenCalledWith({ results: [{ id: 'p2' }], nextCursor: 'cursor-3' });
   });
 
   it.each([
     ['without a category', {}, []],
     ['with a category', { category: 'Travel' }, [{ property: 'Category', select: { equals: 'Travel' } }]],
-  ])('lists only published posts that have a slug, %s', async (_, query, extraFilters) => {
+  ])('lists only published posts that have a slug and a date, %s', async (_, query, extraFilters) => {
     (notion.dataSources.query as jest.Mock).mockResolvedValue({ results: [], has_more: false, next_cursor: null });
 
     await postsHandler(request(query), response() as unknown as VercelResponse);
 
     // A post without a slug cannot be opened: the slug route looks posts up by Slug.
+    // A post without a date cannot be placed in the merged feed, which is ordered by Date.
     expect(notion.dataSources.query).toHaveBeenCalledWith(
       expect.objectContaining({
         filter: {
           and: [
             { property: 'Status', status: { equals: 'Published' } },
             { property: 'Slug', rich_text: { is_not_empty: true } },
+            { property: 'Date', date: { is_not_empty: true } },
             ...extraFilters,
           ],
         },

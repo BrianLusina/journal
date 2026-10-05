@@ -44,21 +44,35 @@ declare type UnifiedPost = {
 };
 
 /**
- * Pagination options for fetching unified posts.
+ * Options for reading the merged feed: the first `limit` posts, optionally in one category.
  */
 declare type CMSPaginationOptions = {
-  skip?: number;
   limit?: number;
   category?: string;
 };
 
 /**
- * Result object for paginated posts.
+ * The first posts of the merged feed, newest first.
  */
 declare type PaginatedUnifiedPosts = {
   items: UnifiedPost[];
-  total: number;
+  hasMore: boolean;
+};
+
+/**
+ * A request to one source for its next page of posts, newest first. `cursor` is opaque and comes
+ * from the previous page's `nextCursor`; omit it for the first page.
+ */
+declare type CMSPageRequest = {
+  cursor?: string;
   limit: number;
-  skip: number;
-  hasMore?: boolean;
+  category?: string;
+};
+
+/**
+ * One page from a source. `nextCursor` is null when the source has no more posts.
+ */
+declare type CMSPage = {
+  items: UnifiedPost[];
+  nextCursor: string | null;
 };

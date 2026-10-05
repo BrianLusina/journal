@@ -17,7 +17,7 @@ describe('RelatedArticles', () => {
   });
 
   it('renders nothing when there are no related posts', () => {
-    (usePosts as jest.Mock).mockReturnValue({ data: { items: [], total: 0, limit: 3, skip: 0 }, loading: false, error: null });
+    (usePosts as jest.Mock).mockReturnValue({ data: { items: [], hasMore: false }, loading: false, error: null });
 
     const { container } = render(<RelatedArticles category="Travel" />);
 
@@ -28,9 +28,7 @@ describe('RelatedArticles', () => {
     (usePosts as jest.Mock).mockReturnValue({
       data: {
         items: [{ id: 'n1', source: 'notion', title: 'Alps', slug: 'alps', publishDate: '2024-02-01', tags: [], authors: [] }],
-        total: 1,
-        limit: 3,
-        skip: 0,
+        hasMore: false,
       },
       loading: false,
       error: null,

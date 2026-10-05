@@ -37,7 +37,7 @@ describe('ContentfulAdapter', () => {
   it('maps a Contentful blog post onto the unified post model', async () => {
     respondWith([blogPost()]);
 
-    const { items } = await adapter.getPosts();
+    const { items } = await adapter.getPosts({ limit: 10 });
 
     expect(items[0]).toEqual({
       id: 'post-1',
@@ -61,7 +61,7 @@ describe('ContentfulAdapter', () => {
       blogPost({ publishDate: null, heroImage: null, thumbnail: null, contentfulMetadata: null, authorsCollection: null }),
     ]);
 
-    const { items } = await adapter.getPosts();
+    const { items } = await adapter.getPosts({ limit: 10 });
 
     expect(items[0]).toMatchObject({
       publishDate: '2024-01-02T10:00:00.000Z',
@@ -72,15 +72,30 @@ describe('ContentfulAdapter', () => {
     });
   });
 
-  it('passes pagination and category filters to the query and reports whether more posts exist', async () => {
+  it('reads dated posts at the cursor offset, newest first, and returns the next offset as the cursor', async () => {
     respondWith([blogPost()], 5, 1);
 
-    const result = await adapter.getPosts({ skip: 2, limit: 1, category: 'Wellness' });
+    const result = await adapter.getPosts({ cursor: '2', limit: 1, category: 'Wellness' });
 
     expect(contentfulClient.query).toHaveBeenCalledWith(
-      expect.objectContaining({ variables: { skip: 2, limit: 1, where: { category: 'Wellness' } } }),
+      expect.objectContaining({
+        variables: { skip: 2, limit: 1, order: ['publishDate_DESC'], where: { publishDate_exists: true, category: 'Wellness' } },
+      }),
     );
-    expect(result).toMatchObject({ total: 5, skip: 2, hasMore: true });
+    expect(result.nextCursor).toBe('3');
+  });
+
+  it('starts at the first post without a cursor and ends with a null cursor', async () => {
+    respondWith([blogPost(), blogPost({ sys: { id: 'post-2' } })], 2, 10);
+
+    const result = await adapter.getPosts({ limit: 10 });
+
+    expect(contentfulClient.query).toHaveBeenCalledWith(
+      expect.objectContaining({
+        variables: { skip: 0, limit: 10, order: ['publishDate_DESC'], where: { publishDate_exists: true } },
+      }),
+    );
+    expect(result.nextCursor).toBeNull();
   });
 
   it('finds a post by slug', async () => {

@@ -75,9 +75,7 @@ describe('MiniPosts', () => {
     (usePosts as jest.Mock).mockReturnValue({
       data: {
         items,
-        total: items.length,
-        limit: 5,
-        skip: 0,
+        hasMore: false,
       },
       loading: false,
       error: null,

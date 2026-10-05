@@ -21,7 +21,7 @@ const post = (id: string, overrides: Partial<UnifiedPost> = {}): UnifiedPost => 
 
 const mockPosts = (items: UnifiedPost[], hasMore = false, loading = false) =>
   (usePosts as jest.Mock).mockReturnValue({
-    data: { items, total: items.length, limit: 10, skip: 0, hasMore },
+    data: { items, hasMore },
     loading,
     error: null,
   });
