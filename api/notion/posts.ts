@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { databaseId, getLimit, isNotionConfigured, notion } from './_shared';
+import { getDataSourceId, getLimit, isNotionConfigured, notion } from './_shared';
 
 export default async function handler(
   request: VercelRequest,
@@ -42,13 +42,14 @@ export default async function handler(
   const queryFilter = filter;
 
   try {
+    const dataSourceId = await getDataSourceId();
     const pages = [];
     let cursor: string | undefined;
     let hasMore = true;
 
     while (hasMore && pages.length < limit) {
       const result = await notion.dataSources.query({
-        data_source_id: databaseId!,
+        data_source_id: dataSourceId,
         page_size: limit - pages.length,
         start_cursor: cursor,
         sorts: [{ property: 'Date', direction: 'descending' }],
