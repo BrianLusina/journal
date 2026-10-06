@@ -1,9 +1,10 @@
-import contentfulClient from '@contentfulClient';
+import contentfulClient, { getTagId } from '@contentfulClient';
 import ContentfulAdapter from './ContentfulAdapter';
 
 jest.mock('@contentfulClient', () => ({
   __esModule: true,
   default: { query: jest.fn() },
+  getTagId: jest.fn(),
   GET_ALL_BLOGS: 'GET_ALL_BLOGS',
   GET_BLOG: 'GET_BLOG',
 }));
@@ -85,15 +86,61 @@ describe('ContentfulAdapter', () => {
     expect(result.nextCursor).toBe('3');
   });
 
-  it('reads only posts carrying the tag, whose slug is its Contentful tag ID', async () => {
+  it('shows the tags from both the Contentful tags and the legacy tags field, once each', async () => {
+    respondWith([blogPost({ tags: ['Mindfulness', 'Travel'] })]);
+
+    const { items } = await adapter.getPosts({ limit: 10 });
+
+    expect(items[0].tags).toEqual(['Mindfulness', 'Travel']);
+  });
+
+  it('reads posts carrying the tag by name in the legacy field or by its ID in the Contentful tags', async () => {
+    (getTagId as jest.Mock).mockResolvedValue('datastructures');
     respondWith([blogPost()], 1, 10);
 
-    await adapter.getPosts({ limit: 10, tag: 'personalGrowth' });
+    await adapter.getPosts({ limit: 10, tag: 'Data Structures' });
+
+    expect(getTagId).toHaveBeenCalledWith('Data Structures');
+    expect(contentfulClient.query).toHaveBeenCalledWith(
+      expect.objectContaining({
+        variables: expect.objectContaining({
+          where: {
+            publishDate_exists: true,
+            OR: [
+              { tags_contains_some: ['Data Structures'] },
+              { contentfulMetadata: { tags: { id_contains_some: ['datastructures'] } } },
+            ],
+          },
+        }),
+      }),
+    );
+  });
+
+  it('still reads the legacy field when the Contentful tag list cannot be fetched', async () => {
+    (getTagId as jest.Mock).mockRejectedValue(new Error('Unable to fetch Contentful tags: 503'));
+    respondWith([blogPost()], 1, 10);
+
+    await adapter.getPosts({ limit: 10, tag: 'Kotlin' });
 
     expect(contentfulClient.query).toHaveBeenCalledWith(
       expect.objectContaining({
         variables: expect.objectContaining({
-          where: { publishDate_exists: true, contentfulMetadata: { tags: { id_contains_some: ['personalGrowth'] } } },
+          where: { publishDate_exists: true, OR: [{ tags_contains_some: ['Kotlin'] }] },
+        }),
+      }),
+    );
+  });
+
+  it('reads the legacy field only when no Contentful tag has the name', async () => {
+    (getTagId as jest.Mock).mockResolvedValue(undefined);
+    respondWith([blogPost()], 1, 10);
+
+    await adapter.getPosts({ limit: 10, tag: 'Browsers' });
+
+    expect(contentfulClient.query).toHaveBeenCalledWith(
+      expect.objectContaining({
+        variables: expect.objectContaining({
+          where: { publishDate_exists: true, OR: [{ tags_contains_some: ['Browsers'] }] },
         }),
       }),
     );

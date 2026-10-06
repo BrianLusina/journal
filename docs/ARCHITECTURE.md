@@ -101,10 +101,14 @@ No hook, page or aggregator change is needed.
 
 ### Tags
 
-A tag is identified by its slug, `camelCase(name)`, which is what `Tag` links to (`/article/tag/:tag`) and what `usePosts({ tag })` passes to every adapter.
+A tag is identified by its **name**, the only identifier every source shares. `Tag` links to `/article/tag/<encoded name>`, and `usePosts({ tag })` passes the name to every adapter. Matching is exact, so tags spelled differently in two places (`JavaScript` and `javascript`) are different tags.
 
-- **Contentful** matches the slug against tag IDs. Contentful derives a new tag's ID from its name the same way, so a tag whose ID was edited by hand won't match.
-- **Notion** can only filter a multi-select by an option's exact name, so `/api/notion/posts?tag=` reads the data source's `Tags` options and keeps posts carrying any option whose slug matches. When none match, it answers with no posts without querying.
+- **Contentful** posts carry tags in two places:
+  - Contentful tags (`contentfulMetadata.tags`), used by newer posts;
+  - the legacy `tags` field (`Array<Symbol>`), used by older ones.
+
+  The adapter shows both, de-duplicated, and filters on either: `tags_contains_some: [name]` OR the Contentful tag's ID. Contentful tags can only be filtered by ID, so `getTagId` (`src/integrations/contentful/contentful.tags.ts`) looks the name up in the space's tag list, fetched once per page load from the delivery REST API (`/tags`). The GraphQL API can't list tags. If the tag list can't be fetched, the adapter still filters the legacy field by name.
+- **Notion** filters `Tags` with `multi_select.contains` on the name. Most tags aren't Notion's, so `/api/notion/posts?tag=` first checks that the name is one of the `Tags` options, and answers with no posts without querying when it isn't.
 
 ### Content outside the seam
 
