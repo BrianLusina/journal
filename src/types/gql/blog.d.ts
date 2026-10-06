@@ -92,10 +92,6 @@ declare type GetAllBlogsVariables = {
   order?: BlogPostOrder[];
 };
 
-declare type GetBlogVariables = {} & GetItemVariables;
-declare type GetBlogByTagVariables = { tag: string } & Omit<GetItemVariables, 'id'>;
-declare type GetBlogByCategoryVariables = { category: string } & Omit<GetItemVariables, 'id'>;
-
 declare type BlogPostsData = {
   blogPostCollection: {
     total: number;

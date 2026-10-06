@@ -81,11 +81,12 @@ export const BlogFragment = gql`
         sys {
           id
         }
-        name
-        shortBio
-        image {
-          url
-        }
+#        These fields are not included in the Contentful GraphQL schema
+#        name
+#        shortBio
+#        image {
+#          url
+#        }
       }
     }
   }

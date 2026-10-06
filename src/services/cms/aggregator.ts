@@ -42,7 +42,7 @@ const publishTime = (post: UnifiedPost): number => new Date(post.publishDate).ge
  * hiding the others, and retried on the next load; posts it would have placed among those already
  * shown then appear after them. A load only rejects when every source failed and nothing was read.
  */
-export function createMergedFeed(adapters: CMSAdapter[], category?: string): MergedFeed {
+export function createMergedFeed(adapters: CMSAdapter[], filter: CMSPostFilter = {}): MergedFeed {
   const sources: SourceState[] = adapters.map(adapter => ({ adapter, buffer: [], exhausted: false, failed: false }));
   const merged: UnifiedPost[] = [];
   // Offset pages shift when posts are published between requests, so a post can be served twice.
@@ -54,7 +54,7 @@ export function createMergedFeed(adapters: CMSAdapter[], category?: string): Mer
   const fetchNextPage = async (source: SourceState, limit: number, errors: Error[]): Promise<void> => {
     try {
       const page = await source.adapter.getPosts({
-        ...(category ? { category } : {}),
+        ...filter,
         ...(source.cursor ? { cursor: source.cursor } : {}),
         limit,
       });

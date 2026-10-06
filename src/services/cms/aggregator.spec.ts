@@ -121,13 +121,15 @@ describe('createMergedFeed', () => {
     expect(result.hasMore).toBe(false);
   });
 
-  it('passes the category to every source', async () => {
+  it('passes the category and tag to every source', async () => {
     const c = contentful();
-    const feed = createMergedFeed([c], 'Travel');
+    const n = notion();
+    const feed = createMergedFeed([c, n], { category: 'Travel', tag: 'personalGrowth' });
 
     await feed.load(1);
 
-    expect(c.getPosts).toHaveBeenCalledWith(expect.objectContaining({ category: 'Travel' }));
+    expect(c.getPosts).toHaveBeenCalledWith(expect.objectContaining({ category: 'Travel', tag: 'personalGrowth' }));
+    expect(n.getPosts).toHaveBeenCalledWith(expect.objectContaining({ category: 'Travel', tag: 'personalGrowth' }));
   });
 
   it('serializes overlapping loads so a cursor is never fetched twice', async () => {

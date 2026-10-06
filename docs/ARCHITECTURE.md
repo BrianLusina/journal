@@ -65,7 +65,7 @@ Every source maps its content onto `UnifiedPost` (`src/types/cms.d.ts`): `id`, `
 interface CMSAdapter {
   readonly source: CMSSource;
   // Next page of posts, newest first by publish date. Pass the previous page's nextCursor.
-  getPosts(request: { cursor?: string; limit: number; category?: string }): Promise<{ items: UnifiedPost[]; nextCursor: string | null }>;
+  getPosts(request: { cursor?: string; limit: number; category?: string; tag?: string }): Promise<{ items: UnifiedPost[]; nextCursor: string | null }>;
   getPostBySlug(slug: string): Promise<UnifiedPost | null>;
 }
 ```
@@ -79,7 +79,7 @@ interface CMSAdapter {
 
 `src/services/cms/aggregator.ts` holds the multi-source logic as plain async functions, testable without React:
 
-- **`createMergedFeed(adapters, category?)`** returns a feed with `load(count)`, which resolves to the first `count` posts across all sources, newest first.
+- **`createMergedFeed(adapters, { category?, tag? })`** returns a feed with `load(count)`, which resolves to the first `count` posts across all sources, newest first.
   - Every adapter returns its posts newest first, so the feed is a k-way merge: it keeps a cursor and a buffer per source and only fetches a source's next page when its buffer runs out. A larger `count` reads on from where the feed stopped and never refetches.
   - Loads are serialized, so overlapping calls never fetch the same cursor twice.
   - `hasMore` is true while any source has buffered or unread posts.
@@ -87,7 +87,7 @@ interface CMSAdapter {
   - **Partial failure:** a failing source is left out of the load instead of hiding the others, and its error is returned in that load's `errors`. The next load retries it from its cursor; any of its posts newer than those already shown then appear after them. A load only rejects when every source failed in it and nothing was read.
 - **`findPostBySlug(adapters, slug)`** queries all sources concurrently and returns the first hit in priority order. It resolves to `null` only when every source answered "not found". If the post wasn't found and any source failed, it rejects, because the post might exist in the failed source.
 
-The hooks are thin. `usePosts({ limit, category })` keeps one feed per category, so raising `limit` ("Load more") only fetches the missing posts; it reports partial-failure errors to Sentry and exposes `{ data, loading, error }`. `usePost` turns `null` into "no data, no error", which `ArticlePage` turns into a redirect to `/404`.
+The hooks are thin. `usePosts({ limit, category, tag })` keeps one feed per category and tag, so raising `limit` ("Load more") only fetches the missing posts; it reports partial-failure errors to Sentry and exposes `{ data, loading, error }`. `usePost` turns `null` into "no data, no error", which `ArticlePage` turns into a redirect to `/404`.
 
 ### Adding a content source
 
@@ -99,15 +99,16 @@ The hooks are thin. `usePosts({ limit, category })` keeps one feed per category,
 
 No hook, page or aggregator change is needed.
 
-### Where the seam is not used yet
+### Tags
 
-Some post listings still query Contentful directly through Apollo, so Notion posts don't appear there:
+A tag is identified by its slug, `camelCase(name)`, which is what `Tag` links to (`/article/tag/:tag`) and what `usePosts({ tag })` passes to every adapter.
 
-- `FeaturedArticles` (home page)
-- `ArticlesByTagPage`
-- `useFetchArticle` and `useFetchArticlesByCategory`
+- **Contentful** matches the slug against tag IDs. Contentful derives a new tag's ID from its name the same way, so a tag whose ID was edited by hand won't match.
+- **Notion** can only filter a multi-select by an option's exact name, so `/api/notion/posts?tag=` reads the data source's `Tags` options and keeps posts carrying any option whose slug matches. When none match, it answers with no posts without querying.
 
-Migrating them is tracked in BrianLusina/journal#801. Authors, About and Social content exist only in Contentful and are expected to stay on Apollo.
+### Content outside the seam
+
+Every post listing reads through the seam. Authors, About and Social content exist only in Contentful and stay on Apollo (`hooks/api/*` and the features that render them).
 
 ## Error handling and observability
 
@@ -123,7 +124,7 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 
 | Variable | Used by |
 |---|---|
-| `VITE_CMS_*` | Contentful client (space, environment, delivery token, GraphQL URL). |
+| `VITE_CONTENTFUL_CMS_*` | Contentful client (space, environment, delivery token, GraphQL URL). |
 | `VITE_SENTRY_DSN`, `VITE_SENTRY_TRACES_SAMPLE_RATE` | Sentry (production only). |
 | `VITE_FIREBASE_*` | Firebase Analytics (optional, production only). |
 | `VITE_ENV`, `VITE_APP_NAME`, `VITE_APP_TITLE` | Environment label and site naming. |
@@ -153,7 +154,6 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 
 | Area | Issue |
 |---|---|
-| Home featured articles and tag pages bypass the CMS seam | BrianLusina/journal#801 |
 | Notion doesn't work under `vite dev` | BrianLusina/journal#802 |
 | Unused shadcn/ui primitives | BrianLusina/journal#803 |
 | No type-checking in CI | BrianLusina/journal#804 |

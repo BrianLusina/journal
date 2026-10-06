@@ -72,14 +72,14 @@ declare type SysFilter = {
 }
 
 declare type ContentfulMetadataTagsFilter = {
-    id_contains_all: string[];
-    id_contains_none: string[];
-    id_contains_some: string[];   
+    id_contains_all?: string[];
+    id_contains_none?: string[];
+    id_contains_some?: string[];
 };
 
 declare type ContentfulMetadataFilter = {
-    tags: ContentfulMetadataTagsFilter;
-    tags_exists: boolean;
+    tags?: ContentfulMetadataTagsFilter;
+    tags_exists?: boolean;
 };
 
 declare type Asset = {

@@ -85,6 +85,20 @@ describe('ContentfulAdapter', () => {
     expect(result.nextCursor).toBe('3');
   });
 
+  it('reads only posts carrying the tag, whose slug is its Contentful tag ID', async () => {
+    respondWith([blogPost()], 1, 10);
+
+    await adapter.getPosts({ limit: 10, tag: 'personalGrowth' });
+
+    expect(contentfulClient.query).toHaveBeenCalledWith(
+      expect.objectContaining({
+        variables: expect.objectContaining({
+          where: { publishDate_exists: true, contentfulMetadata: { tags: { id_contains_some: ['personalGrowth'] } } },
+        }),
+      }),
+    );
+  });
+
   it('starts at the first post without a cursor and ends with a null cursor', async () => {
     respondWith([blogPost(), blogPost({ sys: { id: 'post-2' } })], 2, 10);
 

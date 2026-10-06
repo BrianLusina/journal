@@ -7,7 +7,7 @@ jest.mock('./_shared', () => ({
   getDataSourceId: jest.fn(),
   getLimit: (value: unknown) => Number(value) || 100,
   isNotionConfigured: () => true,
-  notion: { dataSources: { query: jest.fn() } },
+  notion: { dataSources: { query: jest.fn(), retrieve: jest.fn() } },
 }));
 jest.mock('notion-to-md', () => ({
   NotionToMarkdown: jest.fn().mockImplementation(() => ({
@@ -76,6 +76,45 @@ describe('Notion API routes', () => {
         },
       }),
     );
+  });
+
+  it('lists posts carrying any Tags option whose slug matches the tag', async () => {
+    (notion.dataSources.retrieve as jest.Mock).mockResolvedValue({
+      properties: {
+        Tags: {
+          type: 'multi_select',
+          multi_select: { options: [{ name: 'Personal Growth' }, { name: 'personal-growth' }, { name: 'Travel' }] },
+        },
+      },
+    });
+    (notion.dataSources.query as jest.Mock).mockResolvedValue({ results: [{ id: 'p1' }], has_more: false, next_cursor: null });
+    const res = response();
+
+    await postsHandler(request({ tag: 'personalGrowth' }), res as unknown as VercelResponse);
+
+    expect(notion.dataSources.retrieve).toHaveBeenCalledWith({ data_source_id: 'ds-1' });
+    const { filter } = (notion.dataSources.query as jest.Mock).mock.calls[0][0];
+    expect(filter.and).toContainEqual({
+      or: [
+        { property: 'Tags', multi_select: { contains: 'Personal Growth' } },
+        { property: 'Tags', multi_select: { contains: 'personal-growth' } },
+      ],
+    });
+    expect(res.json).toHaveBeenCalledWith({ results: [{ id: 'p1' }], nextCursor: null });
+  });
+
+  it('answers with no posts, without querying, when no Tags option matches the tag', async () => {
+    (notion.dataSources.retrieve as jest.Mock).mockResolvedValue({
+      properties: { Tags: { type: 'multi_select', multi_select: { options: [{ name: 'Travel' }] } } },
+    });
+    const res = response();
+
+    await postsHandler(request({ tag: 'personalGrowth' }), res as unknown as VercelResponse);
+
+    expect(notion.dataSources.query).not.toHaveBeenCalled();
+    expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ results: [], nextCursor: null });
   });
 
   it('finds a post by slug in the resolved data source', async () => {

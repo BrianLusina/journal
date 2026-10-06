@@ -3,7 +3,7 @@ import graphQlClient from '@graphQlClient';
 
 const {
   api: {
-    cms: { graphQlUrl, spaceId, environment, apiKey },
+    contentfulCms: { graphQlUrl, spaceId, environment, apiKey },
   },
   env: { env },
 } = config;

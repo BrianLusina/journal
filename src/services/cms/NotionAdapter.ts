@@ -86,9 +86,10 @@ function mapNotionPageToUnified(page: NotionPage): UnifiedPost {
 export default class NotionAdapter implements CMSAdapter {
   public readonly source: CMSSource = 'notion';
 
-  async getPosts({ cursor, limit, category }: CMSPageRequest): Promise<CMSPage> {
+  async getPosts({ cursor, limit, category, tag }: CMSPageRequest): Promise<CMSPage> {
     const params = new URLSearchParams({ limit: String(limit) });
     if (category) params.set('category', category);
+    if (tag) params.set('tag', tag);
     if (cursor) params.set('cursor', cursor);
     const response = await fetch(`/api/notion/posts?${params}`);
 
