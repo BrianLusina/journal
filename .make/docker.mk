@@ -7,7 +7,7 @@ DOCKER_IMAGE_TAG ?= journal-frontend
 
 .PHONY: create.dockerenvfile
 create.dockerenvfile: ## Create a docker environment file
-	if [ ! -f .env.docker ]; then cp .env.example .env.docker; fi
+	if [ ! -f .env.docker ]; then cp .env.sample .env.docker; fi
 
 # See local hadolint install instructions: https://github.com/hadolint/hadolint
 .PHONY: lint.docker

@@ -1,0 +1,45 @@
+type: http_request
+model: http_request
+id: rq_TiPg9QMLYL
+createdAt: 2026-09-14T17:44:15.154197
+updatedAt: 2026-09-14T17:45:09.538625
+workspaceId: wk_m6u48eEXa2
+folderId: fl_2NuoncJYgt
+authentication:
+  token: ${[ NOTION_ACCESS_TOKEN ]}
+authenticationType: bearer
+body: {}
+bodyType: null
+description: ''
+headers:
+- enabled: true
+  name: Notion-Version
+  value: ${[ NOTION_VERSION ]}
+  id: zFnqxzuUK2
+- enabled: true
+  name: ''
+  value: ''
+  id: f5Aci8Af3H
+method: GET
+name: Get Page
+sortPriority: 0.0
+url: ${[ NOTION_API_BASE_URL_V1 ]}/pages/47500cb7a7e645308f5955b3e2c676e8
+urlParameters: []
+settingSendCookies:
+  enabled: false
+  value: true
+settingStoreCookies:
+  enabled: false
+  value: true
+settingValidateCertificates:
+  enabled: false
+  value: true
+settingFollowRedirects:
+  enabled: false
+  value: true
+settingRequestTimeout:
+  enabled: false
+  value: 0
+settingHttpVersion:
+  enabled: false
+  value: auto

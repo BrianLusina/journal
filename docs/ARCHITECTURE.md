@@ -124,7 +124,7 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 
 | Variable | Used by |
 |---|---|
-| `VITE_CMS_*` | Contentful client (space, environment, delivery token, GraphQL URL). |
+| `VITE_CONTENTFUL_CMS_*` | Contentful client (space, environment, delivery token, GraphQL URL). |
 | `VITE_SENTRY_DSN`, `VITE_SENTRY_TRACES_SAMPLE_RATE` | Sentry (production only). |
 | `VITE_FIREBASE_*` | Firebase Analytics (optional, production only). |
 | `VITE_ENV`, `VITE_APP_NAME`, `VITE_APP_TITLE` | Environment label and site naming. |
