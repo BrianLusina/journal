@@ -81,12 +81,14 @@ export const BlogFragment = gql`
         sys {
           id
         }
-#        These fields are not included in the Contentful GraphQL schema
-#        name
-#        shortBio
-#        image {
-#          url
-#        }
+        # \`authors\` accepts any entry type, so its items are typed as the Entry interface.
+        ... on Person {
+          name
+          shortBio
+          image {
+            url
+          }
+        }
       }
     }
   }
