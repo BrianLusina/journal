@@ -7,10 +7,12 @@ describe('BlogFragment', () => {
   });
 
   it('fetches what the author badge displays, so authors are not fetched one by one', () => {
+    // `authors` links to any Entry (the field has no content type validation), so Contentful types
+    // its items as the Entry interface: Person fields are only selectable through `... on Person`.
     const authors = print(BlogFragment).split('authorsCollection(limit: 5)')[1];
-    // TODO, Fields are not available in the Contentful GraphQL schema
-    // expect(authors).toEqual(expect.stringContaining('name'));
-    // expect(authors).toEqual(expect.stringContaining('shortBio'));
-    // expect(authors).toMatch(/image\s*{\s*url\s*}/);
+    const person = authors.match(/\.\.\. on Person {([^}]*{[^}]*}[^}]*)}/)?.[1] ?? '';
+    expect(person).toMatch(/\bname\b/);
+    expect(person).toMatch(/\bshortBio\b/);
+    expect(person).toMatch(/image\s*{\s*url\s*}/);
   });
 });
