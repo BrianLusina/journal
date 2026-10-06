@@ -68,6 +68,7 @@ export const BlogFragment = gql`
     slug
     body
     publishDate
+    tags
     sys {
       ...SysFragment
     }

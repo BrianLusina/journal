@@ -36,10 +36,10 @@ describe('ArticlesByTagPage', () => {
       data: { items: [article('a', 'contentful', { url: 'https://images/a.png' }), article('b', 'notion')], hasMore: false },
     });
 
-    renderAt('/article/tag/personalGrowth');
+    renderAt('/article/tag/Open%20Source%20ReactJS');
 
-    expect(usePosts).toHaveBeenCalledWith({ tag: 'personalGrowth' });
-    expect(screen.getByText('Personal Growth articles.')).toBeInTheDocument();
+    expect(usePosts).toHaveBeenCalledWith({ tag: 'Open Source ReactJS' });
+    expect(screen.getByText('Open Source ReactJS articles.')).toBeInTheDocument();
     expect(screen.getByText('Title a')).toBeInTheDocument();
     expect(screen.getByText('Title b')).toBeInTheDocument();
   });

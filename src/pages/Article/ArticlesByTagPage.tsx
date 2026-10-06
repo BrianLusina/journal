@@ -6,7 +6,6 @@ import { humanizeDateTime } from '@timeUtils';
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';
 import ArticleCard from '@/components/ArticleCard';
 import { usePosts } from '@hooks';
-import { camelCaseToNormal } from '@/utils/utils';
 
 const ArticlesByTagPage: FunctionComponent = () => {
   const { tag } = useParams();
@@ -32,7 +31,7 @@ const ArticlesByTagPage: FunctionComponent = () => {
       {/* Hero Section */}
       <div className="mb-16 text-center space-y-6">
         <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed animate-slide-up stagger-1">
-          {camelCaseToNormal(tag)} articles.
+          {tag} articles.
         </p>
       </div>
 

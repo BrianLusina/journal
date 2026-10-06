@@ -44,8 +44,7 @@ declare type UnifiedPost = {
 };
 
 /**
- * Narrows a feed to the posts in one category and/or carrying one tag. `tag` is the tag's slug,
- * `camelCase(name)`, which is what tag links use.
+ * Narrows a feed to the posts in one category and/or carrying one tag, by the tag's name.
  */
 declare type CMSPostFilter = {
   category?: string;

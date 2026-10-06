@@ -88,7 +88,7 @@ describe('ArticlePage', () => {
 
     expect(screen.getByRole('heading', { name: 'Walking the Alps' })).toBeInTheDocument();
     expect(screen.getByText('February 1, 2024', { exact: false })).toBeInTheDocument();
-    expect(screen.getByText('#Hiking').closest('a')).toHaveAttribute('href', '/article/tag/hiking');
+    expect(screen.getByText('#Hiking').closest('a')).toHaveAttribute('href', '/article/tag/Hiking');
     expect(screen.getByText('author a1')).toBeInTheDocument();
   });
 

@@ -1,4 +1,4 @@
-import contentfulClient, { GET_ALL_BLOGS, GET_BLOG } from '@contentfulClient';
+import contentfulClient, { GET_ALL_BLOGS, GET_BLOG, getTagId } from '@contentfulClient';
 import CMSAdapter from './CMSAdapter';
 
 /**
@@ -25,7 +25,8 @@ function mapContentfulPostToUnified(post: BlogPostItem): UnifiedPost {
       description: post.thumbnail.description,
       title: post.thumbnail.title,
     } : undefined,
-    tags: post.contentfulMetadata?.tags?.map(tag => tag.name) || [],
+    // Older posts keep their tags in the legacy `tags` field rather than in Contentful tags.
+    tags: [...new Set([...(post.contentfulMetadata?.tags?.map(tag => tag.name) ?? []), ...(post.tags ?? [])])],
     authors: post.authorsCollection?.items?.map(author => ({
       id: author.sys.id,
       source: 'contentful' as const,
@@ -34,6 +35,18 @@ function mapContentfulPostToUnified(post: BlogPostItem): UnifiedPost {
       shortBio: author.shortBio,
     })) || [],
   };
+}
+
+/**
+ * Posts carry a tag either by name in the legacy `tags` field or as a Contentful tag, which can
+ * only be filtered by its ID. Without the tag list, the legacy field still matches by name.
+ */
+async function tagFilters(name: string): Promise<Partial<BlogPostFilter>[]> {
+  const id = await getTagId(name).catch(() => undefined);
+  return [
+    { tags_contains_some: [name] },
+    ...(id ? [{ contentfulMetadata: { tags: { id_contains_some: [id] } } }] : []),
+  ];
 }
 
 export default class ContentfulAdapter implements CMSAdapter {
@@ -52,8 +65,7 @@ export default class ContentfulAdapter implements CMSAdapter {
       where: {
         publishDate_exists: true,
         ...(category ? { category } : {}),
-        // A tag's slug is camelCase(name), which is also the ID Contentful gives a new tag.
-        ...(tag ? { contentfulMetadata: { tags: { id_contains_some: [tag] } } } : {}),
+        ...(tag ? { OR: await tagFilters(tag) } : {}),
       },
     };
 

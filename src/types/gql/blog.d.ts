@@ -24,7 +24,7 @@ declare type BlogPostFilter = {
   description_not_contains: string;
   description_not_in: string[];
   heroImage_exists: boolean;
-  OR: BlogPostFilter[];
+  OR: Partial<BlogPostFilter>[];
   publishDate: DateTime;
   publishDate_exists: boolean;
   publishDate_gt: DateTime;
@@ -110,6 +110,8 @@ declare type BlogPostItem = {
   slug: string;
   body: string;
   publishDate: string;
+  // Legacy tag names; newer posts use contentfulMetadata.tags instead.
+  tags: string[] | null;
   sys: Sys;
   contentfulMetadata: ContentfulMetadata;
   authorsCollection: AuthorCollection;

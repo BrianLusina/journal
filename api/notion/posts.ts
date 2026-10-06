@@ -1,17 +1,14 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import camelCase from 'lodash/camelCase';
 import { getDataSourceId, getLimit, isNotionConfigured, notion } from './_shared';
 
 /**
- * The Tags options whose slug is `tag`. Tag links use camelCase(name) as the slug, but Notion only
- * filters a multi-select by an option's exact name, so the slug is matched against the schema.
+ * Whether `tag` is one of the Tags options. Tag pages are shared by every source, so most tags
+ * are not Notion's; checking first avoids filtering on a value that isn't an option.
  */
-async function tagOptionNames(dataSourceId: string, tag: string): Promise<string[]> {
+async function isTagOption(dataSourceId: string, tag: string): Promise<boolean> {
   const dataSource = await notion.dataSources.retrieve({ data_source_id: dataSourceId });
   const tags = dataSource.properties.Tags;
-  if (tags?.type !== 'multi_select') return [];
-
-  return tags.multi_select.options.map(option => option.name).filter(name => camelCase(name) === tag);
+  return tags?.type === 'multi_select' && tags.multi_select.options.some(option => option.name === tag);
 }
 
 export default async function handler(
@@ -66,8 +63,7 @@ export default async function handler(
 
   try {
     const dataSourceId = await getDataSourceId();
-    const tagNames = tag ? await tagOptionNames(dataSourceId, tag) : [];
-    if (tag && tagNames.length === 0) {
+    if (tag && !(await isTagOption(dataSourceId, tag))) {
       response.setHeader(
         'Cache-Control',
         's-maxage=60, stale-while-revalidate=300',
@@ -75,7 +71,7 @@ export default async function handler(
       return response.status(200).json({ results: [], nextCursor: null });
     }
     const tagFilters = tag
-      ? [{ or: tagNames.map(name => ({ property: 'Tags', multi_select: { contains: name } })) }]
+      ? [{ property: 'Tags', multi_select: { contains: tag } }]
       : [];
 
     /*
