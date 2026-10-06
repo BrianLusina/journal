@@ -2,12 +2,13 @@ type: http_request
 model: http_request
 id: rq_vEaBetHZL9
 createdAt: 2026-10-06T08:12:21.129018
-updatedAt: 2026-10-06T08:28:05.030965
+updatedAt: 2026-10-06T08:53:03.855505
 workspaceId: wk_m6u48eEXa2
 folderId: fl_6EdqhWbdr8
 authentication:
+  disabled: false
   key: Bearer
-  token: ${[ secure(value=b64'WUVOQ19lVUUwYXpOdVF3R2g3SFh1T3AzOHpUZW1NOHBiM2dwSmJQdkJRZ3BYMW1OUjJxM0poejRrYUhXdEdWLzEydkRyTTloQUhaTnZEejhMeU11WWxsamEreFN4NEdhaEJaQXFRdz09') ]}
+  token: ${[ secure(value=b64'WUVOQ19lVUUwYXpOdVF3RVF0b3J2cjFNcktKV054Qk5GNG5zVW1zeEJwdVFkb0FnazR6N0xHenpyVnRFN1VNdXVSQ1c4Mm5hLzNDZWF5RUVSQUpzZFVPd2xOWEhBTkJlcVJMeW9pQT09') ]}
 authenticationType: bearer
 body:
   operationName: GetAllBlogs
