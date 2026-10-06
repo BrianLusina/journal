@@ -30,3 +30,6 @@ jobs:
 
     - name: Lint Styles
       run: bun run lint:styles
+
+    - name: Type-check Vercel functions
+      run: bun run typecheck:api
