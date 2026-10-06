@@ -40,7 +40,7 @@ The site is a client-rendered React 18 single-page app built with Vite. Posts ca
 | `src/clients/graphql/` | Apollo client factory and links (auth, retry, error reporting, HTTP). |
 | `src/config/` | Typed access to `import.meta.env`. |
 | `src/types/` | Ambient types: the unified post model (`cms.d.ts`) and Contentful GraphQL shapes (`gql/`). |
-| `api/notion/` | Vercel Functions that hold the Notion credentials. |
+| `api/notion/` | Vercel Functions that hold the Notion credentials. They compile with `api/tsconfig.json` (CommonJS, Node resolution), not the root Vite config: Node loads them as CommonJS because `package.json` has no `"type": "module"`. |
 
 ### Path aliases
 
@@ -148,7 +148,7 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
   - Hooks are tested against a mocked aggregator.
   - Pages and features are tested against mocked hooks.
 - **CI:** GitHub Actions runs tests with coverage, ESLint and stylelint, and a production build on every push. All use bun with the committed text lockfile `bun.lock`. Dependabot updates it through the `bun` ecosystem.
-- **Not yet in CI:** type-checking with `tsc` (BrianLusina/journal#804). `vite build` does not type-check.
+- **Not yet in CI:** type-checking `src/` with `tsc` (BrianLusina/journal#804). `vite build` does not type-check. The Vercel functions in `api/` (not their specs) are type-checked by the Lint workflow (`bun run typecheck:api`), and `scripts/api-functions.spec.ts` checks that the config Vercel compiles each one with emits CommonJS.
 
 ## Known limits and follow-ups
 
