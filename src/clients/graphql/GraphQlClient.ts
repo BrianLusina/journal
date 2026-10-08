@@ -19,9 +19,10 @@ const graphQlClient = ({ uri, authKey }: ClientParams) => {
   if (!authKey) {
     return new ApolloClient({
       link: link,
-      credentials: 'same-origin',
       cache: Cache,
-      connectToDevTools: env === 'development',
+      devtools: {
+        enabled: env === 'development',
+      }
     });
   }
 
@@ -29,9 +30,10 @@ const graphQlClient = ({ uri, authKey }: ClientParams) => {
 
   return new ApolloClient({
     link,
-    credentials: 'same-origin',
     cache: Cache,
-    connectToDevTools: env === 'development',
+    devtools: {
+      enabled: env === 'development',
+    }
   });
 };
 

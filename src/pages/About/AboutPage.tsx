@@ -1,24 +1,24 @@
-import { Mail } from 'lucide-react';
-import { Button } from '@/components';
+import { useEffect } from 'react';
 import { useQuery } from '@apollo/client';
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { GET_ABOUT_PAGES } from '@contentfulClient';
 import { captureException, captureScope, Severity } from '@monitoring';
+import MarkdownComponents from '@/components/ui/markdown';
 import config from '@config';
 
 const AboutPage = () => {
-  const { loading, error, data } = useQuery<AboutPagesData>(GET_ABOUT_PAGES);
+  const { error, data } = useQuery<AboutPagesData>(GET_ABOUT_PAGES);
 
-  // FIXME: use component loader instead
-  if (loading) return <p>Loading...</p>;
-
-  if (error) {
-    // FIXME: use error boundary for a component instead
-    captureException(
-      error,
-      captureScope({ type: 'component', data: { component: 'Blurb' } }, Severity.Error),
-    );
-    return <p>Yikes! Something terrible has happened. Looking into this :)</p>;
-  }
+  // The about copy is optional, so a failed query is reported and the built-in copy stays.
+  useEffect(() => {
+    if (error) {
+      captureException(
+        error,
+        captureScope({ type: 'component', data: { component: 'AboutPage' } }, Severity.Error),
+      );
+    }
+  }, [error]);
 
   // we only need the first item in the collection.
   const about = data?.aboutCollection?.items?.[0];
@@ -41,22 +41,30 @@ const AboutPage = () => {
 
       {/* Story Section */}
       <section className="mb-16 space-y-6 text-muted-foreground animate-slide-up stagger-2">
-        <h2 className="text-3xl font-bold text-foreground mb-6">Our Story</h2>
-        <p>
-          {config.title} began with a simple question: What if we could create a space where thoughtful
-          ideas, meaningful stories, and practical wisdom come together to enrich our daily lives?
-        </p>
-        <p>
-          In a world saturated with information, we felt the need for something different—a
-          publication that prioritizes depth over speed, quality over quantity, and authentic
-          connection over viral content. {config.title} is our answer to that need.
-        </p>
-        <p>
-          We explore topics that matter: wellness practices that actually work, travel experiences
-          that transform us, creative pursuits that bring joy, and personal growth strategies that
-          lead to lasting change. Our approach is grounded in curiosity, backed by research, and
-          enriched by lived experience.
-        </p>
+        <h2 className="text-3xl font-bold text-foreground mb-6">{(content && title) || 'Our Story'}</h2>
+        {content ? (
+          <Markdown remarkPlugins={[remarkGfm]} components={MarkdownComponents}>
+            {content}
+          </Markdown>
+        ) : (
+          <>
+            <p>
+              {config.title} began with a simple question: What if we could create a space where thoughtful
+              ideas, meaningful stories, and practical wisdom come together to enrich our daily lives?
+            </p>
+            <p>
+              In a world saturated with information, we felt the need for something different—a
+              publication that prioritizes depth over speed, quality over quantity, and authentic
+              connection over viral content. {config.title} is our answer to that need.
+            </p>
+            <p>
+              We explore topics that matter: wellness practices that actually work, travel experiences
+              that transform us, creative pursuits that bring joy, and personal growth strategies that
+              lead to lasting change. Our approach is grounded in curiosity, backed by research, and
+              enriched by lived experience.
+            </p>
+          </>
+        )}
       </section>
 
       {/* Mission Section */}
@@ -122,19 +130,6 @@ const AboutPage = () => {
             </p>
           </div>
         </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="text-center py-12 rounded-2xl bg-card">
-        <h2 className="text-3xl font-bold mb-4">Join Our Community</h2>
-        <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-          Subscribe to receive our latest articles, insights, and inspiration directly in your
-          inbox.
-        </p>
-        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8">
-          <Mail className="mr-2 h-4 w-4" />
-          Subscribe Now
-        </Button>
       </section>
     </main>
   );

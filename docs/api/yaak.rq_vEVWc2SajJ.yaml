@@ -2,7 +2,7 @@ type: http_request
 model: http_request
 id: rq_vEVWc2SajJ
 createdAt: 2026-09-14T17:37:36.057850
-updatedAt: 2026-09-14T17:40:40.955430
+updatedAt: 2026-10-08T10:06:52.708509
 workspaceId: wk_m6u48eEXa2
 folderId: fl_epRjR2LZBw
 authentication:
@@ -23,7 +23,7 @@ headers:
 method: GET
 name: Get Database
 sortPriority: -1789407456057.0
-url: ${[ NOTION_API_BASE_URL_V1 ]}/databases/a8ad2ded39704ca1a0b44fc1d2cf2903
+url: ${[ NOTION_API_BASE_URL_V1 ]}/databases/${[ NOTION_DATABASE_ID ]}
 urlParameters: []
 settingSendCookies:
   enabled: false

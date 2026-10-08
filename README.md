@@ -1,4 +1,4 @@
-# LJournal
+# Journal
 
 [![CircleCI](https://circleci.com/gh/BrianLusina/brianlusina.github.io.svg?style=svg)](https://circleci.com/gh/BrianLusina/brianlusina.github.io)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
