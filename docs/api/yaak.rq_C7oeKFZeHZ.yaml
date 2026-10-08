@@ -1,30 +1,29 @@
 type: http_request
 model: http_request
-id: rq_3JVS4YWmJ5
-createdAt: 2026-09-14T18:05:24.717241
-updatedAt: 2026-10-08T10:08:45.673248
+id: rq_C7oeKFZeHZ
+createdAt: 2026-10-08T10:37:07.485435
+updatedAt: 2026-10-08T10:39:15.573995
 workspaceId: wk_m6u48eEXa2
-folderId: fl_iCYVhbX2LV
-authentication:
-  token: ${[ NOTION_ACCESS_TOKEN ]}
-authenticationType: bearer
+folderId: fl_xTJwsniagE
+authentication: {}
+authenticationType: null
 body: {}
 bodyType: null
 description: ''
-headers:
+headers: []
+method: GET
+name: Get Notion Posts
+sortPriority: -1789407456057.0
+url: ${[ BASE_URL ]}/api/notion/posts
+urlParameters:
 - enabled: true
-  name: Notion-Version
-  value: ${[ NOTION_VERSION ]}
-  id: FUjZTz6WTK
+  name: limit
+  value: '10'
+  id: SWEiJppRVU
 - enabled: true
   name: ''
   value: ''
-  id: 53kGbBapej
-method: GET
-name: Get Datasource
-sortPriority: -1789407456057.0
-url: ${[ NOTION_API_BASE_URL_V1 ]}/data_sources/${[ NOTION_DATASOURCE_ID ]}
-urlParameters: []
+  id: 0xXzFJQx5I
 settingSendCookies:
   enabled: false
   value: true
