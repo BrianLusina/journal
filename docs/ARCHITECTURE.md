@@ -114,6 +114,8 @@ A tag is identified by its **name**, the only identifier every source shares. `T
 
 Every post listing reads through the seam. Authors, About and Social content exist only in Contentful and stay on Apollo (`hooks/api/*` and the features that render them).
 
+The About page's story section renders the Contentful `about` entry's `title` and `content` (Markdown). While it loads, or if the query fails or returns no `content`, the section shows its built-in heading and copy instead; a failed query is reported to Sentry, not shown.
+
 ## Error handling and observability
 
 - **Error boundaries:** a root `ErrorBoundary` in `main.tsx`, and a Sentry `RouteErrorBoundary` per route.
@@ -162,7 +164,6 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 | Unused shadcn/ui primitives | BrianLusina/journal#803 |
 | No type-checking in CI | BrianLusina/journal#804 |
 | No contact form or newsletter signup: both are hidden until a provider is wired up | Follow-up to BrianLusina/journal#805 |
-| About page fetches content it doesn't render | BrianLusina/journal#806 |
 | Docker, Storybook and deploy workflows left over from CRA | BrianLusina/journal#807 |
 | React Testing Library 11 renders in legacy mode | BrianLusina/journal#808 |
 | 689 kB main bundle | BrianLusina/journal#810 |
