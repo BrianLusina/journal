@@ -36,7 +36,7 @@ storybook.dev: ## Runs storybook dev server
 .PHONY: storybook.build
 storybook.build: ## Runs storybook build
 	@echo "${GREEN} running storybook build"
-	bun storybook:build
+	bun run build-storybook
 	@echo "${GREEN} done building storybook"
 
 .PHONY: lint

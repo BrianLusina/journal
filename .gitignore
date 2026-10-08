@@ -42,6 +42,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 dist/
+storybook-static/
 
 # bun is the package manager and bun.lock (text) its only lockfile; other lockfiles,
 # including bun's legacy binary bun.lockb, must not be committed

@@ -1,4 +1,4 @@
-import { ComponentStory, ComponentMeta } from '@storybook/react';
+import { Meta, StoryFn } from '@storybook/react';
 import faker from 'faker';
 import SocialIcon from './SocialIcon';
 
@@ -8,9 +8,9 @@ const name = faker.random.word();
 export default {
   title: 'Components/SocialIcon',
   component: SocialIcon,
-} as ComponentMeta<typeof SocialIcon>;
+} as Meta<typeof SocialIcon>;
 
-const Template: ComponentStory<typeof SocialIcon> = (args) => <SocialIcon {...args} />;
+const Template: StoryFn<typeof SocialIcon> = (args) => <SocialIcon {...args} />;
 
 export const FacebookSocialIcon = Template.bind({});
 FacebookSocialIcon.args = {

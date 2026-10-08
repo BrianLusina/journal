@@ -1,12 +1,12 @@
-import { ComponentStory, ComponentMeta } from '@storybook/react';
+import { Meta, StoryFn } from '@storybook/react';
 import NotFound from './NotFound';
 
 export default {
   title: 'Pages/NotFound',
   component: NotFound,
-} as ComponentMeta<typeof NotFound>;
+} as Meta<typeof NotFound>;
 
-const Template: ComponentStory<typeof NotFound> = (args) => <NotFound {...args} />;
+const Template: StoryFn<typeof NotFound> = (args) => <NotFound {...args} />;
 
 export const NotFoundPage = Template.bind({});
 NotFoundPage.args = {};
