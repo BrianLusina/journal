@@ -26,7 +26,7 @@ The site is a client-rendered React 18 single-page app built with Vite. Posts ca
 
 | Path | Responsibility |
 |---|---|
-| `src/main.tsx` | Entry point. Mounts the provider tree: Apollo (Contentful client), TanStack Query, Helmet, tooltips, toasts, the root `ErrorBoundary`, and the router. |
+| `src/main.tsx` | Entry point. Mounts the provider tree: Apollo (Contentful client), TanStack Query, Helmet, the theme provider (`src/providers/theme`, built on `next-themes`: the single source of the light/dark choice, stored in `localStorage.theme`), tooltips, toasts, the root `ErrorBoundary`, and the router. |
 | `src/app/App.tsx`, `src/routes/` | Lazily loaded routes. Each route is wrapped in a `RouteErrorBoundary`. |
 | `src/layouts/` | `MainLayout`: header, navbar, footer. |
 | `src/pages/` | One folder per route (`Article`, `Authors`, `About`, …). Pages compose features and components. |
@@ -165,5 +165,4 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 | About page fetches content it doesn't render | BrianLusina/journal#806 |
 | Docker, Storybook and deploy workflows left over from CRA | BrianLusina/journal#807 |
 | React Testing Library 11 renders in legacy mode | BrianLusina/journal#808 |
-| Toasts ignore the site's dark mode toggle | BrianLusina/journal#809 |
 | 689 kB main bundle | BrianLusina/journal#810 |

@@ -1,5 +1,6 @@
 import { FunctionComponent } from 'react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useTheme } from 'next-themes';
 import { Link } from 'react-router-dom';
 import { Menu, X, Moon, Sun } from 'lucide-react';
 import { Button } from '@components';
@@ -9,31 +10,10 @@ import Logo from '../ui/logo';
 
 const Navbar: FunctionComponent = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isDark, setIsDark] = useState(false);
+  const { resolvedTheme, setTheme } = useTheme();
+  const isDark = resolvedTheme === 'dark';
 
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const shouldBeDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
-
-    setIsDark(shouldBeDark);
-    if (shouldBeDark) {
-      document.documentElement.classList.add('dark');
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const newTheme = !isDark;
-    setIsDark(newTheme);
-
-    if (newTheme) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  };
+  const toggleTheme = () => setTheme(isDark ? 'light' : 'dark');
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between h-14 sm:h-16 pill-nav px-4 sm:px-6">
