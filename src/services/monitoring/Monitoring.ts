@@ -52,6 +52,21 @@ const report = (send: (service: SentryService) => void): void => {
   }
 };
 
+// Uncaught errors and unhandled rejections before Sentry.init installs its own global handlers.
+const reportUncaught = (error: Error): void => {
+  report(service => service.captureSentryException(error, undefined, 'Uncaught before monitoring loaded'));
+};
+const onError = (event: ErrorEvent): void => {
+  reportUncaught(event.error instanceof Error ? event.error : new Error(event.message));
+};
+const onUnhandledRejection = (event: PromiseRejectionEvent): void => {
+  reportUncaught(event.reason instanceof Error ? event.reason : new Error(String(event.reason)));
+};
+const stopListening = (): void => {
+  window.removeEventListener('error', onError);
+  window.removeEventListener('unhandledrejection', onUnhandledRejection);
+};
+
 // Safari has no requestIdleCallback; a timeout still runs after the current render.
 const whenIdle = (callback: () => void): void => {
   if ('requestIdleCallback' in window) {
@@ -64,22 +79,28 @@ const whenIdle = (callback: () => void): void => {
 
 /**
  * Initializes monitoring service. The Sentry SDK is loaded once the browser is idle, so that it
- * does not delay the first paint. Errors reported before then are kept and sent once it has loaded.
+ * does not delay the first paint. Errors reported before then, including uncaught ones, are kept
+ * and sent once it has loaded.
  */
 export const initializeMonitoring = (): void => {
   if (!isProduction) {
     return;
   }
+  window.addEventListener('error', onError);
+  window.addEventListener('unhandledrejection', onUnhandledRejection);
   whenIdle(() => {
     import('./sentry')
       .then(service => {
         service.initializeSentry();
+        // Sentry's own global handlers report from here on.
+        stopListening();
         sentry = service;
         pending?.forEach(send => send(service));
         pending = [];
       })
       .catch(() => {
         // Without Sentry there is nowhere to report to, so stop keeping reports for it.
+        stopListening();
         pending = null;
       });
   });
