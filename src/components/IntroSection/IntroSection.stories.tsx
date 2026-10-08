@@ -1,12 +1,12 @@
-import { ComponentStory, ComponentMeta } from '@storybook/react';
+import { Meta, StoryFn } from '@storybook/react';
 import Intro from './IntroSection';
 
 export default {
   title: 'Components/Intro',
   component: Intro,
-} as ComponentMeta<typeof Intro>;
+} as Meta<typeof Intro>;
 
-const Template: ComponentStory<typeof Intro> = (args) => <Intro {...args} />;
+const Template: StoryFn<typeof Intro> = (args) => <Intro {...args} />;
 
 export const DefaultIntro = Template.bind({});
 DefaultIntro.args = {

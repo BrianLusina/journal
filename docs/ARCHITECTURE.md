@@ -138,7 +138,8 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 ## Deployment topology
 
 - The SPA is static (`dist/`). The Notion integration **requires** a host that runs the `api/` functions; today that is Vercel, which builds every PR as a preview.
-- A static-only host (Surge, nginx Docker image, GitHub Pages) serves the app with Contentful content only. The aggregator degrades gracefully, but Notion posts won't appear.
+- Production deploys through the Vercel GitHub integration. GitHub Actions does only what Vercel doesn't on pushes to `staging` and `production`: semantic-release tags (`release.yml`), the Sentry release and source-map upload through `@sentry/vite-plugin` (`sentry_release.yml`), and the nginx Docker image (`dockerimage.yml`).
+- A static-only host (nginx Docker image, GitHub Pages) serves the app with Contentful content only. The aggregator degrades gracefully, but Notion posts won't appear.
 - `vite dev` does not run `api/`. Use `vercel dev` to work on Notion content locally (BrianLusina/journal#802).
 
 ## Testing
@@ -163,7 +164,6 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 | No type-checking in CI | BrianLusina/journal#804 |
 | Contact and newsletter forms don't submit | BrianLusina/journal#805 |
 | About page fetches content it doesn't render | BrianLusina/journal#806 |
-| Docker, Storybook and deploy workflows left over from CRA | BrianLusina/journal#807 |
 | React Testing Library 11 renders in legacy mode | BrianLusina/journal#808 |
 | Toasts ignore the site's dark mode toggle | BrianLusina/journal#809 |
 | 689 kB main bundle | BrianLusina/journal#810 |

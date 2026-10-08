@@ -1,4 +1,4 @@
-import { Meta, Story } from '@storybook/react';
+import { Meta, StoryFn } from '@storybook/react';
 import Link from './Link';
 
 const meta: Meta = {
@@ -11,7 +11,7 @@ const meta: Meta = {
 
 export default meta;
 
-const Template: Story = (props) => (
+const Template: StoryFn = (props) => (
   <Link to="/" {...props}>
     Hello
   </Link>
