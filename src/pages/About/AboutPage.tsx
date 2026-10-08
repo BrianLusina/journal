@@ -1,5 +1,3 @@
-import { Mail } from 'lucide-react';
-import { Button } from '@/components';
 import { useQuery } from '@apollo/client';
 import { GET_ABOUT_PAGES } from '@contentfulClient';
 import { captureException, captureScope, Severity } from '@monitoring';
@@ -122,19 +120,6 @@ const AboutPage = () => {
             </p>
           </div>
         </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="text-center py-12 rounded-2xl bg-card">
-        <h2 className="text-3xl font-bold mb-4">Join Our Community</h2>
-        <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-          Subscribe to receive our latest articles, insights, and inspiration directly in your
-          inbox.
-        </p>
-        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8">
-          <Mail className="mr-2 h-4 w-4" />
-          Subscribe Now
-        </Button>
       </section>
     </main>
   );
