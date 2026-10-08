@@ -48,7 +48,7 @@ export default async function handler(
   };
   // The merged feed orders every source by publish date, so a post without one has no place in it.
   const hasDateFilter = {
-    property: 'Date',
+    property: 'Published',
     date: { is_not_empty: true as const },
   };
   const listedFilters = [publishedFilter, hasSlugFilter, hasDateFilter];
@@ -85,7 +85,7 @@ export default async function handler(
       data_source_id: dataSourceId,
       page_size: limit,
       start_cursor: cursor,
-      sorts: [{ property: 'Date', direction: 'descending' }],
+      sorts: [{ property: 'Published', direction: 'descending' }],
       filter: queryFilter,
     });
 

@@ -26,12 +26,12 @@ The site is a client-rendered React 18 single-page app built with Vite. Posts ca
 
 | Path | Responsibility |
 |---|---|
-| `src/main.tsx` | Entry point. Mounts the provider tree: Apollo (Contentful client), TanStack Query, Helmet, tooltips, toasts, the root `ErrorBoundary`, and the router. |
+| `src/main.tsx` | Entry point. Mounts the provider tree: Apollo (Contentful client), TanStack Query, Helmet, the theme provider (`src/providers/theme`, built on `next-themes`: the single source of the light/dark choice, stored in `localStorage.theme`), tooltips, toasts, the root `ErrorBoundary`, and the router. |
 | `src/app/App.tsx`, `src/routes/` | Lazily loaded routes. Each route is wrapped in a `RouteErrorBoundary`. |
 | `src/layouts/` | `MainLayout`: header, navbar, footer. |
 | `src/pages/` | One folder per route (`Article`, `Authors`, `About`, …). Pages compose features and components. |
 | `src/features/` | Data-aware sections reused across pages (`Posts`, `FeaturedArticles`, `RelatedArticles`, `AuthorBadge`, …). |
-| `src/components/` | Presentational components. `components/ui/<folder>` holds custom design-system pieces; top-level `components/ui/*.tsx` are vendored shadcn/ui primitives (currently unused, see BrianLusina/journal#803). |
+| `src/components/` | Presentational components. `components/ui/<folder>` holds custom design-system pieces. Top-level `components/ui/*.tsx` is where shadcn/ui primitives go (`bunx shadcn add <name>`); add one only when the app imports it, which `scripts/ui-primitives-policy.spec.ts` enforces. |
 | `src/hooks/cms/` | `usePosts` and `usePost`: React state around the CMS aggregator. |
 | `src/hooks/api/` | Thin Apollo hooks for Contentful-only content. |
 | `src/services/cms/` | The multi-CMS seam: `CMSAdapter` interface, adapters, adapter registry, aggregator. |
@@ -114,6 +114,8 @@ A tag is identified by its **name**, the only identifier every source shares. `T
 
 Every post listing reads through the seam. Authors, About and Social content exist only in Contentful and stay on Apollo (`hooks/api/*` and the features that render them).
 
+The About page's story section renders the Contentful `about` entry's `title` and `content` (Markdown). While it loads, or if the query fails or returns no `content`, the section shows its built-in heading and copy instead; a failed query is reported to Sentry, not shown.
+
 ## Error handling and observability
 
 - **Error boundaries:** a root `ErrorBoundary` in `main.tsx`, and a Sentry `RouteErrorBoundary` per route.
@@ -146,7 +148,7 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 
 - **Runner:** Jest 26 with jsdom and React Testing Library; specs sit next to their code as `*.spec.ts(x)`.
 - **Command:** run with `bun run test` (Jest). **Not** `bun test`, which runs Bun's own runner without `jest.config.js` and fails.
-- **Coverage gate:** `bun run test:coverage` enforces 85% lines and statements. Vendored shadcn/ui primitives at the top level of `src/components/ui` are excluded.
+- **Coverage gate:** `bun run test:coverage` enforces 85% lines and statements.
 - **What to test where:**
   - Multi-source behaviour goes in `aggregator.spec.ts`, with fake adapters.
   - Per-CMS mapping goes in adapter specs (Apollo client or `fetch` mocked).
@@ -160,10 +162,7 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 | Area | Issue |
 |---|---|
 | Notion doesn't work under `vite dev` | BrianLusina/journal#802 |
-| Unused shadcn/ui primitives | BrianLusina/journal#803 |
 | No type-checking in CI | BrianLusina/journal#804 |
-| Contact and newsletter forms don't submit | BrianLusina/journal#805 |
-| About page fetches content it doesn't render | BrianLusina/journal#806 |
+| No contact form or newsletter signup: both are hidden until a provider is wired up | Follow-up to BrianLusina/journal#805 |
 | React Testing Library 11 renders in legacy mode | BrianLusina/journal#808 |
-| Toasts ignore the site's dark mode toggle | BrianLusina/journal#809 |
 | 689 kB main bundle | BrianLusina/journal#810 |

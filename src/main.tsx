@@ -14,6 +14,7 @@ import reportWebVitals from './reportWebVitals';
 // import './styles/scss/main.scss';
 import "./styles/css/index.css";
 import { Toaster } from './components/ui/sonner';
+import ThemeProvider from './providers/theme/ThemeProvider';
 
 initializeMonitoring();
 const queryClient = new QueryClient();
@@ -23,14 +24,16 @@ createRoot(document.getElementById('root')!).render(
     <GraphqlProvider client={contentfulClient}>
       <QueryClientProvider client={queryClient}>
         <Helmet titleTemplate={`${config.title} | %s `} defaultTitle={`${config.title}`} />
-        <TooltipProvider>
-          <Toaster />
-          <ErrorBoundary>
-            <BrowserRouter>
-              <App />
-            </BrowserRouter>
-          </ErrorBoundary>
-        </TooltipProvider>
+        <ThemeProvider>
+          <TooltipProvider>
+            <Toaster />
+            <ErrorBoundary>
+              <BrowserRouter>
+                <App />
+              </BrowserRouter>
+            </ErrorBoundary>
+          </TooltipProvider>
+        </ThemeProvider>
       </QueryClientProvider>
     </GraphqlProvider>
   </StrictMode>,
