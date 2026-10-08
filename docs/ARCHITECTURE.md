@@ -118,12 +118,12 @@ The About page's story section renders the Contentful `about` entry's `title` an
 
 ## Error handling and observability
 
-- **Error boundaries:** a root `ErrorBoundary` in `main.tsx`, and a `RouteErrorBoundary` per route that reports the crash tagged with its `location` and shows the error message.
+- **Error boundaries:** a root `ErrorBoundary` in `main.tsx`, and a `RouteErrorBoundary` per route that reports the crash tagged with its `location` and renders `ErrorBoundary`'s fallback message.
 - **Data errors:** pages render an inline message and call `captureException`. A single failing CMS source is reported but doesn't block rendering.
 - **GraphQL errors:** `errorMiddleware` (Apollo `onError`) reports them to Sentry. It must sit *before* the terminating `HttpLink`; links after a terminating link never run.
 - **Production gating:** Sentry, error capture and Firebase Analytics only run when `import.meta.env.MODE === 'production'`.
 - **Lazy Firebase:** the Firebase SDK is downloaded with `import()` on the first event, and only when `VITE_FIREBASE_PROJECT_ID` is set, so a missing optional config cannot blank the app. Events logged while it loads are sent in order once it has.
-- **Lazy Sentry:** `initializeMonitoring()` downloads the Sentry SDK with `import()` once the browser is idle (`requestIdleCallback`), after the first paint. Errors reported before then are queued and sent once Sentry is initialized. Code reports through `@monitoring` only; importing `@sentry/*` anywhere else pulls the SDK back into the first bundle. Trade-off: an error thrown while the page is still loading is only reported if the page lives until Sentry loads, and nothing is reported if the Sentry chunk fails to download.
+- **Lazy Sentry:** `initializeMonitoring()` downloads the Sentry SDK with `import()` once the browser is idle (`requestIdleCallback`, at most 3 s), after the first paint. Errors reported through `captureException` or `captureAndLogError` before then are queued and sent once Sentry is initialized. Code reports through `@monitoring` only; importing `@sentry/*` anywhere else pulls the SDK back into the first bundle. Trade-offs: uncaught errors and unhandled rejections that happen before Sentry loads are not reported, because Sentry's global handlers are installed by `Sentry.init`; queued reports are lost if the reader leaves first; and nothing is reported if the Sentry chunk fails to download.
 - **Bundle budget:** `bun run check:bundle-size` (`scripts/bundle-budget.js`) fails the Build workflow when the entry chunk plus the chunks `index.html` preloads exceed 185 kB gzipped. Load a new SDK lazily rather than raising the budget.
 
 ## Configuration

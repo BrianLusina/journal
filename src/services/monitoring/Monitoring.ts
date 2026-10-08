@@ -38,8 +38,8 @@ export type MonitoringScope = { breadcrumb: SentryBreadcrumb; level: Severity };
 type SentryService = typeof import('./sentry');
 
 let sentry: SentryService | undefined;
-// Reports made before Sentry has loaded, sent once it has.
-let pending: ((service: SentryService) => void)[] = [];
+// Reports made before Sentry has loaded, sent once it has. Null once Sentry failed to load.
+let pending: ((service: SentryService) => void)[] | null = [];
 
 const report = (send: (service: SentryService) => void): void => {
   if (!isProduction) {
@@ -48,14 +48,15 @@ const report = (send: (service: SentryService) => void): void => {
   if (sentry) {
     send(sentry);
   } else {
-    pending.push(send);
+    pending?.push(send);
   }
 };
 
 // Safari has no requestIdleCallback; a timeout still runs after the current render.
 const whenIdle = (callback: () => void): void => {
   if ('requestIdleCallback' in window) {
-    window.requestIdleCallback(callback);
+    // The timeout bounds the wait on a page that is never idle.
+    window.requestIdleCallback(callback, { timeout: 3000 });
   } else {
     setTimeout(callback);
   }
@@ -70,12 +71,17 @@ export const initializeMonitoring = (): void => {
     return;
   }
   whenIdle(() => {
-    import('./sentry').then(service => {
-      service.initializeSentry();
-      sentry = service;
-      pending.forEach(send => send(service));
-      pending = [];
-    });
+    import('./sentry')
+      .then(service => {
+        service.initializeSentry();
+        sentry = service;
+        pending?.forEach(send => send(service));
+        pending = [];
+      })
+      .catch(() => {
+        // Without Sentry there is nowhere to report to, so stop keeping reports for it.
+        pending = null;
+      });
   });
 };
 

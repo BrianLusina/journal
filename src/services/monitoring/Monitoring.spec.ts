@@ -135,6 +135,30 @@ describe('Monitoring', () => {
     expect(service.captureSentryException).toHaveBeenCalledWith(error, 'sentry-scope', 'Error Caught');
   });
 
+  it('drops reports, instead of failing or queueing them forever, when the Sentry SDK cannot load', async () => {
+    jest.doMock('./sentry', () => {
+      throw new Error('chunk failed to load');
+    });
+    const unhandled = jest.fn();
+    process.on('unhandledRejection', unhandled);
+    const monitoring = loadMonitoring(true);
+
+    monitoring.initializeMonitoring();
+    becomeIdle();
+    await flush();
+    monitoring.captureException(new Error('after the failure'));
+    await flush();
+    process.off('unhandledRejection', unhandled);
+
+    expect(unhandled).not.toHaveBeenCalled();
+  });
+
+  it('caps the wait for an idle moment, so a busy page still loads Sentry', () => {
+    loadMonitoring(true).initializeMonitoring();
+
+    expect(window.requestIdleCallback).toHaveBeenCalledWith(expect.any(Function), { timeout: 3000 });
+  });
+
   it('describes a scope without loading Sentry', () => {
     const monitoring = loadMonitoring(true);
 

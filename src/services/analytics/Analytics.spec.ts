@@ -72,6 +72,23 @@ describe('Analytics', () => {
     expect(sdk.getAnalytics).toHaveBeenCalledTimes(1);
   });
 
+  it('drops events quietly when the SDK cannot load, since analytics must not break the page', async () => {
+    jest.doMock('firebase/analytics', () => {
+      throw new Error('chunk failed to load');
+    });
+    const unhandled = jest.fn();
+    process.on('unhandledRejection', unhandled);
+    const analytics = loadAnalytics(true, 'project');
+
+    analytics.logEvent('page_view');
+    analytics.logEvent('page_view');
+    await flush();
+    await flush();
+    process.off('unhandledRejection', unhandled);
+
+    expect(unhandled).not.toHaveBeenCalled();
+  });
+
   it('skips events outside production without loading the SDK', async () => {
     const analytics = loadAnalytics(false, 'project');
 

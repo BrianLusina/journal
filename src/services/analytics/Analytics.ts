@@ -37,7 +37,9 @@ export class Analytics {
     // Events logged while the SDK loads wait on the same promise, so they are sent in order once
     // it has loaded.
     this.sendEvent = this.sendEvent || loadFirebaseAnalytics();
-    this.sendEvent.then(send => send(eventName, eventParams));
+    // Analytics is best effort: when the SDK cannot load (a failed download or a blocked
+    // storage), the event is dropped rather than surfacing as an error on the page.
+    this.sendEvent.then(send => send(eventName, eventParams)).catch(() => undefined);
   }
 }
 
