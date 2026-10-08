@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-LJournal is a personal blog and journal website. It displays blog posts from more than one headless CMS (Contentful and Notion) through a CMS adapter layer; see [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md). The site includes article feeds, author pages, tag-based filtering, search, and a newsletter signup.
+Journal is a personal blog and journal website. It displays blog posts from more than one headless CMS (Contentful and Notion) through a CMS adapter layer; see [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md). The site includes article feeds, author pages, tag-based filtering, search, and a newsletter signup.
 
 ## Technology Stack
 

@@ -9,7 +9,7 @@ module.exports = {
   preset: 'ts-jest',
   collectCoverageFrom: ['src/**/*.{js,jsx,ts,tsx}', '!src/**/*.d.ts'],
   displayName: {
-    name: 'ljournal',
+    name: 'journal',
     color: 'yellow',
   },
   coveragePathIgnorePatterns: [
