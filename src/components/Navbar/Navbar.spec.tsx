@@ -1,21 +1,28 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useTheme } from 'next-themes';
 import MockAppWithRouter from '@testUtils/MockAppWithRouter';
+import ThemeProvider from '@providers/theme/ThemeProvider';
 import navbarItems from './constants';
 import Navbar from './Navbar';
 
+const ResolvedTheme = () => <span data-testid="resolved-theme">{useTheme().resolvedTheme}</span>;
+
 const renderNavbar = () =>
   render(
-    <MockAppWithRouter>
-      <Navbar />
-    </MockAppWithRouter>,
+    <ThemeProvider>
+      <MockAppWithRouter>
+        <Navbar />
+        <ResolvedTheme />
+      </MockAppWithRouter>
+    </ThemeProvider>,
   );
 
 describe('Navbar', () => {
   beforeEach(() => {
-    window.matchMedia = jest.fn().mockReturnValue({ matches: false });
     localStorage.clear();
-    document.documentElement.classList.remove('dark');
+    document.documentElement.removeAttribute('class');
+    document.documentElement.removeAttribute('style');
   });
 
   it('should render', () => {
@@ -36,12 +43,26 @@ describe('Navbar', () => {
     expect(container.querySelector('.md\\:hidden.py-4')).not.toBeInTheDocument();
   });
 
-  it('toggles dark mode and remembers the choice', () => {
+  it('toggles dark mode through the theme provider and remembers the choice', () => {
     renderNavbar();
 
     userEvent.click(screen.getByLabelText('Toggle theme'));
+    expect(screen.getByTestId('resolved-theme')).toHaveTextContent('dark');
     expect(document.documentElement).toHaveClass('dark');
     expect(localStorage.getItem('theme')).toBe('dark');
+
+    userEvent.click(screen.getByLabelText('Toggle theme'));
+    expect(screen.getByTestId('resolved-theme')).toHaveTextContent('light');
+    expect(document.documentElement).not.toHaveClass('dark');
+    expect(localStorage.getItem('theme')).toBe('light');
+  });
+
+  it('restores a dark choice saved before the provider was introduced', () => {
+    localStorage.setItem('theme', 'dark');
+    const { container } = renderNavbar();
+
+    expect(document.documentElement).toHaveClass('dark');
+    expect(container.querySelector('.lucide-sun')).toBeInTheDocument();
 
     userEvent.click(screen.getByLabelText('Toggle theme'));
     expect(document.documentElement).not.toHaveClass('dark');
