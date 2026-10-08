@@ -32,7 +32,7 @@ export const initializeSentry = (): void => {
         // Modify the event here
         if (event.user) {
           // Don't send user's email address
-          // eslint-disable-next-line no-param-reassign
+           
           delete event.user.email;
         }
         return event;
@@ -45,13 +45,21 @@ export const initializeSentry = (): void => {
  * capture and log any errors caught
  * @param error error in stacktrace
  * @param errorInfo Error information from React
+ * @param tags tags to index the error by
  */
-export const captureAndLogSentryError = (error: Error, errorInfo: ErrorInfo): void => {
+export const captureAndLogSentryError = (
+  error: Error,
+  errorInfo: ErrorInfo,
+  tags?: Record<string, string>,
+): void => {
   if (NODE_ENV === 'production' || ENV === 'production') {
     Sentry.withScope((scope: Scope) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       scope.setExtras(errorInfo);
+      if (tags) {
+        scope.setTags(tags);
+      }
       captureSentryException(error, scope, error.message);
     });
   }
@@ -72,13 +80,12 @@ export const captureSentryException = (
   }
 };
 
-export const captureSentryScope = (data: Breadcrumb, level: Severity): Scope => {
+export const captureSentryScope = (data: Breadcrumb, level: `${Severity}`): Scope => {
   if (NODE_ENV === 'production' || ENV === 'production') {
-    return new Scope().setTag('env', NODE_ENV).setLevel(level).addBreadcrumb(data);
+    return new Scope().setTag('env', NODE_ENV).setLevel(level as Severity).addBreadcrumb(data);
   }
   return new Scope();
 };
 
 export type SentryBreadcrumb = Breadcrumb;
 export type SentryScope = Scope;
-export { Severity };

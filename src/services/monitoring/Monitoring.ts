@@ -8,40 +8,89 @@
  * or all of them combined
  */
 
-import { ErrorInfo } from 'react';
+import type { ErrorInfo } from 'react';
 import config from '@config';
-import {
-  initializeSentry,
-  captureAndLogSentryError,
-  captureSentryException,
-  captureSentryScope,
-  Severity,
-  SentryBreadcrumb,
-  SentryScope,
-} from './sentry';
+import type { SentryBreadcrumb } from './sentry';
 
 const {
   env: { isProduction },
 } = config;
 
 /**
- * Initializes monitoring service
+ * Event levels, named as Sentry names them, defined here so that reporting an error does not
+ * load the Sentry SDK.
+ */
+export enum Severity {
+  Fatal = 'fatal',
+  Error = 'error',
+  Warning = 'warning',
+  Log = 'log',
+  Info = 'info',
+  Debug = 'debug',
+  Critical = 'critical',
+}
+
+/**
+ * What to attach to a reported error. It becomes a Sentry scope once Sentry has loaded.
+ */
+export type MonitoringScope = { breadcrumb: SentryBreadcrumb; level: Severity };
+
+type SentryService = typeof import('./sentry');
+
+let sentry: SentryService | undefined;
+// Reports made before Sentry has loaded, sent once it has.
+let pending: ((service: SentryService) => void)[] = [];
+
+const report = (send: (service: SentryService) => void): void => {
+  if (!isProduction) {
+    return;
+  }
+  if (sentry) {
+    send(sentry);
+  } else {
+    pending.push(send);
+  }
+};
+
+// Safari has no requestIdleCallback; a timeout still runs after the current render.
+const whenIdle = (callback: () => void): void => {
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(callback);
+  } else {
+    setTimeout(callback);
+  }
+};
+
+/**
+ * Initializes monitoring service. The Sentry SDK is loaded once the browser is idle, so that it
+ * does not delay the first paint. Errors reported before then are kept and sent once it has loaded.
  */
 export const initializeMonitoring = (): void => {
-  if (isProduction) {
-    initializeSentry();
+  if (!isProduction) {
+    return;
   }
+  whenIdle(() => {
+    import('./sentry').then(service => {
+      service.initializeSentry();
+      sentry = service;
+      pending.forEach(send => send(service));
+      pending = [];
+    });
+  });
 };
 
 /**
  * capture and log any errors caught
  * @param error error in stacktrace
  * @param errorInfo Error information from React
+ * @param tags tags to index the error by
  */
-export const captureAndLogError = (error: Error, errorInfo: ErrorInfo): void => {
-  if (isProduction) {
-    captureAndLogSentryError(error, errorInfo);
-  }
+export const captureAndLogError = (
+  error: Error,
+  errorInfo: ErrorInfo,
+  tags?: Record<string, string>,
+): void => {
+  report(service => service.captureAndLogSentryError(error, errorInfo, tags));
 };
 
 /**
@@ -50,20 +99,21 @@ export const captureAndLogError = (error: Error, errorInfo: ErrorInfo): void => 
  */
 export const captureException = (
   error: Error,
-  scope?: SentryScope,
+  scope?: MonitoringScope,
   errorMessage = 'Error Caught',
 ): void => {
-  if (isProduction) {
-    captureSentryException(error, scope, errorMessage);
-  }
+  report(service =>
+    service.captureSentryException(
+      error,
+      scope && service.captureSentryScope(scope.breadcrumb, scope.level),
+      errorMessage,
+    ),
+  );
 };
 
 export const captureScope = (
   data: SentryBreadcrumb,
   level: Severity = Severity.Error,
-): SentryScope => {
-  return captureSentryScope(data, level);
-};
+): MonitoringScope => ({ breadcrumb: data, level });
 
 export type BreadCrumb = SentryBreadcrumb;
-export { Severity };
