@@ -35,6 +35,7 @@ LJournal is a personal blog and journal website. It displays blog posts from mor
 - **Run dev server**: `bun dev`
 - **Run tests**: `bun run test` (Jest; `bun test` starts Bun's own runner, which ignores `jest.config.js`)
 - **Run linting**: `bun lint`
+- **Type-check**: `bun run typecheck` (`vite build` and Jest don't type-check; CI does)
 - **Build**: `bun run build`
 - **Preview production build**: `bun run preview`
 - **Storybook**: `bun run storybook`

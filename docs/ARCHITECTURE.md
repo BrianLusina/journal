@@ -152,14 +152,13 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
   - Hooks are tested against a mocked aggregator.
   - Pages and features are tested against mocked hooks.
 - **CI:** GitHub Actions runs tests with coverage, ESLint and stylelint, and a production build on every push. All use bun with the committed text lockfile `bun.lock`. Dependabot updates it through the `bun` ecosystem.
-- **Not yet in CI:** type-checking `src/` with `tsc` (BrianLusina/journal#804). `vite build` does not type-check. The Vercel functions in `api/` (not their specs) are type-checked by the Lint workflow (`bun run typecheck:api`), and `scripts/api-functions.spec.ts` checks that the config Vercel compiles each one with emits CommonJS.
+- **Type-checking:** `vite build` and Jest only transpile, so neither catches type errors. The Tests workflow runs `bun run typecheck` (`tsc -p tsconfig.app.json --noEmit`, all of `src/` including specs and stories) and fails on any error; `scripts/repo-policy.spec.ts` keeps that step in place. `tsconfig.app.json` is not `strict` yet, so `tsc` misses what only strict checks catch, such as `undefined` passed where a value is required, or story args set through `Template.bind({})` (typed `any` without `strictBindCallApply`). The Vercel functions in `api/` (not their specs) are type-checked by the Lint workflow (`bun run typecheck:api`), and `scripts/api-functions.spec.ts` checks that the config Vercel compiles each one with emits CommonJS.
 
 ## Known limits and follow-ups
 
 | Area | Issue |
 |---|---|
 | Notion doesn't work under `vite dev` | BrianLusina/journal#802 |
-| No type-checking in CI | BrianLusina/journal#804 |
 | Contact and newsletter forms don't submit | BrianLusina/journal#805 |
 | About page fetches content it doesn't render | BrianLusina/journal#806 |
 | Docker, Storybook and deploy workflows left over from CRA | BrianLusina/journal#807 |
