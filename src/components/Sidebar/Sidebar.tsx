@@ -1,5 +1,7 @@
-import { FunctionComponent } from 'react';
+import { FunctionComponent, PropsWithChildren } from 'react';
 
-const Sidebar: FunctionComponent = ({ children }) => <section id="sidebar">{children}</section>;
+const Sidebar: FunctionComponent<PropsWithChildren> = ({ children }) => (
+  <section id="sidebar">{children}</section>
+);
 
 export default Sidebar;

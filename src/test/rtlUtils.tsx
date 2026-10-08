@@ -1,11 +1,10 @@
-import { FunctionComponent, ReactChildren, ReactNode, ReactElement } from 'react';
+import { FunctionComponent, ReactNode, ReactElement } from 'react';
 import { render as rtlRender } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MockApp from './MockApp';
 
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 function render(ui: ReactElement, { ...options } = {}) {
-  type WrapperProps = { children?: ReactNode | ReactChildren };
+  type WrapperProps = { children?: ReactNode };
 
   const Wrapper: FunctionComponent = ({ children }: WrapperProps) => {
     return <MockApp>{children}</MockApp>;

@@ -1,4 +1,4 @@
-import { FunctionComponent } from 'react';
+import { FunctionComponent, PropsWithChildren } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 
 /**
@@ -6,7 +6,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
  * @param {MockAppProps} props to pass in
  * @returns Router Application
  */
-const MockAppWithRouter: FunctionComponent = ({ children }) => {
+const MockAppWithRouter: FunctionComponent<PropsWithChildren> = ({ children }) => {
   return <Router>{children}</Router>;
 };
 

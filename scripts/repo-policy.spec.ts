@@ -77,3 +77,11 @@ describe('toolchain left over from Create React App', () => {
     expect(existsSync(path.join(root, file))).toBe(false);
   });
 });
+    
+describe('type-check policy', () => {
+  it('type-checks src/ in the Tests workflow, since neither vite build nor Jest does', () => {
+    expect(JSON.parse(read('package.json')).scripts.typecheck).toBe(
+      'tsc -p tsconfig.app.json --noEmit',
+    );
+  expect(read('.github/workflows/tests.yml')).toMatch(/^\s*run: bun run typecheck\s*$/m);
+});
