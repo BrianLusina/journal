@@ -9,6 +9,13 @@ const config: StorybookConfig = {
     name: '@storybook/react-vite',
     options: {},
   },
+  // Drop the Sentry plugin, so a Storybook build never creates a Sentry release or uploads its maps.
+  viteFinal: viteConfig => ({
+    ...viteConfig,
+    plugins: viteConfig.plugins
+      ?.flat()
+      .filter(plugin => !(plugin && 'name' in plugin && plugin.name.startsWith('sentry'))),
+  }),
 };
 
 export default config;

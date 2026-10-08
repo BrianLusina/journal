@@ -12,5 +12,4 @@ export const DefaultIntro = Template.bind({});
 DefaultIntro.args = {
   title: 'Intro',
   desc: 'Intro description',
-  logoUrl: 'https://via.placeholder.com/150',
 };

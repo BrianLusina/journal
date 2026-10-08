@@ -13,8 +13,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # Full history, so the Sentry plugin can associate the release with its commits.
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Use NodeJS
       uses: actions/setup-node@v4
