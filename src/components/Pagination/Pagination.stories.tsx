@@ -1,6 +1,6 @@
 import { ComponentStory, ComponentMeta } from '@storybook/react';
 import faker from 'faker';
-import Pagination from './Pagination';
+import { Pagination } from './Pagination';
 
 export default {
   title: 'Components/Pagination',
