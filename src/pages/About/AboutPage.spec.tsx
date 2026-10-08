@@ -22,13 +22,13 @@ describe('AboutPage', () => {
   it('renders the about copy from Contentful', () => {
     (useQuery as jest.Mock).mockReturnValue({
       loading: false,
-      data: { aboutCollection: { items: [{ title: 'Who we are', content: 'LJournal is a collection of thoughts.' }] } },
+      data: { aboutCollection: { items: [{ title: 'Who we are', content: 'Journal is a collection of thoughts.' }] } },
     });
 
     render(<AboutPage />);
 
     expect(screen.getByRole('heading', { name: 'Who we are' })).toBeInTheDocument();
-    expect(screen.getByText('LJournal is a collection of thoughts.')).toBeInTheDocument();
+    expect(screen.getByText('Journal is a collection of thoughts.')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Our Story' })).not.toBeInTheDocument();
     expect(screen.queryByText(fallbackStory)).not.toBeInTheDocument();
     // There is no newsletter provider yet, so there is nothing to subscribe to.
