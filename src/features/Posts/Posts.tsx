@@ -1,29 +1,21 @@
 import { FunctionComponent, useState } from 'react';
-import Pagination from '@components/Pagination';
-import { captureException, captureScope, Severity } from '@services/monitoring';
-import { useQuery } from '@apollo/client';
-import { GET_ALL_BLOGS } from '@graphQl/queries';
+import { Button } from '@components';
+import { captureException, captureScope, Severity } from '@monitoring';
+import { usePosts } from '@hooks';
 import { humanizeDateTime } from '@timeUtils';
-// eslint-disable-next-line camelcase
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '@timeConstants';
 import PostItem from './PostItem';
 
 const Posts: FunctionComponent = () => {
   const itemsPerPage = 10;
   const [currentSize, setCurrentSize] = useState<number>(itemsPerPage);
-  const { loading, error, data, fetchMore } = useQuery<BlogPostsData, GetAllBlogsVariables>(
-    GET_ALL_BLOGS,
-    {
-      variables: {
-        limit: currentSize,
-      },
-    },
-  );
+  const { loading, error, data } = usePosts({ limit: currentSize });
 
   // FIXME: use a component loader for this. Preferably a Skeleton loader
-  if (loading) return <div>Loading...</div>;
+  if (loading && (!data || data.items.length === 0)) return <div>Loading...</div>;
 
   if (error) {
+    console.error('Posts Error:', error);
     captureException(
       error,
       captureScope({ type: 'component', data: { component: 'Posts', ...error } }, Severity.Error),
@@ -32,21 +24,15 @@ const Posts: FunctionComponent = () => {
     return <p>Yikes! Something terrible has happened. Looking into this :)</p>;
   }
 
-  const { items: posts, total } = data ? data.blogPostCollection : { items: [], total: 0 };
+  const posts = data ? data.items : [];
 
   let fetchedSize = posts.length;
-  const hasNextPage = fetchedSize < total;
+  const hasNextPage = Boolean(data?.hasMore);
 
   const handleSeeMore = (): void => {
     if (hasNextPage) {
-      fetchedSize += currentSize;
+      fetchedSize += itemsPerPage;
       setCurrentSize(fetchedSize);
-
-      fetchMore({
-        variables: {
-          limit: fetchedSize,
-        },
-      });
     }
   };
 
@@ -54,38 +40,44 @@ const Posts: FunctionComponent = () => {
     <section>
       {posts.map(
         ({
+          id,
           title,
           subtitle,
           description,
-          sys: { id },
-          heroImage: { url, title: imgTitle },
+          heroImage,
           publishDate,
-          contentfulMetadata: { tags },
+          tags,
           slug,
-          authorsCollection: { items: authors },
+          authors,
         }) => (
           <PostItem
             key={id}
             id={id}
             title={title}
-            subtitle={subtitle}
-            excerpt={description}
+            subtitle={subtitle || ''}
+            excerpt={description || ''}
             img={{
-              src: url,
-              alt: imgTitle,
+              src: heroImage?.url || '',
+              alt: heroImage?.title || title,
             }}
             date={humanizeDateTime(
               publishDate,
               DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss,
               DATE_FORMAT_MMMM_D_YYYY,
             )}
-            tags={tags.map(({ name }) => name)}
+            tags={tags}
             link={`${id}/${slug}`}
-            authorIds={authors.map(({ sys: { id: authorId } }) => authorId)}
+            authors={authors}
           />
         ),
       )}
-      <Pagination onClick={handleSeeMore} hasNextPage={hasNextPage} text="Load More" />
+      {hasNextPage && (
+        <div className="mt-8 flex justify-center">
+          <Button variant="outline" onClick={handleSeeMore}>
+            Load More
+          </Button>
+        </div>
+      )}
     </section>
   );
 };

@@ -1,18 +1,16 @@
 # BUILD
-FROM node:10 as builder
-
-RUN mkdir -p /usr/src/app
+FROM oven/bun:1.3.14-alpine AS builder
 
 WORKDIR /usr/src/app
 
-ENV PATH /usr/src/app/node_modules/.bin:$PATH
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
 
 COPY . /usr/src/app
-RUN yarn install
-RUN yarn build:prod
+RUN bun run build
 
 # production
-FROM nginx:1.15.5-alpine
+FROM nginx:1.27-alpine
 
 # Create a non-privilleged user that we'll use to run nginx during the build
 RUN adduser -D user
@@ -25,7 +23,7 @@ RUN chmod -Rc a+w /var/cache/nginx
  # Allow all users to write to /run (for nginx.pid files)
 RUN chmod -c a+w /run
 
-COPY --from=builder /usr/src/app/public /usr/share/nginx/html
+COPY --from=builder /usr/src/app/dist /usr/share/nginx/html
 
 # Switch to our user
 USER user

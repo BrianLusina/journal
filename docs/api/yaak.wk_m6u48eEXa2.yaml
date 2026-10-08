@@ -1,0 +1,19 @@
+type: workspace
+model: workspace
+id: wk_m6u48eEXa2
+createdAt: 2026-09-14T17:35:22.735483
+updatedAt: 2026-10-06T07:53:25.400856
+authentication: {}
+authenticationType: null
+description: ''
+headers: []
+name: Journal API
+encryptionKeyChallenge: eUE0azNuQwFH272jbaCnfVNblHiQ8wFCEz5pXtIkNpJ3EAcFkWktJmYhP47FDHJyZf6hC5L37uIXCep0ULMiPNIVvj18z3r9QqF/l3aot3H2+DbBCPfVCJ+jDyV8c5AHawY=
+settingValidateCertificates: true
+settingFollowRedirects: true
+settingRequestTimeout: 0
+settingRequestMessageSize: 67108864
+settingDnsOverrides: []
+settingSendCookies: true
+settingStoreCookies: true
+settingHttpVersion: auto

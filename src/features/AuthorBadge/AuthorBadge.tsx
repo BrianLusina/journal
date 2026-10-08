@@ -1,44 +1,44 @@
 import { FunctionComponent } from 'react';
-import Link from '@components/Elements/Link';
-import { captureException, captureScope, Severity } from '@services/monitoring';
-import useFetchAuthorById from '@hooks/api/useFetchAuthorById';
-import defaultAvatar from '@assets/images/avatar.jpg';
+import {Link} from '@components';
+import defaultAvatar from '@/assets/images/avatar.jpg';
+import { AUTHORS_PAGE_ROUTE } from '@/routes/links';
 
-type ArticleAuthorProps = {
-  authorId: string;
+type AuthorBadgeProps = {
+  author: UnifiedAuthor;
 };
 
-const AuthorBadge: FunctionComponent<ArticleAuthorProps> = ({ authorId }) => {
-  const [loading, error, data] = useFetchAuthorById(authorId);
+/**
+ * Shows a post's author from the data the CMS adapter already returned. Only Contentful authors
+ * have an author page, so only they are linked.
+ */
+const AuthorBadge: FunctionComponent<AuthorBadgeProps> = ({ author }) => {
+  const { id, source, name, avatarUrl, shortBio } = author;
 
-  if (loading) {
-    // TODO: set some loading state
-    return <p>Loading...</p>;
-  }
-
-  if (error) {
-    captureException(
-      error,
-      captureScope({ type: 'component', data: { component: 'ArticleAuthor' } }, Severity.Error),
-    );
-    // Let's return nothing in the event of an error
+  if (!name) {
     return null;
   }
 
-  if (!data) {
-    // no authors, that's fine, display nothing
-    return null;
-  }
+  const badge = (
+    <div className="flex items-center gap-4">
+      <img
+        src={avatarUrl || defaultAvatar}
+        alt={name}
+        className="w-14 h-14 rounded-full object-cover"
+      />
+      <div>
+        <p className="font-semibold">{name}</p>
+        {shortBio && <p className="text-sm text-muted-foreground">{shortBio}</p>}
+      </div>
+    </div>
+  );
 
-  const {
-    name,
-    image: { url, title },
-  } = data;
+  if (source !== 'contentful') {
+    return <div className="author">{badge}</div>;
+  }
 
   return (
-    <Link key={authorId} to={`authors/${authorId}`} className="author">
-      <span className="name">{name}</span>
-      <img src={url || defaultAvatar} alt={title || name} />
+    <Link to={`${AUTHORS_PAGE_ROUTE}/${id}`} className="author">
+      {badge}
     </Link>
   );
 };

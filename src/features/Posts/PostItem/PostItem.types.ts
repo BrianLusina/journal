@@ -12,5 +12,5 @@ export type PostItemProps = {
   date: string;
   img: PostItemImage;
   tags: string[];
-  authorIds: string[];
+  authors: UnifiedAuthor[];
 };

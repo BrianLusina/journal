@@ -8,7 +8,7 @@ export const DATE_FORMAT_MMMM_D_YYYY = 'MMMM D, YYYY';
 export const TIME_FORMAT_HH_MM = 'HH:mm';
 export const TIME_FORMAT_HH_MM_A = 'h:mm a';
 // eslint-disable-next-line camelcase
-export const DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss = 'YYYY-MM-DD hh:mm:ss';
+export const DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss = 'YYYY-MM-DD HH:mm:ss';
 
 // eslint-disable-next-line camelcase
 export const DATE_TIME_FORMAT_MMMM_D_ha = 'MMMM, D | ha';

@@ -1,0 +1,126 @@
+import NotionAdapter from './NotionAdapter';
+
+const notionPage = (properties: Record<string, unknown> = {}, extra: Record<string, unknown> = {}) => ({
+  id: 'page-1',
+  created_time: '2024-01-05T00:00:00.000Z',
+  cover: { type: 'external', external: { url: 'https://images/cover.png' } },
+  properties: {
+    Title: { title: [{ plain_text: 'Notion title' }] },
+    Slug: { rich_text: [{ plain_text: 'notion-title' }] },
+    Description: { rich_text: [{ plain_text: 'Notion description' }] },
+    Category: { select: { name: 'Travel' } },
+    Date: { date: { start: '2024-02-01' } },
+    Tags: { multi_select: [{ name: 'Hiking' }, { name: 'Alps' }] },
+    Author: { people: [{ id: 'user-1', name: 'Ada', avatar_url: 'https://images/ada.png' }] },
+    ...properties,
+  },
+  ...extra,
+});
+
+const mockFetch = (status: number, body: unknown) => {
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: status >= 200 && status < 300,
+    status,
+    json: () => Promise.resolve(body),
+  }) as jest.Mock;
+};
+
+describe('NotionAdapter', () => {
+  const adapter = new NotionAdapter();
+
+  it('maps a Notion page onto the unified post model', async () => {
+    mockFetch(200, { results: [notionPage()], nextCursor: null });
+
+    const { items } = await adapter.getPosts({ limit: 10 });
+
+    expect(items[0]).toEqual({
+      id: 'page-1',
+      source: 'notion',
+      title: 'Notion title',
+      slug: 'notion-title',
+      description: 'Notion description',
+      category: 'Travel',
+      publishDate: '2024-02-01',
+      heroImage: { url: 'https://images/cover.png', title: 'Cover Image' },
+      thumbnail: { url: 'https://images/cover.png', title: 'Cover Image' },
+      tags: ['Hiking', 'Alps'],
+      authors: [{ id: 'user-1', source: 'notion', name: 'Ada', avatarUrl: 'https://images/ada.png' }],
+    });
+  });
+
+  it('falls back for missing title, date, cover and people authors, and joins a slug split across segments', async () => {
+    mockFetch(200, {
+      results: [
+        notionPage(
+          {
+            Title: { title: [] },
+            // The slug route matches the whole Slug text, so every segment must be part of the link.
+            Slug: { rich_text: [{ plain_text: 'my-' }, { plain_text: 'post' }] },
+            Date: { date: null },
+            Author: { rich_text: [{ plain_text: 'Guest ' }, { plain_text: 'writer' }] },
+          },
+          { cover: { type: 'file', file: { url: 'https://files/cover.png' } } },
+        ),
+      ],
+      nextCursor: null,
+    });
+
+    const { items } = await adapter.getPosts({ limit: 10 });
+
+    expect(items[0]).toMatchObject({
+      title: 'Untitled',
+      slug: 'my-post',
+      publishDate: '2024-01-05T00:00:00.000Z',
+      heroImage: { url: 'https://files/cover.png', title: 'Cover Image' },
+      authors: [{ id: 'notion-author', source: 'notion', name: 'Guest writer' }],
+    });
+  });
+
+  it('requests the page after the cursor from the API route and passes on its next cursor', async () => {
+    mockFetch(200, { results: [notionPage({}, { id: 'a' }), notionPage({}, { id: 'b' })], nextCursor: 'cursor-2' });
+
+    const result = await adapter.getPosts({ cursor: 'cursor-1', limit: 2, category: 'Travel' });
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/notion/posts?limit=2&category=Travel&cursor=cursor-1');
+    expect(result.items.map(item => item.id)).toEqual(['a', 'b']);
+    expect(result.nextCursor).toBe('cursor-2');
+  });
+
+  it('passes the tag to the API route', async () => {
+    mockFetch(200, { results: [], nextCursor: null });
+
+    await adapter.getPosts({ limit: 5, tag: 'personalGrowth' });
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/notion/posts?limit=5&tag=personalGrowth');
+  });
+
+  it('requests the first page without a cursor', async () => {
+    mockFetch(200, { results: [], nextCursor: null });
+
+    const result = await adapter.getPosts({ limit: 5 });
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/notion/posts?limit=5');
+    expect(result).toEqual({ items: [], nextCursor: null });
+  });
+
+  it('throws when the API route fails', async () => {
+    mockFetch(502, { error: 'Unable to fetch Notion posts' });
+
+    await expect(adapter.getPosts({ limit: 5 })).rejects.toThrow('Unable to fetch Notion posts: 502');
+  });
+
+  it('returns a post with its markdown body by slug', async () => {
+    mockFetch(200, { page: notionPage(), body: '# Hello' });
+
+    const post = await adapter.getPostBySlug('notion title');
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/notion/posts/notion%20title');
+    expect(post).toMatchObject({ id: 'page-1', body: '# Hello' });
+  });
+
+  it('returns null when the API route reports the slug does not exist', async () => {
+    mockFetch(404, { error: 'Post not found' });
+
+    await expect(adapter.getPostBySlug('missing')).resolves.toBeNull();
+  });
+});

@@ -19,7 +19,6 @@ import {
   SentryBreadcrumb,
   SentryScope,
 } from './sentry';
-import { inititializeBugSnag, captureBugSnagError } from './bugsnag';
 
 const {
   env: { isProduction },
@@ -31,7 +30,6 @@ const {
 export const initializeMonitoring = (): void => {
   if (isProduction) {
     initializeSentry();
-    inititializeBugSnag();
   }
 };
 
@@ -43,7 +41,6 @@ export const initializeMonitoring = (): void => {
 export const captureAndLogError = (error: Error, errorInfo: ErrorInfo): void => {
   if (isProduction) {
     captureAndLogSentryError(error, errorInfo);
-    captureBugSnagError(error);
   }
 };
 
@@ -58,7 +55,6 @@ export const captureException = (
 ): void => {
   if (isProduction) {
     captureSentryException(error, scope, errorMessage);
-    captureBugSnagError(error);
   }
 };
 

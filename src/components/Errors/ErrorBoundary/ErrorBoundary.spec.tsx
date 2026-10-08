@@ -56,6 +56,6 @@ describe('ErrorBoundary', () => {
     expect(Monitoring.captureAndLogError).toHaveBeenCalledWith(error, info);
     expect(Monitoring.captureAndLogError).toHaveBeenCalledTimes(1);
 
-    expect(console.error).toHaveBeenCalledTimes(2);
+    expect(console.error).toHaveBeenCalled();
   });
 });

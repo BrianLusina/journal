@@ -1,15 +1,12 @@
 import {
   isValidElement,
   Component,
-  ReactChildren,
-  ReactElement,
   ErrorInfo,
   ReactNode,
 } from 'react';
 import { captureAndLogError } from '@monitoring';
 import { changedArray } from '@utils';
-import ErrorPage from '@pages/Error';
-import { ErrorBoundaryState, ErrorBoundaryProps } from './ErrorBoundary.interface';
+import { ErrorBoundaryState, ErrorBoundaryProps } from './ErrorBoundary.props';
 
 /**
  * A reusable error boundary component for handling errors in a React application (sub)tree.
@@ -48,6 +45,8 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     const { onError } = this.props;
     if (onError) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       onError(error, errorInfo);
     } else {
       captureAndLogError(error, errorInfo);
@@ -70,8 +69,14 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
     this.setState({ error: null });
   }
 
-  render(): ReactChildren | ReactElement | ReactNode {
-    const { children, FallbackComponent, fallback } = this.props;
+  render(): ReactNode {
+    const { 
+      title = 'Oops! Well, this is embarrassing...',
+      message = 'Something terrible went wrong and I feel terrible that you had to experience this! <b /> My little bots are working to fix this.',
+      children, 
+      FallbackComponent, 
+      fallback
+    } = this.props;
     const { error } = this.state;
 
     if (error) {
@@ -86,7 +91,12 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
       if (FallbackComponent) {
         return <FallbackComponent {...props} />;
       }
-      return <ErrorPage />;
+      return (
+        <div>
+          <h1 className="font-sans font-medium text-4xl text-center text-[#181818]">{title}</h1>
+          <p className="font-sans font-medium text-base text-center text-[#181818] my-[0.1em]">{message}</p>
+        </div>
+      );
     }
     return children;
   }

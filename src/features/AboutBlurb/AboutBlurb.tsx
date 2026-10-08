@@ -1,9 +1,8 @@
 import { FunctionComponent } from 'react';
-import Link from '@components/Elements/Link';
+import {Link, Blurb } from '@components';
 import { useQuery } from '@apollo/client';
-import { GET_ABOUT_PAGES } from '@graphQl/queries';
-import { captureException, captureScope, Severity } from '@services/monitoring';
-import Blurb from '@components/Blurb';
+import { GET_ABOUT_PAGES } from '@contentfulClient';
+import { captureException, captureScope, Severity } from '@monitoring';
 
 const AboutBlurb: FunctionComponent = () => {
   const { loading, error, data } = useQuery<AboutPagesData>(GET_ABOUT_PAGES);
