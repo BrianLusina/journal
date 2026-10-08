@@ -161,7 +161,7 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 | Notion doesn't work under `vite dev` | BrianLusina/journal#802 |
 | Unused shadcn/ui primitives | BrianLusina/journal#803 |
 | No type-checking in CI | BrianLusina/journal#804 |
-| Contact and newsletter forms don't submit | BrianLusina/journal#805 |
+| No contact form or newsletter signup: both are hidden until a provider is wired up | Follow-up to BrianLusina/journal#805 |
 | About page fetches content it doesn't render | BrianLusina/journal#806 |
 | Docker, Storybook and deploy workflows left over from CRA | BrianLusina/journal#807 |
 | React Testing Library 11 renders in legacy mode | BrianLusina/journal#808 |

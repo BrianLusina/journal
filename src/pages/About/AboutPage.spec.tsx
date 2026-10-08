@@ -13,7 +13,8 @@ describe('AboutPage', () => {
     render(<AboutPage />);
 
     expect(screen.getByText('Our Story')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Subscribe Now/ })).toBeInTheDocument();
+    // There is no newsletter provider yet, so there is nothing to subscribe to.
+    expect(screen.queryByRole('button', { name: /Subscribe/ })).not.toBeInTheDocument();
   });
 
   it('shows a loading state', () => {

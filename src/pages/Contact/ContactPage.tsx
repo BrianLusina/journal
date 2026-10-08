@@ -1,30 +1,8 @@
-import { Mail, MapPin, Phone } from "lucide-react";
-import { Button } from "@/components";
-import { useState } from "react";
-import { toast } from "sonner";
+import Social from "@/features/Social/Social";
 
-// TODO: add form validation, integrate with backend API, and implement CAPTCHA for spam prevention
+// The contact form is gone until there is a backend to send messages to: a form that only
+// pretended to send made readers think they had reached us (BrianLusina/journal#805).
 const ContactPage = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: "",
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast.success("Message sent! We'll get back to you soon.");
-    setFormData({ name: "", email: "", subject: "", message: "" });
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
-  };
-
   return (
     <>      
       {/* Hero Section */}
@@ -38,130 +16,31 @@ const ContactPage = () => {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-12">
-        {/* Contact Form */}
+        {/* Contact Links */}
         <div className="rounded-2xl bg-card p-8">
-          <h2 className="text-2xl font-bold mb-6">Send us a message</h2>
-      <form onSubmit={handleSubmit} className="space-y-6 animate-slide-up stagger-2">
-        <div>
-              <label htmlFor="name" className="block text-sm font-medium mb-2">
-                Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-                placeholder="Your name"
-              />
-            </div>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-                placeholder="your.email@example.com"
-              />
-            </div>
-            <div>
-              <label htmlFor="subject" className="block text-sm font-medium mb-2">
-                Subject
-              </label>
-              <input
-                type="text"
-                id="subject"
-                name="subject"
-                value={formData.subject}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-                placeholder="What's this about?"
-              />
-            </div>
-            <div>
-              <label htmlFor="message" className="block text-sm font-medium mb-2">
-                Message
-              </label>
-              <textarea
-                id="message"
-                name="message"
-                value={formData.message}
-                onChange={handleChange}
-                required
-                rows={6}
-                className="w-full px-4 py-3 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring resize-none"
-                placeholder="Tell us what's on your mind..."
-              />
-            </div>
-            <Button 
-              type="submit"
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-full py-6"
-            >
-              Send Message
-            </Button>
-          </form>
+          <h2 className="text-2xl font-bold mb-6">Find us online</h2>
+          <p className="text-muted-foreground mb-6">
+            We don't have a contact form yet. Until we do, you can reach us here:
+          </p>
+          <div className="[&_a]:underline [&_a:hover]:text-accent">
+            <Social />
+          </div>
         </div>
 
-        {/* Contact Information */}
         <div className="space-y-8">
-          <div className="rounded-2xl bg-card p-8">
-            <h2 className="text-2xl font-bold mb-6">Contact Information</h2>
-            <div className="space-y-6">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                  <Mail className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-1">Email</h3>
-                  <p className="text-muted-foreground">hello@journal.blog</p>
-                  <p className="text-muted-foreground text-sm">We'll respond within 24 hours</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                  <MapPin className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-1">Location</h3>
-                  <p className="text-muted-foreground">San Francisco, CA</p>
-                  <p className="text-muted-foreground text-sm">Remote-first team</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                  <Phone className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-1">Phone</h3>
-                  <p className="text-muted-foreground">+1 (555) 123-4567</p>
-                  <p className="text-muted-foreground text-sm">Mon-Fri, 9am-5pm PST</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <div className="rounded-2xl bg-muted p-8">
             <h3 className="text-xl font-bold mb-4">Frequently Asked Questions</h3>
             <div className="space-y-4 text-sm">
               <div>
                 <h4 className="font-semibold mb-1">Can I contribute to Journal?</h4>
                 <p className="text-muted-foreground">
-                  Yes! We welcome guest contributions. Please use the form to submit your pitch or article idea.
+                  Yes! We welcome guest contributions. Send your pitch or article idea through one of the links on this page.
                 </p>
               </div>
               <div>
                 <h4 className="font-semibold mb-1">How do I advertise with you?</h4>
                 <p className="text-muted-foreground">
-                  For advertising inquiries, email partnerships@journal.blog with details about your brand.
+                  For advertising inquiries, reach out through one of the links on this page with details about your brand.
                 </p>
               </div>
               <div>
