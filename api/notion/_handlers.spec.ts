@@ -70,7 +70,7 @@ describe('Notion API routes', () => {
           and: [
             { property: 'Status', status: { equals: 'Published' } },
             { property: 'Slug', rich_text: { is_not_empty: true } },
-            { property: 'Date', date: { is_not_empty: true } },
+            { property: 'Published', date: { is_not_empty: true } },
             ...extraFilters,
           ],
         },
