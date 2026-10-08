@@ -3,7 +3,6 @@ import { render as rtlRender } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MockApp from './MockApp';
 
- 
 function render(ui: ReactElement, { ...options } = {}) {
   type WrapperProps = { children?: ReactNode };
 
