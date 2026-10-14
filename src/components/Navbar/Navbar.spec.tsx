@@ -33,38 +33,41 @@ describe('Navbar', () => {
     });
   });
 
-  it('closes the mobile menu after a link is followed', () => {
+  it('closes the mobile menu after a link is followed', async () => {
+    const user = userEvent.setup();
     const { container } = renderNavbar();
 
-    userEvent.click(screen.getByLabelText('Toggle menu'));
+    await user.click(screen.getByLabelText('Toggle menu'));
     const mobileMenu = container.querySelector('.md\\:hidden.py-4') as HTMLElement;
-    userEvent.click(within(mobileMenu).getByText('Articles'));
+    await user.click(within(mobileMenu).getByText('Articles'));
 
     expect(container.querySelector('.md\\:hidden.py-4')).not.toBeInTheDocument();
   });
 
-  it('toggles dark mode through the theme provider and remembers the choice', () => {
+  it('toggles dark mode through the theme provider and remembers the choice', async () => {
+    const user = userEvent.setup();
     renderNavbar();
 
-    userEvent.click(screen.getByLabelText('Toggle theme'));
+    await user.click(screen.getByLabelText('Toggle theme'));
     expect(screen.getByTestId('resolved-theme')).toHaveTextContent('dark');
     expect(document.documentElement).toHaveClass('dark');
     expect(localStorage.getItem('theme')).toBe('dark');
 
-    userEvent.click(screen.getByLabelText('Toggle theme'));
+    await user.click(screen.getByLabelText('Toggle theme'));
     expect(screen.getByTestId('resolved-theme')).toHaveTextContent('light');
     expect(document.documentElement).not.toHaveClass('dark');
     expect(localStorage.getItem('theme')).toBe('light');
   });
 
-  it('restores a dark choice saved before the provider was introduced', () => {
+  it('restores a dark choice saved before the provider was introduced', async () => {
+    const user = userEvent.setup();
     localStorage.setItem('theme', 'dark');
     const { container } = renderNavbar();
 
     expect(document.documentElement).toHaveClass('dark');
     expect(container.querySelector('.lucide-sun')).toBeInTheDocument();
 
-    userEvent.click(screen.getByLabelText('Toggle theme'));
+    await user.click(screen.getByLabelText('Toggle theme'));
     expect(document.documentElement).not.toHaveClass('dark');
     expect(localStorage.getItem('theme')).toBe('light');
   });

@@ -41,17 +41,13 @@ describe('Social', () => {
       },
     ];
 
-    await act(async () => {
-      render(
-        <MockApp mocks={socialMock}>
-          <Social />
-        </MockApp>,
-      );
-    });
+    render(
+      <MockApp mocks={socialMock}>
+        <Social />
+      </MockApp>,
+    );
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    const nameTextElement = screen.getByText(name);
+    const nameTextElement = await screen.findByText(name);
     const linkElement = screen.getByRole('link');
 
     expect(nameTextElement).toBeInTheDocument();

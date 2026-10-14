@@ -39,17 +39,13 @@ describe('AboutBlurb', () => {
       },
     ];
 
-    await act(async () => {
-      render(
-        <MockApp mocks={aboutMock}>
-          <AboutBlurb />
-        </MockApp>,
-      );
-    });
+    render(
+      <MockApp mocks={aboutMock}>
+        <AboutBlurb />
+      </MockApp>,
+    );
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    const paragraphTextElement = screen.getByText(paragraph);
+    const paragraphTextElement = await screen.findByText(paragraph);
 
     expect(paragraphTextElement).toBeInTheDocument();
   });
