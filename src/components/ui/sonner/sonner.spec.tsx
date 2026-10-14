@@ -33,6 +33,7 @@ describe('Toaster', () => {
   });
 
   it('follows the theme the reader picks in the navbar', async () => {
+    const user = userEvent.setup();
     render(
       <ThemeProvider>
         <MockAppWithRouter>
@@ -42,7 +43,7 @@ describe('Toaster', () => {
       </ThemeProvider>,
     );
 
-    userEvent.click(screen.getByLabelText('Toggle theme'));
+    await user.click(screen.getByLabelText('Toggle theme'));
     act(() => {
       toast('Saved');
     });
