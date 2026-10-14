@@ -1,17 +1,13 @@
 # BUILD
-FROM node:22-alpine AS builder
-
-RUN mkdir -p /usr/src/app
+FROM oven/bun:1.3.14-alpine AS builder
 
 WORKDIR /usr/src/app
 
-ENV PATH /usr/src/app/node_modules/.bin:$PATH
-
 COPY package.json bun.lock ./
-RUN npm ci
+RUN bun install --frozen-lockfile
 
 COPY . /usr/src/app
-RUN npm run build
+RUN bun run build
 
 # production
 FROM nginx:1.27-alpine

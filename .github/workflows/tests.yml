@@ -43,3 +43,9 @@ jobs:
         flags: unittests
         fail_ci_if_error: false
         verbose: true
+
+    # vite build and Jest only transpile, so this is the step that fails on a type error in src/.
+    # It runs last, and even after a test failure, so a type error never hides the test results.
+    - name: Type-check app
+      if: ${{ !cancelled() }}
+      run: bun run typecheck

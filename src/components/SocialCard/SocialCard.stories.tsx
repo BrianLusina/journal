@@ -1,4 +1,4 @@
-import { ComponentStory, ComponentMeta } from '@storybook/react';
+import { Meta, StoryFn } from '@storybook/react';
 import faker from 'faker';
 import SocialCard from './SocialCard';
 
@@ -8,9 +8,9 @@ const name = faker.random.word();
 export default {
   title: 'Components/SocialCard',
   component: SocialCard,
-} as ComponentMeta<typeof SocialCard>;
+} as Meta<typeof SocialCard>;
 
-const Template: ComponentStory<typeof SocialCard> = (args) => <SocialCard {...args} />;
+const Template: StoryFn<typeof SocialCard> = (args) => <SocialCard {...args} />;
 
 export const SocialCardItems = Template.bind({});
 SocialCardItems.args = {

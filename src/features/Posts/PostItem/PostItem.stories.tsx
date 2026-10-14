@@ -1,13 +1,13 @@
-import { ComponentStory, ComponentMeta } from '@storybook/react';
+import { Meta, StoryFn } from '@storybook/react';
 import faker from 'faker';
 import PostItem from './PostItem';
 
 export default {
   title: 'Components/PostItem',
   component: PostItem,
-} as ComponentMeta<typeof PostItem>;
+} as Meta<typeof PostItem>;
 
-const Template: ComponentStory<typeof PostItem> = (args) => <PostItem {...args} />;
+const Template: StoryFn<typeof PostItem> = (args) => <PostItem {...args} />;
 
 const title = faker.lorem.sentence();
 const subtitle = faker.lorem.sentence();

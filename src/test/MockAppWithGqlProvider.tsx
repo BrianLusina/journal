@@ -4,13 +4,13 @@
  * Ref: https://www.apollographql.com/docs/react/api/react/testing/
  * Ref: https://www.apollographql.com/docs/react/development-testing/testing/
  */
-import { FunctionComponent, ReactChildren, ReactNode } from 'react';
+import { FunctionComponent, ReactNode } from 'react';
 import { MockedProvider, MockedResponse } from '@apollo/client/testing';
 
 export type MockedResponseType = MockedResponse<Record<string, unknown>>;
 
 export type MockAppWithGqlProviderProps = {
-  children?: ReactNode | ReactChildren;
+  children?: ReactNode;
   mocks?: MockedResponse<Record<string, unknown>>[];
 };
 
