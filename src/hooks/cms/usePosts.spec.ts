@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { renderHook, waitFor } from '@testing-library/react';
 import { captureException } from '@monitoring';
 import { createMergedFeed } from '@cmsService';
 import { usePosts } from './usePosts';
@@ -21,10 +21,10 @@ describe('usePosts', () => {
   });
 
   it('loads the first posts of the merged feed', async () => {
-    const { result, waitForNextUpdate } = renderHook(() => usePosts({ limit: 3 }));
+    const { result } = renderHook(() => usePosts({ limit: 3 }));
 
     expect(result.current.loading).toBe(true);
-    await waitForNextUpdate();
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(createMergedFeed).toHaveBeenCalledWith(['adapters'], {});
     expect(load).toHaveBeenCalledWith(3);
@@ -32,13 +32,13 @@ describe('usePosts', () => {
   });
 
   it('loads more from the same feed when the limit grows, instead of starting over', async () => {
-    const { result, rerender, waitForNextUpdate } = renderHook(({ limit }) => usePosts({ limit }), {
+    const { result, rerender } = renderHook(({ limit }) => usePosts({ limit }), {
       initialProps: { limit: 2 },
     });
-    await waitForNextUpdate();
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     rerender({ limit: 4 });
-    await waitForNextUpdate();
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(createMergedFeed).toHaveBeenCalledTimes(1);
     expect(load).toHaveBeenLastCalledWith(4);
@@ -46,39 +46,39 @@ describe('usePosts', () => {
   });
 
   it('keeps showing loaded posts while more are loading', async () => {
-    const { result, rerender, waitForNextUpdate } = renderHook(({ limit }) => usePosts({ limit }), {
+    const { result, rerender } = renderHook(({ limit }) => usePosts({ limit }), {
       initialProps: { limit: 2 },
     });
-    await waitForNextUpdate();
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     rerender({ limit: 4 });
 
     expect(result.current.loading).toBe(true);
     expect(result.current.data?.items).toHaveLength(2);
-    await waitForNextUpdate();
+    await waitFor(() => expect(result.current.loading).toBe(false));
   });
 
   it('starts a new feed when the category changes', async () => {
-    const { rerender, waitForNextUpdate } = renderHook(({ category }) => usePosts({ category, limit: 3 }), {
+    const { result, rerender } = renderHook(({ category }) => usePosts({ category, limit: 3 }), {
       initialProps: { category: 'news' },
     });
-    await waitForNextUpdate();
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     rerender({ category: 'guides' });
-    await waitForNextUpdate();
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(createMergedFeed).toHaveBeenNthCalledWith(1, ['adapters'], { category: 'news' });
     expect(createMergedFeed).toHaveBeenNthCalledWith(2, ['adapters'], { category: 'guides' });
   });
 
   it('starts a new feed when the tag changes', async () => {
-    const { rerender, waitForNextUpdate } = renderHook(({ tag }) => usePosts({ tag, limit: 3 }), {
+    const { result, rerender } = renderHook(({ tag }) => usePosts({ tag, limit: 3 }), {
       initialProps: { tag: 'travel' },
     });
-    await waitForNextUpdate();
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     rerender({ tag: 'personalGrowth' });
-    await waitForNextUpdate();
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(createMergedFeed).toHaveBeenNthCalledWith(1, ['adapters'], { tag: 'travel' });
     expect(createMergedFeed).toHaveBeenNthCalledWith(2, ['adapters'], { tag: 'personalGrowth' });
@@ -88,8 +88,8 @@ describe('usePosts', () => {
     const sourceError = new Error('Notion is down');
     load.mockResolvedValue({ items: [post('c1')], hasMore: false, errors: [sourceError] });
 
-    const { result, waitForNextUpdate } = renderHook(() => usePosts({ limit: 3 }));
-    await waitForNextUpdate();
+    const { result } = renderHook(() => usePosts({ limit: 3 }));
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.data).toEqual({ items: [post('c1')], hasMore: false });
     expect(result.current.error).toBeNull();
@@ -100,8 +100,8 @@ describe('usePosts', () => {
     const error = new Error('Everything is down');
     load.mockRejectedValue(error);
 
-    const { result, waitForNextUpdate } = renderHook(() => usePosts());
-    await waitForNextUpdate();
+    const { result } = renderHook(() => usePosts());
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.error).toBe(error);
     expect(result.current.loading).toBe(false);

@@ -19,3 +19,13 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 global.fetch = jest.fn();
+
+// React 18 only warns when something renders through the legacy ReactDOM.render root, and the
+// tree then runs as React 17 (no automatic batching or concurrent rendering). Fail instead.
+const logError = console.error;
+console.error = (...args: unknown[]) => {
+  if (typeof args[0] === 'string' && args[0].includes('ReactDOM.render is no longer supported')) {
+    throw new Error(args[0]);
+  }
+  logError(...args);
+};

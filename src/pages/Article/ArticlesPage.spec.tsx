@@ -54,13 +54,14 @@ describe('ArticlesPage', () => {
     expect(screen.queryByRole('button', { name: 'Load More' })).not.toBeInTheDocument();
   });
 
-  it('requests the next page when Load More is clicked', () => {
+  it('requests the next page when Load More is clicked', async () => {
+    const user = userEvent.setup();
     mockPosts([post('a')], true);
 
     render(<ArticlesPage />);
     expect(usePosts).toHaveBeenLastCalledWith({ limit: 10 });
 
-    userEvent.click(screen.getByRole('button', { name: 'Load More' }));
+    await user.click(screen.getByRole('button', { name: 'Load More' }));
 
     expect(usePosts).toHaveBeenLastCalledWith({ limit: 11 });
   });
