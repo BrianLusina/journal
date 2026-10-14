@@ -47,7 +47,6 @@
       "@analyticsHooks": ["./src/hooks/analytics/index.ts"],
       "@apiHooks": ["./src/hooks/api/index.ts"],
       "@cmsHooks": ["./src/hooks/cms/index.ts"],
-      "@services": ["./src/services/index.ts"],
       "@monitoring": ["./src/services/monitoring/index.ts"],
       "@analytics": ["./src/services/analytics/index.ts"],
       "@cmsService": ["./src/services/cms/index.ts"],

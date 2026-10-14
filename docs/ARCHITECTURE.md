@@ -118,11 +118,13 @@ The About page's story section renders the Contentful `about` entry's `title` an
 
 ## Error handling and observability
 
-- **Error boundaries:** a root `ErrorBoundary` in `main.tsx`, and a Sentry `RouteErrorBoundary` per route.
+- **Error boundaries:** a root `ErrorBoundary` in `main.tsx`, and a `RouteErrorBoundary` per route that reports the crash tagged with its `location` and renders `ErrorBoundary`'s fallback message.
 - **Data errors:** pages render an inline message and call `captureException`. A single failing CMS source is reported but doesn't block rendering.
 - **GraphQL errors:** `errorMiddleware` (Apollo `onError`) reports them to Sentry. It must sit *before* the terminating `HttpLink`; links after a terminating link never run.
 - **Production gating:** Sentry, error capture and Firebase Analytics only run when `import.meta.env.MODE === 'production'`.
-- **Lazy Firebase:** Firebase Analytics is created on first event, and only when `VITE_FIREBASE_PROJECT_ID` is set, so a missing optional config cannot blank the app.
+- **Lazy Firebase:** the Firebase SDK is downloaded with `import()` on the first event, and only when `VITE_FIREBASE_PROJECT_ID` is set, so a missing optional config cannot blank the app. Events logged while it loads are sent in order once it has.
+- **Lazy Sentry:** `initializeMonitoring()` downloads the Sentry SDK with `import()` once the browser is idle (`requestIdleCallback`, at most 3 s), after the first paint. Errors reported through `captureException` or `captureAndLogError` before then are queued and sent once Sentry is initialized. Uncaught errors and unhandled rejections are queued too: `initializeMonitoring()` listens for `error` and `unhandledrejection` on `window` until `Sentry.init` has installed Sentry's own global handlers. Code reports through `@monitoring` only; importing `@sentry/*` anywhere else pulls the SDK back into the first bundle. Trade-offs: errors thrown while `main.tsx`'s imports evaluate, before it calls `initializeMonitoring()`, are not caught (as before lazy loading); early uncaught errors reach Sentry through `captureException`, so they are marked handled and come with an extra "Uncaught before monitoring loaded" message event; queued reports are lost if the reader leaves before Sentry loads; and nothing is reported if the Sentry chunk fails to download.
+- **Bundle budget:** `bun run check:bundle-size` (`scripts/bundle-budget.js`) fails the Build workflow when the entry chunk plus the chunks `index.html` preloads exceed 185 kB gzipped. Load a new SDK lazily rather than raising the budget.
 
 ## Configuration
 
@@ -164,4 +166,3 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 |---|---|
 | Notion doesn't work under `vite dev` | BrianLusina/journal#802 |
 | No contact form or newsletter signup: both are hidden until a provider is wired up | Follow-up to BrianLusina/journal#805 |
-| 689 kB main bundle | BrianLusina/journal#810 |

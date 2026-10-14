@@ -48,6 +48,9 @@ jobs:
         VITE_CONTENTFUL_CMS_ENVIRONMENT: ${{ secrets.CONTENTFUL_CMS_ENVIRONMENT }}
         VITE_CONTENTFUL_CMS_PREVIEW: ${{ secrets.CONTENTFUL_CMS_PREVIEW }}
 
+    - name: Check bundle size budget
+      run: bun run check:bundle-size
+
     - uses: actions/upload-artifact@v4
       with:
         name: build

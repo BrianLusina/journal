@@ -1,12 +1,12 @@
 import { onError } from '@apollo/client/link/error';
-import { captureSentryException, captureSentryScope } from '@/services/monitoring/sentry';
+import { captureException, captureScope, Severity } from '@monitoring';
 
 // Log any GraphQL errors or network error that occurred
 const errorMiddleware = onError(({ graphQLErrors, networkError }) => {
   if (graphQLErrors)
     graphQLErrors.forEach(({ message, locations, path }) => {
       const errorMessage = `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
-      const scope = captureSentryScope(
+      const scope = captureScope(
         {
           type: 'graphql',
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -21,16 +21,16 @@ const errorMiddleware = onError(({ graphQLErrors, networkError }) => {
           message,
           timestamp: Date.now(),
         },
-        'error',
+        Severity.Error,
       );
-      captureSentryException(
+      captureException(
         Error(errorMessage),
         scope,
         errorMessage,
       );
     });
   if (networkError) {
-    captureSentryException(Error(`[Network Error]: : ${networkError}`));
+    captureException(Error(`[Network Error]: : ${networkError}`));
   }
 });
 
