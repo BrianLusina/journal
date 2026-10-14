@@ -147,7 +147,7 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 ## Testing
 
 - **Runner:** Jest 26 with jsdom and React Testing Library 16; specs sit next to their code as `*.spec.ts(x)`.
-- **React 18 root:** Testing Library renders on React 18's concurrent root, as the app does. Hooks are tested with its `renderHook`, and `user-event` 14 calls are awaited (`const user = userEvent.setup(); await user.click(...)`). `scripts/ts/setupTests.ts` fails any test that renders through the legacy `ReactDOM.render` root, which would run the tree as React 17.
+- **React 18 root:** Testing Library renders on React 18's concurrent root, as the app does. Hooks are tested with its `renderHook`, and `user-event` 14 calls are awaited (`const user = userEvent.setup(); await user.click(...)`). `scripts/ts/setupTests.ts` makes the legacy-root `ReactDOM.render` and `ReactDOM.hydrate` throw, so a test or library that still renders through them (and so runs the tree as React 17) fails.
 - **Command:** run with `bun run test` (Jest). **Not** `bun test`, which runs Bun's own runner without `jest.config.js` and fails.
 - **Coverage gate:** `bun run test:coverage` enforces 85% lines and statements.
 - **What to test where:**

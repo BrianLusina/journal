@@ -38,11 +38,10 @@ describe('usePosts', () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     rerender({ limit: 4 });
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    await waitFor(() => expect(result.current.data?.items).toHaveLength(4));
 
     expect(createMergedFeed).toHaveBeenCalledTimes(1);
     expect(load).toHaveBeenLastCalledWith(4);
-    expect(result.current.data?.items).toHaveLength(4);
   });
 
   it('keeps showing loaded posts while more are loading', async () => {
@@ -65,6 +64,7 @@ describe('usePosts', () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     rerender({ category: 'guides' });
+    expect(result.current.loading).toBe(true);
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(createMergedFeed).toHaveBeenNthCalledWith(1, ['adapters'], { category: 'news' });
@@ -78,6 +78,7 @@ describe('usePosts', () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     rerender({ tag: 'personalGrowth' });
+    expect(result.current.loading).toBe(true);
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(createMergedFeed).toHaveBeenNthCalledWith(1, ['adapters'], { tag: 'travel' });
