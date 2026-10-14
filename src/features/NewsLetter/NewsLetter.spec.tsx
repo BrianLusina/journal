@@ -1,13 +1,12 @@
-import { render, screen } from '@testUtils/rtlUtils';
+import { render, screen } from '@testing-library/react';
 import NewsLetterSection from './NewsLetter';
 
 describe('NewsLetterSection', () => {
-  // There is no newsletter provider yet, so a signup form would discard what readers enter.
-  it('renders no signup form until a provider is wired up', () => {
-    const { container } = render(<NewsLetterSection />);
+  it('offers the newsletter signup', () => {
+    render(<NewsLetterSection />);
 
-    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /subscribe/i })).not.toBeInTheDocument();
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.getByRole('heading', { name: 'Stay inspired.' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Email address')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Subscribe' })).toBeInTheDocument();
   });
 });

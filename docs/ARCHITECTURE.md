@@ -41,6 +41,7 @@ The site is a client-rendered React 18 single-page app built with Vite. Posts ca
 | `src/config/` | Typed access to `import.meta.env`. |
 | `src/types/` | Ambient types: the unified post model (`cms.d.ts`) and Contentful GraphQL shapes (`gql/`). |
 | `api/notion/` | Vercel Functions that hold the Notion credentials. They compile with `api/tsconfig.json` (CommonJS, Node resolution), not the root Vite config: Node loads them as CommonJS because `package.json` has no `"type": "module"`. |
+| `api/contact.ts`, `api/subscribe.ts`, `api/_forms/` | Vercel Functions behind the contact form and the newsletter signup (see [Forms](#forms)). `api/_forms/schemas.ts` holds the zod schemas that the forms in `src/` import too. |
 
 ### Path aliases
 
@@ -116,6 +117,19 @@ Every post listing reads through the seam. Authors, About and Social content exi
 
 The About page's story section renders the Contentful `about` entry's `title` and `content` (Markdown). While it loads, or if the query fails or returns no `content`, the section shows its built-in heading and copy instead; a failed query is reported to Sentry, not shown.
 
+## Forms
+
+The contact form (`features/ContactForm`) and the newsletter signup (`features/NewsLetter/SubscribeForm`, on the home page, after articles and on the About page) POST JSON to Vercel Functions that call [Resend](https://resend.com/docs/api-reference) with `fetch`, so the API key stays on the server:
+
+- `POST /api/contact` takes `{ name, email, subject?, message }` and emails it to `CONTACT_TO_EMAIL` (`POST /emails`), with `reply_to` set to the reader's address.
+- `POST /api/subscribe` takes `{ email }` and adds it to the Resend audience `RESEND_AUDIENCE_ID` (`POST /audiences/{id}/contacts`). Resend has renamed audiences to segments and deprecated these endpoints; they still work. An address that is already subscribed gets the same answer as a new one, so the form never tells whether an address is on the list.
+
+Both forms validate with react-hook-form and the zod schemas in `api/_forms/schemas.ts`, and the functions validate again with the same schemas. The schemas live under `api/` because Vercel compiles every file a function imports with the nearest `tsconfig.json`, and only `api/tsconfig.json` emits the CommonJS Node loads; the browser bundle imports them from there. The form shows its success message only after a 2xx answer; on any other answer it shows an error and keeps what the reader typed.
+
+`createFormHandler` in `api/_forms/handler.ts` answers, in order: `405` to anything but `POST`, `503` while the form's environment variables are not all set (the function logs which are missing), `429` after 5 requests from one address in 10 minutes, `200` without sending anything when the hidden `website` honeypot field is filled (and a log line, so autofill that fills it shows up), `400` with `fieldErrors` when the schema rejects the body, `502` when Resend fails or takes over 10 seconds (Resend's answer goes to the function logs, not to the browser), and `200` once Resend accepts the form.
+
+The rate limit is **best-effort**: it counts in the memory of one function instance, and Vercel runs and recycles several, so it slows down one client hammering an instance but is not a hard limit. Spam protection is the honeypot plus this rate limit; there is no CAPTCHA.
+
 ## Error handling and observability
 
 - **Error boundaries:** a root `ErrorBoundary` in `main.tsx`, and a `RouteErrorBoundary` per route that reports the crash tagged with its `location` and renders `ErrorBoundary`'s fallback message.
@@ -137,14 +151,17 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 | `VITE_FIREBASE_*` | Firebase Analytics (optional, production only). |
 | `VITE_ENV`, `VITE_APP_NAME`, `VITE_APP_TITLE` | Environment label and site naming. |
 | `NOTION_API_KEY`, `NOTION_DATA_SOURCE_ID` (or `NOTION_DATABASE_ID`) | **Server only**, read by `api/notion`. Queries target a data source (Notion API 2025-09-03). `getDataSourceId()` in `api/notion/_shared.ts` uses `NOTION_DATA_SOURCE_ID` as is, or looks up the first data source of `NOTION_DATABASE_ID` once per function instance. |
+| `RESEND_API_KEY` | **Server only**, read by `api/contact` and `api/subscribe`. A Resend API key that can send emails and manage contacts. |
+| `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL` | **Server only**, read by `api/contact`. The address contact messages go to, and the sender they come from. The sender must be on a domain verified in Resend, and may include a name: `Journal <forms@example.com>`. |
+| `RESEND_AUDIENCE_ID` | **Server only**, read by `api/subscribe`. The ID of the Resend audience (now called a segment) that newsletter subscribers join. |
 | `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` | Build only, set in the Vercel project: `@sentry/vite-plugin` creates the Sentry release and uploads the source maps of the bundle Vercel deploys. Without them the plugin skips the upload. |
 
 ## Deployment topology
 
-- The SPA is static (`dist/`). The Notion integration **requires** a host that runs the `api/` functions; today that is Vercel, which builds every PR as a preview.
+- The SPA is static (`dist/`). The Notion integration and the contact and newsletter forms **require** a host that runs the `api/` functions; today that is Vercel, which builds every PR as a preview.
 - Production deploys through the Vercel GitHub integration. GitHub Actions does only what Vercel doesn't on pushes to `staging` and `production`: semantic-release tags (`release.yml`) and the nginx Docker image (`dockerimage.yml`). The Sentry release and source maps come from Vercel's own build (see `SENTRY_*` above), so they match the deployed bundle.
-- A static-only host (nginx Docker image, GitHub Pages) serves the app with Contentful content only. The aggregator degrades gracefully, but Notion posts won't appear.
-- `vite dev` does not run `api/`. Use `vercel dev` to work on Notion content locally (BrianLusina/journal#802).
+- A static-only host (nginx Docker image, GitHub Pages) serves the app with Contentful content only. The aggregator degrades gracefully, but Notion posts won't appear, and the forms show their error message.
+- `vite dev` does not run `api/`. Use `vercel dev` to work on Notion content or the forms locally (BrianLusina/journal#802).
 
 ## Testing
 
@@ -165,4 +182,4 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 | Area | Issue |
 |---|---|
 | Notion doesn't work under `vite dev` | BrianLusina/journal#802 |
-| No contact form or newsletter signup: both are hidden until a provider is wired up | Follow-up to BrianLusina/journal#805 |
+| The forms' rate limit is per function instance, and there is no CAPTCHA (see [Forms](#forms)) | Follow-up to BrianLusina/journal#826 |
