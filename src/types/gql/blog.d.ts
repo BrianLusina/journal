@@ -83,23 +83,6 @@ declare type BlogPostOrder =
   | 'sys_publishedVersion_ASC'
   | 'sys_publishedVersion_DESC';
 
-declare type GetAllBlogsVariables = {
-  skip?: number;
-  limit?: number;
-  preview?: boolean;
-  locale?: string;
-  where?: Partial<BlogPostFilter>;
-  order?: BlogPostOrder[];
-};
-
-declare type BlogPostsData = {
-  blogPostCollection: {
-    total: number;
-    limit: number;
-    items: BlogPostItem[];
-  };
-};
-
 declare type BlogPostItem = {
   heroImage: Asset;
   thumbnail: Asset;

@@ -4,10 +4,9 @@ import { GET_BLOG_POSTS, getTagId, isContentfulConfigured, queryContentful } fro
 
 /**
  * Posts carry a tag either by name in the legacy `tags` field or as a Contentful tag, which can
- * only be filtered by its ID. Without the tag list, the legacy field still matches by name.
+ * only be filtered by its ID. Without the ID, the legacy field still matches by name.
  */
-async function tagFilters(name: string) {
-  const id = await getTagId(name).catch(() => undefined);
+function tagFilters(name: string, id: string | undefined) {
   return [
     { tags_contains_some: [name] },
     ...(id ? [{ contentfulMetadata: { tags: { id_contains_some: [id] } } }] : []),
@@ -29,14 +28,23 @@ export default async function handler(
   const limit = getLimit(request.query.limit);
   // The cursor is the offset of the next post.
   const cursor = getParam(request.query.cursor);
-  const skip = cursor ? Number(cursor) : 0;
-  if (!Number.isInteger(skip) || skip < 0) {
+  if (cursor && !/^\d+$/.test(cursor)) {
     return response.status(400).json({ error: 'Invalid cursor' });
   }
+  const skip = cursor ? Number(cursor) : 0;
   const category = getParam(request.query.category);
   const tag = getParam(request.query.tag);
 
   try {
+    let tagListFailed = false;
+    const tagId = tag
+      ? await getTagId(tag).catch(error => {
+          tagListFailed = true;
+          console.error('Unable to look up the Contentful tag', error);
+          return undefined;
+        })
+      : undefined;
+
     // The merged feed orders every source by publish date, newest first, so a post without one
     // has no place in it.
     const { blogPostCollection } = await queryContentful(GET_BLOG_POSTS, {
@@ -46,18 +54,22 @@ export default async function handler(
       where: {
         publishDate_exists: true,
         ...(category ? { category } : {}),
-        ...(tag ? { OR: await tagFilters(tag) } : {}),
+        ...(tag ? { OR: tagFilters(tag, tagId) } : {}),
       },
     });
 
     const next = skip + blogPostCollection.items.length;
-    response.setHeader('Cache-Control', POSTS_CACHE_CONTROL);
+    // Without the tag list the answer may miss posts, so it must not stay in the edge cache.
+    if (!tagListFailed) {
+      response.setHeader('Cache-Control', POSTS_CACHE_CONTROL);
+    }
 
     return response.status(200).json({
       results: blogPostCollection.items,
       nextCursor: next < blogPostCollection.total ? String(next) : null,
     });
-  } catch {
+  } catch (error) {
+    console.error('Unable to fetch Contentful posts', error);
     return response.status(502).json({ error: 'Unable to fetch Contentful posts' });
   }
 }

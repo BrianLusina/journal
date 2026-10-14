@@ -31,7 +31,8 @@ export default async function handler(
     response.setHeader('Cache-Control', POSTS_CACHE_CONTROL);
 
     return response.status(200).json({ post: blogPostCollection.items[0] });
-  } catch {
+  } catch (error) {
+    console.error('Unable to fetch Contentful post', error);
     return response.status(502).json({ error: 'Unable to fetch Contentful post' });
   }
 }

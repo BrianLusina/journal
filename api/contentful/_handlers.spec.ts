@@ -25,6 +25,7 @@ const respondWith = (items: unknown[], total = items.length) =>
 describe('Contentful API routes', () => {
   beforeEach(() => {
     (isContentfulConfigured as jest.Mock).mockReturnValue(true);
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
   describe('posts', () => {
@@ -58,7 +59,7 @@ describe('Contentful API routes', () => {
       expect(res.json).toHaveBeenCalledWith({ results: [{ sys: { id: 'p3' } }], nextCursor: '3' });
     });
 
-    it.each(['abc', '-1', '1.5'])('answers 400 for the cursor %p', async cursor => {
+    it.each(['abc', '-1', '1.5', '1e2', '0x10', ' '])('answers 400 for the cursor %p', async cursor => {
       const res = response();
 
       await postsHandler(request({ cursor }), res as unknown as VercelResponse);
@@ -88,19 +89,34 @@ describe('Contentful API routes', () => {
       );
     });
 
-    it.each([
-      ['the Contentful tag list cannot be fetched', () => (getTagId as jest.Mock).mockRejectedValue(new Error('503'))],
-      ['no Contentful tag has the name', () => (getTagId as jest.Mock).mockResolvedValue(undefined)],
-    ])('reads the legacy field only when %s', async (_, arrange) => {
-      arrange();
+    it('reads the legacy field only, and caches the answer, when no Contentful tag has the name', async () => {
+      (getTagId as jest.Mock).mockResolvedValue(undefined);
       respondWith([]);
+      const res = response();
 
-      await postsHandler(request({ tag: 'Kotlin' }), response() as unknown as VercelResponse);
+      await postsHandler(request({ tag: 'Kotlin' }), res as unknown as VercelResponse);
 
       expect(queryContentful).toHaveBeenCalledWith(
         'GET_BLOG_POSTS',
         expect.objectContaining({ where: { publishDate_exists: true, OR: [{ tags_contains_some: ['Kotlin'] }] } }),
       );
+      expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
+    });
+
+    it('reads the legacy field only, logs, and keeps the answer out of the edge cache, when the tag list cannot be fetched', async () => {
+      (getTagId as jest.Mock).mockRejectedValue(new Error('Unable to fetch Contentful tags: 503'));
+      respondWith([{ sys: { id: 'p1' } }]);
+      const res = response();
+
+      await postsHandler(request({ tag: 'Kotlin' }), res as unknown as VercelResponse);
+
+      expect(queryContentful).toHaveBeenCalledWith(
+        'GET_BLOG_POSTS',
+        expect.objectContaining({ where: { publishDate_exists: true, OR: [{ tags_contains_some: ['Kotlin'] }] } }),
+      );
+      expect(console.error).toHaveBeenCalledWith('Unable to look up the Contentful tag', expect.any(Error));
+      expect(res.setHeader).not.toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith({ results: [{ sys: { id: 'p1' } }], nextCursor: null });
     });
 
     it('answers 502 when Contentful cannot be queried', async () => {
@@ -111,6 +127,7 @@ describe('Contentful API routes', () => {
 
       expect(res.status).toHaveBeenCalledWith(502);
       expect(res.setHeader).not.toHaveBeenCalled();
+      expect(console.error).toHaveBeenCalledWith('Unable to fetch Contentful posts', expect.any(Error));
     });
   });
 
@@ -151,6 +168,7 @@ describe('Contentful API routes', () => {
       await postHandler(request({ slug: 'hello' }), res as unknown as VercelResponse);
 
       expect(res.status).toHaveBeenCalledWith(502);
+      expect(console.error).toHaveBeenCalledWith('Unable to fetch Contentful post', expect.any(Error));
     });
   });
 

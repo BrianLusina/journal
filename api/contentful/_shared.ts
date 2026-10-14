@@ -98,12 +98,15 @@ export async function queryContentful(
     errors?: { message: string }[];
   };
   if (errors?.length || !data) {
-    throw new Error(`Contentful query failed: ${errors?.map(error => error.message).join('; ')}`);
+    throw new Error(`Contentful query failed: ${errors?.map(error => error.message).join('; ') || 'no data'}`);
   }
   return data;
 }
 
-let tagIdsByName: Promise<Map<string, string>> | undefined;
+// A warm function instance can outlive a tag change, so the tag list is read again after this long.
+const TAG_LIST_TTL_MS = 5 * 60 * 1000;
+
+let tagList: { loadedAt: number; idsByName: Promise<Map<string, string>> } | undefined;
 
 async function fetchTagIdsByName(): Promise<Map<string, string>> {
   // The GraphQL API cannot list tags, so this uses the delivery REST API with the same token.
@@ -121,15 +124,17 @@ async function fetchTagIdsByName(): Promise<Map<string, string>> {
 
 /**
  * The ID of the Contentful tag named `name`, if any. Posts can only be filtered by tag ID, while
- * tag pages are addressed by name. Tag names are unique, and the list is fetched once per function instance.
+ * tag pages are addressed by name. Tag names are unique, and the list is cached per function instance for a few minutes.
  */
 export function getTagId(name: string): Promise<string | undefined> {
-  if (!tagIdsByName) {
-    tagIdsByName = fetchTagIdsByName().catch(error => {
-      // Do not cache a failure; the next lookup retries.
-      tagIdsByName = undefined;
-      throw error;
+  if (!tagList || Date.now() - tagList.loadedAt > TAG_LIST_TTL_MS) {
+    const idsByName = fetchTagIdsByName();
+    const list = { loadedAt: Date.now(), idsByName };
+    tagList = list;
+    // Do not cache a failure; the next lookup retries.
+    idsByName.catch(() => {
+      if (tagList === list) tagList = undefined;
     });
   }
-  return tagIdsByName.then(ids => ids.get(name));
+  return tagList.idsByName.then(ids => ids.get(name));
 }

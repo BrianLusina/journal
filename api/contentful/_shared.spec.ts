@@ -99,6 +99,12 @@ describe('queryContentful', () => {
     await expect(loadShared().queryContentful('query { a }', {})).rejects.toThrow('Unable to query Contentful: 429');
   });
 
+  it('rejects, saying so, when the response has neither data nor errors', async () => {
+    global.fetch = jest.fn().mockResolvedValue(jsonResponse(true, {}));
+
+    await expect(loadShared().queryContentful('query { a }', {})).rejects.toThrow('Contentful query failed: no data');
+  });
+
   it('rejects when the GraphQL response carries errors', async () => {
     global.fetch = jest
       .fn()
@@ -126,6 +132,24 @@ describe('getTagId', () => {
     expect(global.fetch).toHaveBeenCalledWith('https://cdn.contentful.com/spaces/space/environments/master/tags?limit=1000', {
       headers: { Authorization: 'Bearer token' },
     });
+  });
+
+  it('reads the tag list again once it is a few minutes old, so a new tag is found', async () => {
+    const now = jest.spyOn(Date, 'now').mockReturnValue(1_000_000);
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(true, { items: [] }))
+      .mockResolvedValueOnce(jsonResponse(true, { items: [{ name: 'Travel', sys: { id: 'travel' } }] }));
+    const { getTagId } = loadShared();
+
+    await expect(getTagId('Travel')).resolves.toBeUndefined();
+    now.mockReturnValue(1_000_000 + 4 * 60 * 1000);
+    await expect(getTagId('Travel')).resolves.toBeUndefined();
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+
+    now.mockReturnValue(1_000_000 + 6 * 60 * 1000);
+    await expect(getTagId('Travel')).resolves.toBe('travel');
+    expect(global.fetch).toHaveBeenCalledTimes(2);
   });
 
   it('rejects when the tag list cannot be fetched, and fetches it again next time', async () => {
