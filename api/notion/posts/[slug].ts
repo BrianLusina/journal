@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { NotionToMarkdown } from 'notion-to-md';
+import { methodNotAllowed, POSTS_CACHE_CONTROL } from '../../_routes';
 import { getDataSourceId, isNotionConfigured, notion } from '../_shared';
 
 const markdown = new NotionToMarkdown({ notionClient: notion });
@@ -9,8 +10,7 @@ export default async function handler(
   response: VercelResponse,
 ): Promise<VercelResponse> {
   if (request.method !== 'GET') {
-    response.setHeader('Allow', 'GET');
-    return response.status(405).json({ error: 'Method not allowed' });
+    return methodNotAllowed(response);
   }
 
   if (!isNotionConfigured() || typeof request.query.slug !== 'string') {
@@ -37,10 +37,7 @@ export default async function handler(
     const blocks = await markdown.pageToMarkdown(page.id);
     const body = markdown.toMarkdownString(blocks).parent;
 
-    response.setHeader(
-      'Cache-Control',
-      's-maxage=60, stale-while-revalidate=300',
-    );
+    response.setHeader('Cache-Control', POSTS_CACHE_CONTROL);
 
     return response.status(200).json({ page, body });
   } catch {

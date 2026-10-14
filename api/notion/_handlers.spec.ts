@@ -5,7 +5,6 @@ import { getDataSourceId, notion } from './_shared';
 
 jest.mock('./_shared', () => ({
   getDataSourceId: jest.fn(),
-  getLimit: (value: unknown) => Number(value) || 100,
   isNotionConfigured: () => true,
   notion: { dataSources: { query: jest.fn(), retrieve: jest.fn() } },
 }));

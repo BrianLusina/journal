@@ -4,23 +4,28 @@ This document describes how the journal site is put together: where content come
 
 ## Overview
 
-The site is a client-rendered React 18 single-page app built with Vite. Posts can come from more than one content management system (CMS): today **Contentful** (GraphQL, called from the browser) and **Notion** (called through serverless functions, because a Notion API key must never reach the browser).
+The site is a client-rendered React 18 single-page app built with Vite. Posts can come from more than one content management system (CMS): today **Contentful** and **Notion**, both read through serverless functions in `api/` so their tokens stay on the server. Contentful content that is not a post (authors, About, Social) is still queried from the browser.
 
 ```text
                    Browser (React SPA)                              Server (Vercel Functions)
 ┌──────────────────────────────────────────────────────────┐     ┌──────────────────────────────┐
-│ pages/ & features/                                       │     │ api/notion/posts.ts          │
-│   │ usePosts / usePost (hooks/cms)                       │     │ api/notion/posts/[slug].ts   │
-│   ▼                                                      │     │   │ @notionhq/client         │
-│ services/cms/aggregator ── merge, sort, page, find       │     │   │ notion-to-md (body)      │
-│   │ over cmsAdapters (services/cms/adapters)             │     │   ▼                          │
-│   ├── ContentfulAdapter ── Apollo ─────────────────────────────▶ Contentful GraphQL API       │
-│   └── NotionAdapter ───── fetch('/api/notion/…') ──────────────▶ Notion API                   │
-│                                                          │     └──────────────────────────────┘
-│ Contentful-only content (authors, about, social):        │
-│   hooks/api/* and features ── Apollo useQuery ─────────────────▶ Contentful GraphQL API
-└──────────────────────────────────────────────────────────┘
+│ pages/ & features/                                       │     │ api/contentful/posts.ts      │
+│   │ usePosts / usePost (hooks/cms)                       │     │ api/contentful/posts/[slug].ts│
+│   ▼                                                      │     │   │ fetch                    │
+│ services/cms/aggregator ── merge, sort, page, find       │     │   ▼                          │
+│   │ over cmsAdapters (services/cms/adapters)             │     │ Contentful GraphQL + REST    │
+│   ├── ContentfulAdapter ── fetch('/api/contentful/…') ───────────▶                             │
+│   │                                                      │     │                              │
+│   │                                                      │     │ api/notion/posts.ts          │
+│   │                                                      │     │ api/notion/posts/[slug].ts   │
+│   └── NotionAdapter ───── fetch('/api/notion/…') ──────────────▶   │ @notionhq/client         │
+│                                                          │     │   │ notion-to-md (body)      │
+│                                                          │     │   ▼                          │
+│                                                          │     │ Notion API                   │
+└──────────────────────────────────────────────────────────┘     └──────────────────────────────┘
 ```
+
+Authors, About and Social content bypasses `api/`: `hooks/api/*` and the features that render it query the Contentful GraphQL API directly from the browser with Apollo.
 
 ## Source layout
 
@@ -33,14 +38,14 @@ The site is a client-rendered React 18 single-page app built with Vite. Posts ca
 | `src/features/` | Data-aware sections reused across pages (`Posts`, `FeaturedArticles`, `RelatedArticles`, `AuthorBadge`, …). |
 | `src/components/` | Presentational components. `components/ui/<folder>` holds custom design-system pieces. Top-level `components/ui/*.tsx` is where shadcn/ui primitives go (`bunx shadcn add <name>`); add one only when the app imports it, which `scripts/ui-primitives-policy.spec.ts` enforces. |
 | `src/hooks/cms/` | `usePosts` and `usePost`: React state around the CMS aggregator. |
-| `src/hooks/api/` | Thin Apollo hooks for Contentful-only content. |
+| `src/hooks/api/` | Thin Apollo hooks for Contentful content that is not a post (authors, About, Social). |
 | `src/services/cms/` | The multi-CMS seam: `CMSAdapter` interface, adapters, adapter registry, aggregator. |
 | `src/services/monitoring/`, `src/services/analytics/` | Sentry and Firebase Analytics wrappers. Both are no-ops outside production. |
-| `src/integrations/contentful/` | The Contentful Apollo client instance, plus queries and fragments. |
+| `src/integrations/contentful/` | The Contentful Apollo client instance, plus the queries and fragments for authors, About and Social content. Post queries live in `api/contentful/_shared.ts`. |
 | `src/clients/graphql/` | Apollo client factory and links (auth, retry, error reporting, HTTP). |
 | `src/config/` | Typed access to `import.meta.env`. |
 | `src/types/` | Ambient types: the unified post model (`cms.d.ts`) and Contentful GraphQL shapes (`gql/`). |
-| `api/notion/` | Vercel Functions that hold the Notion credentials. They compile with `api/tsconfig.json` (CommonJS, Node resolution), not the root Vite config: Node loads them as CommonJS because `package.json` has no `"type": "module"`. |
+| `api/contentful/`, `api/notion/` | Vercel Functions that hold the CMS credentials. `api/_routes.ts` has what both share: the method check, `limit` and query-parameter parsing, and the cache header. They compile with `api/tsconfig.json` (CommonJS, Node resolution), not the root Vite config: Node loads them as CommonJS because `package.json` has no `"type": "module"`. |
 
 ### Path aliases
 
@@ -70,7 +75,7 @@ interface CMSAdapter {
 }
 ```
 
-- **`ContentfulAdapter`** queries Contentful with the shared Apollo client (`network-only`), ordered by `publishDate_DESC`, and maps `BlogPostItem` to `UnifiedPost`. Its cursor is the offset of the next post. Listings only include posts that have a `publishDate`, the key the feed merges on.
+- **`ContentfulAdapter`** calls `/api/contentful/posts` and `/api/contentful/posts/:slug`, and maps `BlogPostItem` to `UnifiedPost`. The functions query the Contentful GraphQL API with the delivery token, ordered by `publishDate_DESC`, and answer `{ results, nextCursor }` (the slug route answers `{ post }`). The cursor is the offset of the next post. Listings only include posts that have a `publishDate`, the key the feed merges on.
 - **`NotionAdapter`** calls `/api/notion/posts` and `/api/notion/posts/:slug`, and maps Notion page properties (`Title`, `Slug`, `Description`, `Category`, `Date`, `Tags`, `Author`, cover image). The `[slug]` function converts the page body to Markdown with `notion-to-md`, so both sources produce Markdown for `ArticlePage`. Its cursor is Notion's own `next_cursor`, passed through `/api/notion/posts?cursor=…`; each request reads one Notion page (at most 100 posts), so there is no limit on how far the feed can go. A Notion page is listed only when its `Status` is `Published`, its `Slug` is not empty (a post without a slug could never be opened) **and** its `Date` is set (the feed merges on publish date, so an undated post has no place in it).
 
 `src/services/cms/adapters.ts` is the registry: an ordered array of adapter instances. Array order is priority order when two sources publish the same slug.
@@ -93,9 +98,9 @@ The hooks are thin. `usePosts({ limit, category, tag })` keeps one feed per cate
 
 1. Add the source name to `CMSSource` in `src/types/cms.d.ts`.
 2. Implement `CMSAdapter` in `src/services/cms/<Name>Adapter.ts`, mapping onto `UnifiedPost`. Body text must be Markdown.
-3. If the source needs a secret, put the calls behind a function in `api/` (as Notion does). Never use a `VITE_`-prefixed variable for a secret, because Vite inlines those into the browser bundle.
+3. If the source needs a secret, put the calls behind a function in `api/` (as Contentful and Notion do), using the helpers in `api/_routes.ts`. Never use a `VITE_`-prefixed variable for a secret, because Vite inlines those into the browser bundle.
 4. Register an instance in `src/services/cms/adapters.ts`.
-5. Add `<Name>Adapter.spec.ts` covering mapping, fallbacks, pagination and not-found. `ContentfulAdapter.spec.ts` and `NotionAdapter.spec.ts` show the pattern.
+5. Add `<Name>Adapter.spec.ts` covering mapping, fallbacks, pagination and not-found. `ContentfulAdapter.spec.ts` and `NotionAdapter.spec.ts` show the pattern; the functions get specs next to them (`api/contentful/_handlers.spec.ts`).
 
 No hook, page or aggregator change is needed.
 
@@ -107,12 +112,12 @@ A tag is identified by its **name**, the only identifier every source shares. `T
   - Contentful tags (`contentfulMetadata.tags`), used by newer posts;
   - the legacy `tags` field (`Array<Symbol>`), used by older ones.
 
-  The adapter shows both, de-duplicated, and filters on either: `tags_contains_some: [name]` OR the Contentful tag's ID. Contentful tags can only be filtered by ID, so `getTagId` (`src/integrations/contentful/contentful.tags.ts`) looks the name up in the space's tag list, fetched once per page load from the delivery REST API (`/tags`). The GraphQL API can't list tags. If the tag list can't be fetched, the adapter still filters the legacy field by name.
+  The adapter shows both, de-duplicated, and filters on either: `tags_contains_some: [name]` OR the Contentful tag's ID. Contentful tags can only be filtered by ID, so `getTagId` (`api/contentful/_shared.ts`) looks the name up in the space's tag list, fetched once per function instance from the delivery REST API (`/tags`). The GraphQL API can't list tags. If the tag list can't be fetched, the function still filters the legacy field by name.
 - **Notion** filters `Tags` with `multi_select.contains` on the name. Most tags aren't Notion's, so `/api/notion/posts?tag=` first checks that the name is one of the `Tags` options, and answers with no posts without querying when it isn't.
 
 ### Content outside the seam
 
-Every post listing reads through the seam. Authors, About and Social content exist only in Contentful and stay on Apollo (`hooks/api/*` and the features that render them).
+Every post listing reads through the seam. Authors, About and Social content exist only in Contentful and stay on Apollo, queried from the browser (`hooks/api/*` and the features that render them). Because of that, `VITE_CONTENTFUL_CMS_API_KEY` is still inlined into the bundle; moving these queries behind `api/` as well is what would remove it.
 
 The About page's story section renders the Contentful `about` entry's `title` and `content` (Markdown). While it loads, or if the query fails or returns no `content`, the section shows its built-in heading and copy instead; a failed query is reported to Sentry, not shown.
 
@@ -132,7 +137,8 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 
 | Variable | Used by |
 |---|---|
-| `VITE_CONTENTFUL_CMS_*` | Contentful client (space, environment, delivery token, GraphQL URL). |
+| `VITE_CONTENTFUL_CMS_*` | Contentful Apollo client in the browser (space, environment, delivery token, GraphQL URL), for authors, About and Social content. |
+| `CONTENTFUL_CMS_API_KEY`, `CONTENTFUL_CMS_SPACE_ID`, `CONTENTFUL_CMS_ENVIRONMENT`, `CONTENTFUL_CMS_GRAPHQL_URL`, `CONTENTFUL_CMS_REST_API_URL` | **Server only**, read by `api/contentful`. The key and space ID are required; the other three default to `master`, `https://graphql.contentful.com` and `https://cdn.contentful.com`. |
 | `VITE_SENTRY_DSN`, `VITE_SENTRY_TRACES_SAMPLE_RATE` | Sentry (production only). |
 | `VITE_FIREBASE_*` | Firebase Analytics (optional, production only). |
 | `VITE_ENV`, `VITE_APP_NAME`, `VITE_APP_TITLE` | Environment label and site naming. |
@@ -141,10 +147,10 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 
 ## Deployment topology
 
-- The SPA is static (`dist/`). The Notion integration **requires** a host that runs the `api/` functions; today that is Vercel, which builds every PR as a preview.
+- The SPA is static (`dist/`). Posts from both CMSs **require** a host that runs the `api/` functions; today that is Vercel, which builds every PR as a preview.
 - Production deploys through the Vercel GitHub integration. GitHub Actions does only what Vercel doesn't on pushes to `staging` and `production`: semantic-release tags (`release.yml`), the Sentry release and source-map upload through `@sentry/vite-plugin` (`sentry_release.yml`), and the nginx Docker image (`dockerimage.yml`).
-- A static-only host (nginx Docker image, GitHub Pages) serves the app with Contentful content only. The aggregator degrades gracefully, but Notion posts won't appear.
-- `vite dev` does not run `api/`. Use `vercel dev` to work on Notion content locally (BrianLusina/journal#802).
+- A static-only host (nginx Docker image, GitHub Pages) serves the app without any posts: the aggregator degrades gracefully, but both sources fail. Only the Apollo-queried authors, About and Social content appears.
+- `vite dev` does not run `api/`. Use `vercel dev` to work on posts locally (BrianLusina/journal#802).
 
 ## Testing
 
@@ -154,7 +160,7 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 - **Coverage gate:** `bun run test:coverage` enforces 85% lines and statements.
 - **What to test where:**
   - Multi-source behaviour goes in `aggregator.spec.ts`, with fake adapters.
-  - Per-CMS mapping goes in adapter specs (Apollo client or `fetch` mocked).
+  - Per-CMS mapping goes in adapter specs (`fetch` mocked); the `api/` functions have their own specs (the CMS client or `fetch` mocked).
   - Hooks are tested against a mocked aggregator.
   - Pages and features are tested against mocked hooks.
 - **CI:** GitHub Actions runs tests with coverage, ESLint and stylelint, and a production build on every push. All use bun with the committed text lockfile `bun.lock`. Dependabot updates it through the `bun` ecosystem.
@@ -164,5 +170,5 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 
 | Area | Issue |
 |---|---|
-| Notion doesn't work under `vite dev` | BrianLusina/journal#802 |
+| Posts don't load under `vite dev` (Notion and Contentful both need `api/`) | BrianLusina/journal#802 |
 | No contact form or newsletter signup: both are hidden until a provider is wired up | Follow-up to BrianLusina/journal#805 |
