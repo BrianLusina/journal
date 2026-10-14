@@ -54,6 +54,7 @@ beforeEach(() => {
 afterEach(async () => {
   becomeIdle();
   await flush();
+  jest.restoreAllMocks();
 });
 
 describe('Monitoring', () => {
@@ -164,8 +165,6 @@ describe('Monitoring', () => {
     expect(unhandled).not.toHaveBeenCalled();
     expect(addEventListener.mock.calls).toHaveLength(2);
     expect(removeEventListener.mock.calls).toEqual(addEventListener.mock.calls);
-    addEventListener.mockRestore();
-    removeEventListener.mockRestore();
   });
 
   it('caps the wait for an idle moment, so a busy page still loads Sentry', () => {
@@ -244,9 +243,7 @@ describe('Monitoring', () => {
 
       expect(addEventListener).not.toHaveBeenCalled();
       expect(mockSentryLoads.count).toBe(0);
-      addEventListener.mockRestore();
     });
-
   });
 
   it('describes a scope without loading Sentry', () => {

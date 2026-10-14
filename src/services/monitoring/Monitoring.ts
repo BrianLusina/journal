@@ -53,14 +53,20 @@ const report = (send: (service: SentryService) => void): void => {
 };
 
 // Uncaught errors and unhandled rejections before Sentry.init installs its own global handlers.
-const reportUncaught = (error: Error): void => {
-  report(service => service.captureSentryException(error, undefined, 'Uncaught before monitoring loaded'));
-};
+const UNCAUGHT_MESSAGE = 'Uncaught before monitoring loaded';
 const onError = (event: ErrorEvent): void => {
-  reportUncaught(event.error instanceof Error ? event.error : new Error(event.message));
+  captureException(
+    event.error instanceof Error ? event.error : new Error(event.message),
+    undefined,
+    UNCAUGHT_MESSAGE,
+  );
 };
 const onUnhandledRejection = (event: PromiseRejectionEvent): void => {
-  reportUncaught(event.reason instanceof Error ? event.reason : new Error(String(event.reason)));
+  captureException(
+    event.reason instanceof Error ? event.reason : new Error(String(event.reason)),
+    undefined,
+    UNCAUGHT_MESSAGE,
+  );
 };
 const stopListening = (): void => {
   window.removeEventListener('error', onError);
