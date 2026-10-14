@@ -80,7 +80,9 @@ Since Notion API version 2025-09-03, queries target a database's *data source*, 
 
 Do not prefix either variable with `VITE_`, because Vite exposes `VITE_*` variables to the browser. For local development, put the same variables in `.env.local` and run `vercel dev` so the Vite app and the API functions share one origin. The Notion integration must have access to the database in Notion.
 
-A static-only host (Surge, the nginx [Dockerfile](./Dockerfile), GitHub Pages) can serve the app with Contentful content only. BrianLusina/journal#807 tracks the Docker and older deploy workflows, which still need porting to bun.
+Production deploys through the Vercel GitHub integration. On pushes to `staging` and `production`, GitHub Actions also tags a release with semantic-release (`release.yml`), uploads source maps to Sentry (`sentry_release.yml`) and publishes the nginx Docker image (`dockerimage.yml`).
+
+A static-only host (the nginx [Dockerfile](./Dockerfile), GitHub Pages) can serve the app with Contentful content only.
 
 ## Built With
 

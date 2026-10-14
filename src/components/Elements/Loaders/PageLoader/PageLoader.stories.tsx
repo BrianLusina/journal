@@ -1,12 +1,12 @@
-import { ComponentStory, ComponentMeta } from '@storybook/react';
+import { Meta, StoryFn } from '@storybook/react';
 import PageLoader from './PageLoader';
 
 export default {
   title: 'Components/loaders/PageLoader',
   component: PageLoader,
-} as ComponentMeta<typeof PageLoader>;
+} as Meta<typeof PageLoader>;
 
-const Template: ComponentStory<typeof PageLoader> = () => <PageLoader />;
+const Template: StoryFn<typeof PageLoader> = () => <PageLoader />;
 
 export const FullPageLoader = Template.bind({});
 FullPageLoader.args = {};

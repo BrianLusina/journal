@@ -1,5 +1,5 @@
 import { execSync } from 'child_process';
-import { readFileSync } from 'fs';
+import { existsSync, readdirSync, readFileSync } from 'fs';
 import path from 'path';
 
 const root = path.resolve(__dirname, '..');
@@ -29,11 +29,59 @@ describe('package manager policy', () => {
   });
 });
 
+// The Vite and bun migration left parts of the Create React App toolchain behind (#807).
+describe('toolchain left over from Create React App', () => {
+  const workflows = readdirSync(path.join(root, '.github/workflows')).filter(file => /\.ya?ml$/.test(file));
+
+  it.each(workflows)('%s does not use yarn, Node 16 or actions/cache@v2', file => {
+    const workflow = read(`.github/workflows/${file}`);
+
+    expect(workflow).not.toMatch(/\byarn\b/);
+    expect(workflow).not.toMatch(/node-version:\s*['"]?16\b/);
+    expect(workflow).not.toMatch(/actions\/cache@v2\b/);
+  });
+
+  it.each(workflows)('%s uses the Vite variable names and output directory', file => {
+    const workflow = read(`.github/workflows/${file}`);
+
+    // Vite only exposes VITE_-prefixed variables to the app, and it emits dist/, not build/.
+    expect(workflow).not.toMatch(/^\s+(?:CMS_\w+|FIREBASE_\w+|SENTRY_DSN|ENV):/m);
+    expect(workflow).not.toMatch(/(?:^|[\s'"])(?:\.\/)?build\//m);
+  });
+
+  it('builds the Docker image with bun from bun.lock', () => {
+    const dockerfile = read('Dockerfile');
+
+    // npm ci needs a package-lock.json, which bun does not write.
+    expect(dockerfile).not.toMatch(/package-lock|bun\.lockb|\bnpm\b|\byarn\b/);
+    expect(dockerfile).toMatch(/^COPY package\.json bun\.lock /m);
+    expect(dockerfile).toMatch(/^RUN bun install --frozen-lockfile/m);
+    expect(dockerfile).toMatch(/^RUN bun run build$/m);
+  });
+
+  it('has no package scripts for the webpack toolchain, Surge or the build/ directory', () => {
+    const scripts: string[] = Object.values(JSON.parse(read('package.json')).scripts);
+    const craScript = /start-storybook|^build-storybook|scripts\/\w+\.js|\bsurge\b|(?:-s|-rf) build\b/;
+
+    expect(scripts.filter(script => craScript.test(script))).toEqual([]);
+  });
+
+  it.each([
+    'public/index.html',
+    'src/types/react-app-env.d.ts',
+    'netlify.toml',
+    'config/webpack.config.js',
+    'scripts/start.js',
+    '.eslintrc.js',
+  ])('does not bring back %s', file => {
+    expect(existsSync(path.join(root, file))).toBe(false);
+  });
+});
+    
 describe('type-check policy', () => {
   it('type-checks src/ in the Tests workflow, since neither vite build nor Jest does', () => {
     expect(JSON.parse(read('package.json')).scripts.typecheck).toBe(
       'tsc -p tsconfig.app.json --noEmit',
     );
-    expect(read('.github/workflows/tests.yml')).toMatch(/^\s*run: bun run typecheck\s*$/m);
-  });
+  expect(read('.github/workflows/tests.yml')).toMatch(/^\s*run: bun run typecheck\s*$/m);
 });
