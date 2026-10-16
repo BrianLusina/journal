@@ -86,7 +86,7 @@ Production deploys through the Vercel GitHub integration. On pushes to `staging`
 
 The [Dockerfile](./Dockerfile) builds an image that runs the whole app, including the `api/` functions, on a small Bun server (`server/`). It reads its configuration from the container's environment when it starts, so one image runs in every environment:
 
-- **Client:** the `VITE_*` variables in `.env.sample`, sent to the browser through `/env.js`. Only an allowlist of the keys the app reads is sent; never put a secret in a `VITE_*` variable.
+- **Client:** the `VITE_*` variables in `.env.sample`, set in the page the server sends. Only an allowlist of the keys the app reads is sent; never put a secret in a `VITE_*` variable.
 - **Server only:** `NOTION_API_KEY` with `NOTION_DATA_SOURCE_ID` (or `NOTION_DATABASE_ID`), and, once the contact and newsletter forms use Resend (#826), `RESEND_*` and `CONTACT_*`. These never reach the browser.
 - `PORT` (optional, default 8080).
 

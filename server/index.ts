@@ -1,21 +1,26 @@
 /**
- * The Docker image's web server: the app in dist/, the functions in api/ and /env.js, the way
- * Vercel serves them. Run it after `bun run build` with `bun server/index.ts`; the image runs the
- * bundle `bun server/build.ts` makes of it.
+ * The Docker image's web server: the app in dist/, with the container's configuration set in its
+ * index.html, and the functions in api/, the way Vercel serves them. Run it after `bun run build`
+ * with `bun server/index.ts`; the image runs the bundle `bun server/build.ts` makes of it.
  */
+import { readFileSync } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import path from 'node:path';
 import { invoke, type Handler } from './adapter';
-import { renderEnvScript } from './envScript';
+import { injectEnv } from './envScript';
 import { discoverRoutes, matchRoute } from './router';
 
 // dist/ and api/ sit next to server/, both in the repository and in the image.
 const root = path.resolve(import.meta.dirname, '..');
 const distDir = path.join(root, 'dist');
 const routes = discoverRoutes(path.join(root, 'api'));
-const envScript = renderEnvScript(process.env);
+const indexFile = path.join(distDir, 'index.html');
+// Read once: the environment does not change while the server runs.
+const indexHtml = injectEnv(readFileSync(indexFile, 'utf8'), process.env);
 
 const NO_CACHE = { 'Cache-Control': 'no-cache' };
+const app = () =>
+  new Response(indexHtml, { headers: { 'Content-Type': 'text/html; charset=utf-8', ...NO_CACHE } });
 // Vite writes its content-hashed output straight into dist/assets/; public/assets/ only has
 // subdirectories, whose files are not hashed (scripts/repo-policy.spec.ts keeps it that way).
 const isHashedAsset = (pathname: string) => /^\/assets\/[^/]+$/.test(pathname);
@@ -62,20 +67,18 @@ async function handle(request: Request, server: BunServer): Promise<Response> {
   if (pathname === '/healthz') {
     return new Response('ok');
   }
-  if (pathname === '/env.js') {
-    return new Response(envScript, {
-      headers: { 'Content-Type': 'text/javascript; charset=utf-8', ...NO_CACHE },
-    });
-  }
   if (pathname === '/api' || pathname.startsWith('/api/')) {
     return serveApi(request, pathname, server);
   }
 
   const file = await findFile(pathname);
+  if (file === indexFile) {
+    return app();
+  }
   if (file) {
     const cacheControl = isHashedAsset(pathname)
       ? { 'Cache-Control': 'public, max-age=31536000, immutable' }
-      : file.endsWith('.html') ? NO_CACHE : undefined;
+      : undefined;
     return new Response(Bun.file(file), { headers: cacheControl });
   }
   // A missing asset is a 404, not the app: a stale chunk must fail to load, not parse HTML.
@@ -83,7 +86,7 @@ async function handle(request: Request, server: BunServer): Promise<Response> {
     return new Response('Not found', { status: 404 });
   }
   // Any other path is a route of the single-page app.
-  return new Response(Bun.file(path.join(distDir, 'index.html')), { headers: NO_CACHE });
+  return app();
 }
 
 const server = Bun.serve({

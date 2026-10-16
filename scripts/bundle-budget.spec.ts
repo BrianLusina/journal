@@ -21,10 +21,13 @@ describe('bundle budget', () => {
     expect(initialScripts(html)).toEqual(['assets/index-abc.js', 'assets/vendor-def.js']);
   });
 
-  it('counts a classic script that blocks the entry module, such as /env.js', () => {
-    const withEnv = html.replace('<script type="module"', '<script src="/env.js"></script>\n    $&');
+  it('leaves out the inline runtime configuration script, which downloads nothing', () => {
+    const withEnv = html.replace(
+      '<script type="module"',
+      '<script>window.__ENV__ = window.__ENV__ || {}; /*__RUNTIME_ENV__*/</script>\n    $&',
+    );
 
-    expect(initialScripts(withEnv)).toEqual(['env.js', 'assets/index-abc.js', 'assets/vendor-def.js']);
+    expect(initialScripts(withEnv)).toEqual(['assets/index-abc.js', 'assets/vendor-def.js']);
   });
 
   it('sums the gzipped size of those scripts in kB, leaving out lazily loaded chunks', () => {

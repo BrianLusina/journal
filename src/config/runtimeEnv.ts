@@ -1,8 +1,8 @@
 declare global {
   interface Window {
     /**
-     * The client configuration the Docker image's server sets in /env.js from the container's
-     * environment. On Vercel, public/env.js leaves it empty.
+     * The client configuration the Docker image's server sets in index.html from the container's
+     * environment. Elsewhere, as on Vercel, index.html's inline script leaves it empty.
      */
     __ENV__?: Partial<Record<string, string>>;
   }
@@ -35,7 +35,7 @@ const buildTimeEnv = {
 };
 
 /**
- * A VITE_ variable: the value /env.js set at runtime, else the value Vite inlined at build time.
+ * A VITE_ variable: the value index.html set at runtime, else the value Vite inlined at build time.
  * The runtime value lets one Docker image serve any environment; Vercel keeps using the build-time
  * value.
  */

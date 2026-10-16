@@ -24,8 +24,9 @@
 
   <body>
     <div id="root"></div>
-    <!-- Runtime configuration (window.__ENV__), which must run before the app reads src/config. -->
-    <script src="/env.js"></script>
+    <!-- Runtime configuration, set before the app reads src/config. The Docker image's server
+         replaces the comment with the container's VITE_ variables; elsewhere it stays empty. -->
+    <script>window.__ENV__ = window.__ENV__ || {}; /*__RUNTIME_ENV__*/</script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

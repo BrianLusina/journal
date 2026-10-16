@@ -1,5 +1,5 @@
 /**
- * The VITE_ variables /env.js passes from the container's environment to the browser: exactly
+ * The VITE_ variables the server passes from the container's environment to the browser: exactly
  * the keys src/config reads with readEnv. Anything listed here is public, so never add a secret.
  */
 export const CLIENT_ENV_KEYS = [
@@ -25,12 +25,15 @@ export const CLIENT_ENV_KEYS = [
   'VITE_FIREBASE_MEASUREMENT_ID',
 ] as const;
 
+/** The comment in index.html's inline script that injectEnv replaces. */
+const PLACEHOLDER = '/*__RUNTIME_ENV__*/';
+
 /**
- * The /env.js script that sets window.__ENV__ to the allowlisted variables set in env. `<` is
- * escaped so no value can close a <script> element, nor U+2028 and U+2029, which older engines
+ * The statement that sets window.__ENV__ to the allowlisted variables set in env. `<` is escaped
+ * so no value can close the <script> element, and so are U+2028 and U+2029, which older engines
  * reject in string literals.
  */
-export function renderEnvScript(env: Record<string, string | undefined>): string {
+function renderEnvScript(env: Record<string, string | undefined>): string {
   const values = Object.fromEntries(
     CLIENT_ENV_KEYS.filter(key => env[key] !== undefined).map(key => [key, env[key]]),
   );
@@ -38,5 +41,17 @@ export function renderEnvScript(env: Record<string, string | undefined>): string
     .replace(/</g, '\\u003c')
     .replace(/\u2028/g, '\\u2028')
     .replace(/\u2029/g, '\\u2029');
-  return `window.__ENV__ = ${json};\n`;
+  return `window.__ENV__ = ${json};`;
+}
+
+/**
+ * index.html with the allowlisted variables of env set in its inline configuration script.
+ * Throws when the placeholder is missing, so a page that lost it fails at startup.
+ */
+export function injectEnv(html: string, env: Record<string, string | undefined>): string {
+  if (!html.includes(PLACEHOLDER)) {
+    throw new Error(`index.html has no ${PLACEHOLDER} placeholder for the runtime configuration`);
+  }
+  // A function, so that $ sequences in the values are not read as replacement patterns.
+  return html.replace(PLACEHOLDER, () => renderEnvScript(env));
 }

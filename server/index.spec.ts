@@ -1,8 +1,11 @@
 import { type ChildProcess, spawn } from 'child_process';
-import { copyFileSync, mkdirSync, mkdtempSync, writeFileSync } from 'fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'fs';
 import http from 'http';
 import { tmpdir } from 'os';
 import path from 'path';
+import { injectEnv } from './envScript';
+
+const indexHtml = readFileSync(path.resolve(__dirname, '..', 'index.html'), 'utf8');
 
 // Runs the server with Bun, as the image does, over a small dist/ and api/ of its own.
 const root = mkdtempSync(path.join(tmpdir(), 'server-'));
@@ -35,7 +38,7 @@ beforeAll(async () => {
     mkdirSync(path.join(root, 'server'), { recursive: true });
     copyFileSync(path.join(__dirname, file), path.join(root, 'server', file));
   });
-  write('dist/index.html', '<!doctype html><title>app</title>');
+  write('dist/index.html', indexHtml);
   write('dist/assets/index-abc12345.js', 'console.log(1);');
   write('dist/assets/icons/icon.png', 'png');
   write('secret.txt', 'outside dist');
@@ -62,23 +65,20 @@ describe('Docker image server', () => {
     expect(await get('/healthz')).toMatchObject({ status: 200, body: 'ok' });
   });
 
-  it('serves /env.js with the allowlisted VITE_ variables only, uncached', async () => {
-    const answer = await get('/env.js');
-
-    expect(answer.status).toBe(200);
-    expect(answer.headers['content-type']).toMatch(/javascript/);
-    expect(answer.headers['cache-control']).toBe('no-cache');
-    expect(answer.body).toContain('"VITE_APP_TITLE":"Journal"');
-    expect(answer.body).not.toContain('secret');
-  });
-
-  it('serves index.html, uncached, for / and for any route of the app', async () => {
-    for (const pathname of ['/', '/article/tag/react']) {
+  it('serves index.html with the allowlisted VITE_ variables set, uncached, for the app and its routes', async () => {
+    for (const pathname of ['/', '/index.html', '/article/tag/react']) {
       const answer = await get(pathname);
 
-      expect(answer).toMatchObject({ status: 200, body: '<!doctype html><title>app</title>' });
+      expect(answer).toMatchObject({ status: 200, body: injectEnv(indexHtml, { VITE_APP_TITLE: 'Journal' }) });
+      expect(answer.body).toContain('window.__ENV__ = {"VITE_APP_TITLE":"Journal"};');
+      expect(answer.body).not.toContain('secret');
+      expect(answer.headers['content-type']).toMatch(/^text\/html/);
       expect(answer.headers['cache-control']).toBe('no-cache');
     }
+  });
+
+  it('no longer serves a separate /env.js', async () => {
+    expect((await get('/env.js')).headers['content-type']).toMatch(/^text\/html/);
   });
 
   it('caches hashed assets for a year, but not the unhashed files in public/assets/', async () => {
