@@ -57,6 +57,15 @@ describe('api router', () => {
     expect(discoverRoutes(apiDir)).toEqual([]);
   });
 
+  it('serves nothing under a directory starting with _, such as the forms shared code', () => {
+    const apiDir = apiDirWith(['contact.ts', '_forms/handler.ts', '_forms/schemas.ts']);
+    const routes = discoverRoutes(apiDir);
+
+    expect(routes.map(route => route.file)).toEqual([path.join(apiDir, 'contact.ts')]);
+    expect(matchRoute(routes, '/api/_forms/handler')).toBeUndefined();
+    expect(matchRoute(routes, '/api/_forms/schemas')).toBeUndefined();
+  });
+
   it('matches nothing for an unknown path, an /api path too short or too long, or a non-/api path', () => {
     const apiDir = apiDirWith(['notion/posts.ts', 'notion/posts/[slug].ts']);
     const routes = discoverRoutes(apiDir);

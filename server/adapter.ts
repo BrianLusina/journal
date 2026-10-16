@@ -19,6 +19,7 @@ interface ApiRequest {
   query: Record<string, string | string[]>;
   headers: Record<string, string>;
   body: unknown;
+  socket: { remoteAddress?: string };
 }
 
 /** The part of VercelResponse the adapter provides. */
@@ -92,12 +93,14 @@ const errorResult = (status: number, error: string): HandlerResult => ({
 
 /**
  * Calls a Vercel function with the part of VercelRequest and VercelResponse the api/ handlers
- * use, and returns what it answered. `params` holds the route's dynamic segments.
+ * use, and returns what it answered. `params` holds the route's dynamic segments, and
+ * `remoteAddress` the client's address (Bun.serve's `requestIP`).
  */
 export async function invoke(
   handler: Handler,
   request: IncomingRequest,
   params: Record<string, string>,
+  remoteAddress?: string,
 ): Promise<HandlerResult> {
   let body: unknown;
   try {
@@ -110,6 +113,7 @@ export async function invoke(
     query: parseQuery(request.url, params),
     headers: Object.fromEntries(request.headers),
     body,
+    socket: { remoteAddress },
   };
   const { response, toResult } = createResponse();
   try {

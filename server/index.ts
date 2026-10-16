@@ -20,13 +20,18 @@ const NO_CACHE = { 'Cache-Control': 'no-cache' };
 // subdirectories, whose files are not hashed.
 const isHashedAsset = (pathname: string) => /^\/assets\/[^/]+$/.test(pathname);
 
-async function serveApi(request: Request, pathname: string): Promise<Response> {
+async function serveApi(request: Request, pathname: string, server: BunServer): Promise<Response> {
   const route = matchRoute(routes, pathname);
   if (!route) {
     return Response.json({ error: 'Not found' }, { status: 404 });
   }
   const { default: handler } = (await import(route.file)) as { default: Handler };
-  const { status, headers, body } = await invoke(handler, request, route.params);
+  const { status, headers, body } = await invoke(
+    handler,
+    request,
+    route.params,
+    server.requestIP(request)?.address,
+  );
   return new Response(body, { status, headers });
 }
 
@@ -45,7 +50,7 @@ async function findFile(pathname: string): Promise<string | undefined> {
   return stats?.isFile() ? file : undefined;
 }
 
-async function handle(request: Request): Promise<Response> {
+async function handle(request: Request, server: BunServer): Promise<Response> {
   const { pathname } = new URL(request.url);
 
   if (pathname === '/healthz') {
@@ -57,7 +62,7 @@ async function handle(request: Request): Promise<Response> {
     });
   }
   if (pathname === '/api' || pathname.startsWith('/api/')) {
-    return serveApi(request, pathname);
+    return serveApi(request, pathname, server);
   }
 
   const file = await findFile(pathname);

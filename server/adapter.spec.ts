@@ -13,7 +13,11 @@ const request = (
 });
 
 /** Runs handler on request and returns the request the handler saw. */
-const requestSeenBy = async (incoming: IncomingRequest, params: Record<string, string> = {}) => {
+const requestSeenBy = async (
+  incoming: IncomingRequest,
+  params: Record<string, string> = {},
+  remoteAddress?: string,
+) => {
   let seen: VercelRequest | undefined;
   await invoke(
     req => {
@@ -21,6 +25,7 @@ const requestSeenBy = async (incoming: IncomingRequest, params: Record<string, s
     },
     incoming,
     params,
+    remoteAddress,
   );
   return seen as VercelRequest;
 };
@@ -47,6 +52,24 @@ describe('Vercel adapter', () => {
       expect(req.query).toEqual({ slug: 'real', x: '1' });
     });
 
+    // The form functions rate-limit by the first x-forwarded-for entry, then the socket address.
+    it('passes x-forwarded-for through as sent', async () => {
+      const req = await requestSeenBy(
+        request('http://localhost/api/contact', {
+          method: 'POST',
+          headers: { 'X-Forwarded-For': '198.51.100.1, 10.0.0.1' },
+        }),
+      );
+
+      expect(req.headers['x-forwarded-for']).toBe('198.51.100.1, 10.0.0.1');
+    });
+
+    it("passes the client's address as req.socket.remoteAddress", async () => {
+      const req = await requestSeenBy(request('http://localhost/api/contact'), {}, '203.0.113.7');
+
+      expect(req.socket.remoteAddress).toBe('203.0.113.7');
+    });
+
     it('parses a JSON body', async () => {
       const req = await requestSeenBy(
         request('http://localhost/api/contact', {
@@ -57,6 +80,22 @@ describe('Vercel adapter', () => {
       );
 
       expect(req.body).toEqual({ email: 'reader@example.com' });
+    });
+
+    it('leaves a body not sent as JSON for the handler to reject, as the form functions do', async () => {
+      const result = await invoke(
+        (req, res) =>
+          typeof req.body === 'object' ? res.json({ ok: true }) : res.status(400).json({ error: 'Invalid request' }),
+        request('http://localhost/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: '{"email":"reader@example.com"}',
+        }),
+        {},
+      );
+
+      expect(result.status).toBe(400);
+      expect(JSON.parse(result.body as string)).toEqual({ error: 'Invalid request' });
     });
 
     it('passes any other body as text, and no body as undefined', async () => {
