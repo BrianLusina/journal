@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { NOTION_PROPERTY, publishedFilters } from './_schema';
 import { getDataSourceId, getLimit, isNotionConfigured, notion } from './_shared';
 
 /**
@@ -7,7 +8,7 @@ import { getDataSourceId, getLimit, isNotionConfigured, notion } from './_shared
  */
 async function isTagOption(dataSourceId: string, tag: string): Promise<boolean> {
   const dataSource = await notion.dataSources.retrieve({ data_source_id: dataSourceId });
-  const tags = dataSource.properties.Tags;
+  const tags = dataSource.properties[NOTION_PROPERTY.tags];
   return tags?.type === 'multi_select' && tags.multi_select.options.some(option => option.name === tag);
 }
 
@@ -37,25 +38,16 @@ export default async function handler(
     typeof request.query.tag === 'string' && request.query.tag
       ? request.query.tag
       : undefined;
-  const publishedFilter = {
-    property: 'Status',
-    status: { equals: 'Published' },
-  };
-  // A post without a slug cannot be opened: the slug route looks posts up by Slug.
+  // A post without a slug cannot be opened: the slug route looks posts up by slug.
   const hasSlugFilter = {
-    property: 'Slug',
+    property: NOTION_PROPERTY.slug,
     rich_text: { is_not_empty: true as const },
   };
-  // The merged feed orders every source by publish date, so a post without one has no place in it.
-  const hasDateFilter = {
-    property: 'Published',
-    date: { is_not_empty: true as const },
-  };
-  const listedFilters = [publishedFilter, hasSlugFilter, hasDateFilter];
+  const listedFilters = [...publishedFilters, hasSlugFilter];
   const categoryFilters = category
     ? [
         {
-          property: 'Category',
+          property: NOTION_PROPERTY.category,
           select: { equals: category },
         },
       ]
@@ -71,7 +63,7 @@ export default async function handler(
       return response.status(200).json({ results: [], nextCursor: null });
     }
     const tagFilters = tag
-      ? [{ property: 'Tags', multi_select: { contains: tag } }]
+      ? [{ property: NOTION_PROPERTY.tags, multi_select: { contains: tag } }]
       : [];
 
     /*
@@ -85,7 +77,7 @@ export default async function handler(
       data_source_id: dataSourceId,
       page_size: limit,
       start_cursor: cursor,
-      sorts: [{ property: 'Published', direction: 'descending' }],
+      sorts: [{ property: NOTION_PROPERTY.published, direction: 'descending' }],
       filter: queryFilter,
     });
 

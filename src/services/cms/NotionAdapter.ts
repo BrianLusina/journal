@@ -1,25 +1,44 @@
+import { NOTION_PROPERTY } from '../../../api/notion/_schema';
 import CMSAdapter from './CMSAdapter';
 
-type NotionText = { plain_text?: string }[];
+type NotionText = { type?: string; plain_text?: string; mention?: { type: string } }[];
+
+type NotionFile =
+  | { type: 'external'; external: { url: string } }
+  | { type: 'file'; file: { url: string } };
 
 /**
  * The subset of a Notion page object (as returned by the api/notion routes) that the adapter
- * reads. Property names match the columns of the Notion posts database.
+ * reads. Keys are the 📰 Journal CMS properties named in api/notion/_schema.ts.
  */
 type NotionPage = {
   id: string;
   created_time: string;
-  cover?: { type: 'external' | 'file'; external?: { url: string }; file?: { url: string } } | null;
   properties: {
-    Title?: { title?: NotionText };
-    Slug?: { rich_text?: NotionText };
-    Description?: { rich_text?: NotionText };
-    Category?: { select?: { name: string } | null };
-    Date?: { date?: { start: string } | null };
-    Tags?: { multi_select?: { name: string }[] };
-    Author?: { people?: { id: string; name?: string; avatar_url?: string }[]; rich_text?: NotionText };
+    [NOTION_PROPERTY.title]?: { title?: NotionText };
+    [NOTION_PROPERTY.slug]?: { rich_text?: NotionText };
+    [NOTION_PROPERTY.description]?: { rich_text?: NotionText };
+    [NOTION_PROPERTY.category]?: { select?: { name: string } | null };
+    [NOTION_PROPERTY.published]?: { date?: { start: string } | null };
+    [NOTION_PROPERTY.tags]?: { multi_select?: { name: string }[] };
+    [NOTION_PROPERTY.authors]?: { rich_text?: NotionText };
+    [NOTION_PROPERTY.coverImage]?: { files?: NotionFile[] };
   };
 };
+
+/**
+ * Notion splits text wherever its formatting changes, so join every segment. A mention of a
+ * workspace member reads as "@Name"; drop the "@".
+ */
+function plainText(text: NotionText = []): string {
+  return text
+    .map(segment =>
+      segment.type === 'mention' && segment.mention?.type === 'user'
+        ? segment.plain_text?.replace(/^@/, '')
+        : segment.plain_text,
+    )
+    .join('');
+}
 
 /**
  * Maps a Notion Page object to the UnifiedPost domain model.
@@ -27,45 +46,26 @@ type NotionPage = {
 function mapNotionPageToUnified(page: NotionPage): UnifiedPost {
   const properties = page.properties;
 
-  // Extract standard properties gracefully
-  const title = properties.Title?.title?.[0]?.plain_text || 'Untitled';
-  // The posts routes only return pages with a Slug, and the slug route matches the whole Slug
+  const title = plainText(properties[NOTION_PROPERTY.title]?.title) || 'Untitled';
+  // The posts routes only return pages with a slug, and the slug route matches the whole slug
   // text, so join every segment rather than taking the first.
-  const slug = (properties.Slug?.rich_text ?? []).map(text => text.plain_text).join('');
-  const description = properties.Description?.rich_text?.[0]?.plain_text;
-  const category = properties.Category?.select?.name;
-  const publishDate = properties.Date?.date?.start || page.created_time;
-  
-  // Tags
-  const tags = properties.Tags?.multi_select?.map(tag => tag.name) || [];
+  const slug = plainText(properties[NOTION_PROPERTY.slug]?.rich_text);
+  const description = plainText(properties[NOTION_PROPERTY.description]?.rich_text) || undefined;
+  const category = properties[NOTION_PROPERTY.category]?.select?.name;
+  const publishDate = properties[NOTION_PROPERTY.published]?.date?.start || page.created_time;
+  const tags = properties[NOTION_PROPERTY.tags]?.multi_select?.map(tag => tag.name) || [];
 
-  // Authors (assuming people property or relation)
-  const authors: UnifiedAuthor[] = [];
-  if (properties.Author?.people) {
-    authors.push(
-      ...properties.Author.people.map(person => ({
-        id: person.id,
-        source: 'notion' as const,
-        name: person.name,
-        avatarUrl: person.avatar_url,
-      }))
-    );
-  } else if (properties.Author?.rich_text) {
-     authors.push({
-         id: 'notion-author',
-         source: 'notion',
-         // A name can span several rich-text segments (e.g. partly bold), so join them all.
-         name: properties.Author.rich_text.map(text => text.plain_text).join('')
-     });
-  }
+  // authors is a text property: one author, whose name may be typed or a mention.
+  const authorName = plainText(properties[NOTION_PROPERTY.authors]?.rich_text);
+  const authors: UnifiedAuthor[] = authorName
+    ? [{ id: 'notion-author', source: 'notion', name: authorName }]
+    : [];
 
-  // Cover image
   let heroImage: UnifiedAsset | undefined;
-  if (page.cover) {
-    const url = page.cover.type === 'external' ? page.cover.external?.url : page.cover.file?.url;
-    if (url) {
-      heroImage = { url, title: 'Cover Image' };
-    }
+  const cover = properties[NOTION_PROPERTY.coverImage]?.files?.[0];
+  if (cover) {
+    const url = cover.type === 'external' ? cover.external.url : cover.file.url;
+    heroImage = { url, title: 'Cover Image' };
   }
 
   return {
