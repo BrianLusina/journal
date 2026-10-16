@@ -21,6 +21,12 @@ describe('bundle budget', () => {
     expect(initialScripts(html)).toEqual(['assets/index-abc.js', 'assets/vendor-def.js']);
   });
 
+  it('counts a classic script that blocks the entry module, such as /env.js', () => {
+    const withEnv = html.replace('<script type="module"', '<script src="/env.js"></script>\n    $&');
+
+    expect(initialScripts(withEnv)).toEqual(['env.js', 'assets/index-abc.js', 'assets/vendor-def.js']);
+  });
+
   it('sums the gzipped size of those scripts in kB, leaving out lazily loaded chunks', () => {
     const dist = mkdtempSync(path.join(tmpdir(), 'dist-'));
     mkdirSync(path.join(dist, 'assets'));

@@ -24,6 +24,8 @@
 
   <body>
     <div id="root"></div>
+    <!-- Runtime configuration (window.__ENV__), which must run before the app reads src/config. -->
+    <script src="/env.js"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

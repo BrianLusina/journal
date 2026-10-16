@@ -11,7 +11,11 @@ const zlib = require('zlib');
 // when an SDK lands back in the first bundle.
 const BUDGET_KB = 185;
 
-/** The scripts index.html loads up front: the entry module and the chunks it preloads. */
+/**
+ * The scripts index.html loads up front: the entry module, the chunks it preloads and classic
+ * scripts such as /env.js. The Docker image serves a generated /env.js in place of public/env.js;
+ * either is a few hundred bytes.
+ */
 const initialScripts = html =>
   [...html.matchAll(/<(?:script[^>]*\ssrc|link[^>]*rel="modulepreload"[^>]*\shref)="\/?([^"]+\.js)"/g)].map(
     match => match[1],

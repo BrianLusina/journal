@@ -78,11 +78,43 @@ describe('toolchain left over from Create React App', () => {
   });
 });
 
+// The image runs the whole app, api/ included, on the Bun server in server/ (#839).
+describe('Docker image', () => {
+  const dockerfile = read('Dockerfile');
+
+  it('builds and runs on the bun version package.json pins', () => {
+    const bunVersion = JSON.parse(read('package.json')).packageManager.replace('bun@', '');
+    const images = [...dockerfile.matchAll(/^FROM (\S+)/gm)].map(match => match[1]);
+
+    expect(images).toEqual([`oven/bun:${bunVersion}-alpine`, `oven/bun:${bunVersion}-alpine`]);
+  });
+
+  it('bundles the server and the api/ functions, and runs the server as a non-root user', () => {
+    expect(dockerfile).toMatch(/^RUN bun server\/build\.ts$/m);
+    expect(dockerfile).toMatch(/^USER bun$/m);
+    expect(dockerfile).toMatch(/^EXPOSE 8080$/m);
+    expect(dockerfile).toMatch(/^HEALTHCHECK .*\/healthz/m);
+    expect(dockerfile).toMatch(/^CMD \["bun", "server\/index\.js"\]$/m);
+  });
+
+  it('takes no build arguments, since the app reads its configuration at runtime', () => {
+    expect(dockerfile).not.toMatch(/^(ARG|ENV) VITE_/m);
+    expect(read('.github/workflows/dockerimage.yml')).not.toMatch(/build-args|VITE_/);
+  });
+});
+
 describe('type-check policy', () => {
   it('type-checks src/ in the Tests workflow, since neither vite build nor Jest does', () => {
     expect(JSON.parse(read('package.json')).scripts.typecheck).toBe(
       'tsc -p tsconfig.app.json --noEmit',
     );
     expect(read('.github/workflows/tests.yml')).toMatch(/^\s*run: bun run typecheck\s*$/m);
+  });
+
+  it('type-checks the Docker image server in the Lint workflow', () => {
+    expect(JSON.parse(read('package.json')).scripts['typecheck:server']).toBe(
+      'tsc -p server/tsconfig.json --noEmit',
+    );
+    expect(read('.github/workflows/lint.yml')).toMatch(/^\s*run: bun run typecheck:server\s*$/m);
   });
 });

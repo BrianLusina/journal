@@ -42,6 +42,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 dist/
+dist-server/
 storybook-static/
 
 # bun is the package manager and bun.lock (text) its only lockfile; other lockfiles,
