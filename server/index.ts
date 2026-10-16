@@ -17,7 +17,7 @@ const envScript = renderEnvScript(process.env);
 
 const NO_CACHE = { 'Cache-Control': 'no-cache' };
 // Vite writes its content-hashed output straight into dist/assets/; public/assets/ only has
-// subdirectories, whose files are not hashed.
+// subdirectories, whose files are not hashed (scripts/repo-policy.spec.ts keeps it that way).
 const isHashedAsset = (pathname: string) => /^\/assets\/[^/]+$/.test(pathname);
 
 async function serveApi(request: Request, pathname: string, server: BunServer): Promise<Response> {
@@ -25,7 +25,13 @@ async function serveApi(request: Request, pathname: string, server: BunServer): 
   if (!route) {
     return Response.json({ error: 'Not found' }, { status: 404 });
   }
-  const { default: handler } = (await import(route.file)) as { default: Handler };
+  let handler: Handler;
+  try {
+    ({ default: handler } = (await import(route.file)) as { default: Handler });
+  } catch (error) {
+    console.error(error);
+    return Response.json({ error: 'Internal server error' }, { status: 500 });
+  }
   const { status, headers, body } = await invoke(
     handler,
     request,

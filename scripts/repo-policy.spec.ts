@@ -97,6 +97,15 @@ describe('Docker image', () => {
     expect(dockerfile).toMatch(/^CMD \["bun", "server\/index\.js"\]$/m);
   });
 
+  // The server caches every file directly in /assets/ for a year, as Vite's content-hashed output.
+  it('keeps unhashed public files out of the top level of public/assets/', () => {
+    const files = readdirSync(path.join(root, 'public/assets'), { withFileTypes: true }).filter(
+      entry => !entry.isDirectory(),
+    );
+
+    expect(files.map(entry => entry.name)).toEqual([]);
+  });
+
   it('takes no build arguments, since the app reads its configuration at runtime', () => {
     expect(dockerfile).not.toMatch(/^(ARG|ENV) VITE_/m);
     expect(read('.github/workflows/dockerimage.yml')).not.toMatch(/build-args|VITE_/);

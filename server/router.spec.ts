@@ -28,6 +28,14 @@ describe('api router', () => {
     });
   });
 
+  it('serves an index file at its directory', () => {
+    const apiDir = apiDirWith(['contact/index.ts', 'index.ts']);
+    const routes = discoverRoutes(apiDir);
+
+    expect(matchRoute(routes, '/api/contact')?.file).toBe(path.join(apiDir, 'contact/index.ts'));
+    expect(matchRoute(routes, '/api')?.file).toBe(path.join(apiDir, 'index.ts'));
+  });
+
   it('passes a [name] segment to the handler as a decoded param', () => {
     const apiDir = apiDirWith(['notion/posts/[slug].ts']);
 

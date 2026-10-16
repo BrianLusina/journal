@@ -49,15 +49,20 @@ describe('/env.js', () => {
   // The allowlist must name every VITE_ value the app reads at runtime, and nothing more.
   it('allowlists exactly the keys src/config reads with readEnv', () => {
     const configDir = path.resolve(__dirname, '..', 'src', 'config');
-    const sources = readdirSync(configDir)
-      .filter(file => file.endsWith('.ts') && !file.endsWith('.spec.ts'))
-      .map(file => readFileSync(path.join(configDir, file), 'utf8'));
-    const keysRead = sources.flatMap(source =>
+    const read = (file: string) => readFileSync(path.join(configDir, file), 'utf8');
+    const configSources = readdirSync(configDir)
+      .filter(file => file.endsWith('.ts') && !file.endsWith('.spec.ts') && file !== 'runtimeEnv.ts')
+      .map(read);
+    const keysRead = configSources.flatMap(source =>
       [...source.matchAll(/readEnv\('(VITE_\w+)'\)/g)].map(match => match[1]),
+    );
+    const buildTimeKeys = [...read('runtimeEnv.ts').matchAll(/import\.meta\.env\.(VITE_\w+)/g)].map(
+      match => match[1],
     );
 
     expect([...new Set(keysRead)].sort()).toEqual([...CLIENT_ENV_KEYS].sort());
+    expect([...new Set(buildTimeKeys)].sort()).toEqual([...CLIENT_ENV_KEYS].sort());
     // A value read straight from import.meta.env would be fixed at build time in the image.
-    expect(sources.join('\n')).not.toMatch(/import\.meta\.env\.VITE_/);
+    expect(configSources.join('\n')).not.toMatch(/import\.meta\.env\.VITE_/);
   });
 });

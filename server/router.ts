@@ -15,18 +15,22 @@ const dynamicCount = (route: Route) => route.segments.filter(segment => DYNAMIC.
 
 /**
  * The functions in apiDir, by Vercel's file-system routing: api/a/b.ts serves /api/a/b,
- * api/a/[id].ts serves /api/a/:id, and a file or directory starting with _ is not a route.
- * Specs and type declarations are not functions either. Static routes come before dynamic ones.
+ * api/a/index.ts serves /api/a, api/a/[id].ts serves /api/a/:id, and a file or directory starting
+ * with _ is not a route. Specs and type declarations are not functions either. Static
+ * routes come before dynamic ones.
  */
 export function discoverRoutes(apiDir: string): Route[] {
   return readdirSync(apiDir, { recursive: true, encoding: 'utf8' })
     .filter(file => HANDLER.test(file) && !NOT_A_HANDLER.test(file))
     .map(file => file.split(path.sep))
     .filter(parts => !parts.some(part => part.startsWith('_')))
-    .map(parts => ({
-      segments: [...parts.slice(0, -1), parts[parts.length - 1].replace(HANDLER, '')],
-      file: path.join(apiDir, ...parts),
-    }))
+    .map(parts => {
+      const name = parts[parts.length - 1].replace(HANDLER, '');
+      return {
+        segments: name === 'index' ? parts.slice(0, -1) : [...parts.slice(0, -1), name],
+        file: path.join(apiDir, ...parts),
+      };
+    })
     .sort((a, b) => dynamicCount(a) - dynamicCount(b));
 }
 
