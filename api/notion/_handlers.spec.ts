@@ -56,21 +56,27 @@ describe('Notion API routes', () => {
 
   it.each([
     ['without a category', {}, []],
-    ['with a category', { category: 'Travel' }, [{ property: 'Category', select: { equals: 'Travel' } }]],
-  ])('lists only published posts that have a slug and a date, %s', async (_, query, extraFilters) => {
+    [
+      'with a category',
+      { category: 'engineering strategy 101' },
+      [{ property: 'category', select: { equals: 'engineering strategy 101' } }],
+    ],
+  ])('lists only published posts that have a slug, newest first, %s', async (_, query, extraFilters) => {
     (notion.dataSources.query as jest.Mock).mockResolvedValue({ results: [], has_more: false, next_cursor: null });
 
     await postsHandler(request(query), response() as unknown as VercelResponse);
 
-    // A post without a slug cannot be opened: the slug route looks posts up by Slug.
-    // A post without a date cannot be placed in the merged feed, which is ordered by Date.
+    // Property names as the 📰 Journal CMS data source spells them; Notion rejects any other.
+    // Published means not a draft and dated: the merged feed is ordered by publish date.
+    // A post without a slug cannot be opened: the slug route looks posts up by slug.
     expect(notion.dataSources.query).toHaveBeenCalledWith(
       expect.objectContaining({
+        sorts: [{ property: 'published', direction: 'descending' }],
         filter: {
           and: [
-            { property: 'Status', status: { equals: 'Published' } },
-            { property: 'Slug', rich_text: { is_not_empty: true } },
-            { property: 'Published', date: { is_not_empty: true } },
+            { property: 'draft', checkbox: { equals: false } },
+            { property: 'published', date: { is_not_empty: true } },
+            { property: 'slug', rich_text: { is_not_empty: true } },
             ...extraFilters,
           ],
         },
@@ -83,22 +89,22 @@ describe('Notion API routes', () => {
   });
 
   it('lists posts carrying the tag by its exact name', async () => {
-    (notion.dataSources.retrieve as jest.Mock).mockResolvedValue(tagsSchema('Data Structures', 'Travel'));
+    (notion.dataSources.retrieve as jest.Mock).mockResolvedValue(tagsSchema('Decision', 'Framework'));
     (notion.dataSources.query as jest.Mock).mockResolvedValue({ results: [{ id: 'p1' }], has_more: false, next_cursor: null });
     const res = response();
 
-    await postsHandler(request({ tag: 'Data Structures' }), res as unknown as VercelResponse);
+    await postsHandler(request({ tag: 'Framework' }), res as unknown as VercelResponse);
 
     const { filter } = (notion.dataSources.query as jest.Mock).mock.calls[0][0];
-    expect(filter.and).toContainEqual({ property: 'Tags', multi_select: { contains: 'Data Structures' } });
+    expect(filter.and).toContainEqual({ property: 'Tags', multi_select: { contains: 'Framework' } });
     expect(res.json).toHaveBeenCalledWith({ results: [{ id: 'p1' }], nextCursor: null });
   });
 
   it('answers with no posts, without querying, when the tag is not a Tags option', async () => {
-    (notion.dataSources.retrieve as jest.Mock).mockResolvedValue(tagsSchema('Travel'));
+    (notion.dataSources.retrieve as jest.Mock).mockResolvedValue(tagsSchema('Framework'));
     const res = response();
 
-    await postsHandler(request({ tag: 'travel' }), res as unknown as VercelResponse);
+    await postsHandler(request({ tag: 'framework' }), res as unknown as VercelResponse);
 
     expect(notion.dataSources.retrieve).toHaveBeenCalledWith({ data_source_id: 'ds-1' });
     expect(notion.dataSources.query).not.toHaveBeenCalled();
@@ -112,7 +118,19 @@ describe('Notion API routes', () => {
 
     await postHandler(request({ slug: 'hello' }), res as unknown as VercelResponse);
 
-    expect(notion.dataSources.query).toHaveBeenCalledWith(expect.objectContaining({ data_source_id: 'ds-1' }));
+    // The same published rule as the listing, so every post listed can be opened and no other.
+    expect(notion.dataSources.query).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data_source_id: 'ds-1',
+        filter: {
+          and: [
+            { property: 'slug', rich_text: { equals: 'hello' } },
+            { property: 'draft', checkbox: { equals: false } },
+            { property: 'published', date: { is_not_empty: true } },
+          ],
+        },
+      }),
+    );
     expect(res.json).toHaveBeenCalledWith({ page: { id: 'p1' }, body: '# Body' });
   });
 
