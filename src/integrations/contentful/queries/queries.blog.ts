@@ -1,0 +1,42 @@
+import { gql } from '@apollo/client';
+import { AssetFragment, ContentfulMetadataFragment, SysFragment, BlogFragment } from '../fragments';
+
+export const GET_ALL_BLOGS = gql`
+  ${AssetFragment}
+  ${ContentfulMetadataFragment}
+  ${SysFragment}
+  ${BlogFragment}
+
+  query GetAllBlogs(
+    $skip: Int
+    $limit: Int
+    $preview: Boolean
+    $locale: String
+    $where: BlogPostFilter
+    $order: [BlogPostOrder]
+  ) {
+    blogPostCollection(
+      skip: $skip
+      limit: $limit
+      preview: $preview
+      locale: $locale
+      where: $where
+      order: $order
+    ) {
+      total
+      limit
+      items {
+        ...BlogFragment
+      }
+    }
+  }
+`;
+
+export const GET_BLOG = gql`
+  ${BlogFragment}
+  query GetBlog($id: String!, $preview: Boolean, $locale: String) {
+    blogPost(id: $id, preview: $preview, locale: $locale) {
+      ...BlogFragment
+    }
+  }
+`;

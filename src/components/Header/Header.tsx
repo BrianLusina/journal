@@ -1,14 +1,13 @@
 import { FunctionComponent } from 'react';
-import { Link } from 'react-router-dom';
 import config from '@config';
 import { HeaderProps } from './Header.types';
-import './header.scss';
+// import './header.scss';
 
 const Header: FunctionComponent<HeaderProps> = ({ title = config.title, children }) => {
   return (
-    <header id="header">
-      <h1>
-        <Link to="/">{title}</Link>
+    <header className="sticky top-0 z-50 py-2 sm:py-4 flex justify-between items-center px-4">
+      <h1 className="text-xl font-bold">
+        <a href="/" className="hover:text-primary transition-colors">{title}</a>
       </h1>
       {children}
     </header>

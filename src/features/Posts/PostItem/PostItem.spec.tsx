@@ -25,7 +25,7 @@ describe('PostItem', () => {
       date,
       img: image,
       tags,
-      authorIds: [faker.random.uuid()],
+      authors: [{ id: 'author-1', source: 'contentful' as const, name: 'Ada Lovelace' }],
     };
 
     render(
@@ -53,5 +53,6 @@ describe('PostItem', () => {
       expect(imageElement).toBeInTheDocument();
     });
     expect(tagsElement).toBeInTheDocument();
+    expect(screen.getByText('Ada Lovelace').closest('a')).toHaveAttribute('href', '/authors/author-1');
   });
 });

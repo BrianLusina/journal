@@ -11,14 +11,13 @@ describe('MiniPostItem', () => {
     const title = faker.lorem.word();
     const time = faker.date.recent().toDateString();
     const imgUrl = faker.image.imageUrl();
-    const authorId = faker.datatype.uuid();
 
     const props = {
       id,
       slug,
       link,
       title,
-      authorIds: [authorId],
+      authors: [{ id: 'notion-user', source: 'notion' as const, name: 'Ada Lovelace' }],
       time,
       imgUrl,
     };
@@ -31,5 +30,6 @@ describe('MiniPostItem', () => {
 
     const titleElement = screen.getByText(title);
     expect(titleElement).toBeInTheDocument();
+    expect(screen.getByText('Ada Lovelace')).toBeInTheDocument();
   });
 });

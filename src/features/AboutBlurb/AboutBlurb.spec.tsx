@@ -1,4 +1,4 @@
-import { GET_ABOUT_PAGES } from '@graphQl/queries';
+import { GET_ABOUT_PAGES } from '@contentfulClient';
 import faker from 'faker';
 import { render, screen, act } from '@testing-library/react';
 import MockApp from '@testUtils/MockApp';
@@ -39,17 +39,13 @@ describe('AboutBlurb', () => {
       },
     ];
 
-    await act(async () => {
-      render(
-        <MockApp mocks={aboutMock}>
-          <AboutBlurb />
-        </MockApp>,
-      );
-    });
+    render(
+      <MockApp mocks={aboutMock}>
+        <AboutBlurb />
+      </MockApp>,
+    );
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    const paragraphTextElement = screen.getByText(paragraph);
+    const paragraphTextElement = await screen.findByText(paragraph);
 
     expect(paragraphTextElement).toBeInTheDocument();
   });

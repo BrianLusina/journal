@@ -3,7 +3,7 @@ export type MiniPostProps = {
   slug: string;
   id: string;
   title: string;
-  authorIds: string[];
+  authors: UnifiedAuthor[];
   time: string;
   imgUrl: string;
 };

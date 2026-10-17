@@ -1,19 +1,21 @@
+import { ABOUT_PAGE_ROUTE, ARTICLES_PAGE_ROUTE, CONTACT_PAGE_ROUTE, HOME_PAGE_ROUTE } from '@/routes/links';
+
 const navbarItems = [
   {
-    name: 'Tech',
-    path: '/tech',
+    name: 'Home',
+    path: HOME_PAGE_ROUTE,
   },
   {
-    name: 'Design',
-    path: '/design',
+    name: 'Articles',
+    path: ARTICLES_PAGE_ROUTE,
   },
   {
-    name: 'Finance',
-    path: '/finance',
+    name: 'About',
+    path: ABOUT_PAGE_ROUTE,
   },
   {
-    name: 'Life',
-    path: '/life',
+    name: 'Contact',
+    path: CONTACT_PAGE_ROUTE,
   },
 ];
 
