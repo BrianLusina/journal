@@ -8,15 +8,15 @@
  * constants, so the browser bundle can import it too.
  */
 export const NOTION_PROPERTY = {
-  title: 'title',
-  slug: 'slug',
-  description: 'description',
-  category: 'category',
-  published: 'published',
-  draft: 'draft',
+  title: 'Title',
+  slug: 'Slug',
+  description: 'Description',
+  category: 'Category',
+  published: 'Published',
+  draft: 'Draft',
   tags: 'Tags',
-  authors: 'authors',
-  coverImage: 'cover_image',
+  authors: 'Authors',
+  coverImage: 'Cover Image',
 } as const;
 
 /**
