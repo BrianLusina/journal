@@ -47,8 +47,8 @@ export default async function handler(
   const categoryFilters = category
     ? [
         {
-          property: NOTION_PROPERTY.category,
-          select: { equals: category },
+          property: NOTION_PROPERTY.categories,
+          multi_select: { contains: category },
         },
       ]
     : [];

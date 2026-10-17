@@ -57,7 +57,7 @@ Add new aliases there only. Before this was consolidated, three hand-copied list
 
 Every source maps its content onto `UnifiedPost` (`src/types/cms.d.ts`): `id`, `source`, `title`, `slug`, `publishDate`, `tags: string[]`, `authors: UnifiedAuthor[]`, and optional `subtitle`, `description`, `category`, `body` (Markdown), `heroImage`, `thumbnail`. UI code that renders posts should depend on this model only, never on a CMS's own types.
 
-`UnifiedAuthor` (`id`, `source`, `name`, `avatarUrl`, `shortBio`) carries everything `AuthorBadge` displays, so authors are never fetched again per badge. An author's `id` is only meaningful within its `source`; only Contentful authors link to the authors page. A Notion post has at most one author, named by its `authors` text property (typed, or a mention of a workspace member), and no avatar. Notion gives a mentioned member's name only when the integration has the **Read user information** capability; without it, type the name instead of mentioning.
+`UnifiedAuthor` (`id`, `source`, `name`, `avatarUrl`, `shortBio`) carries everything `AuthorBadge` displays, so authors are never fetched again per badge. An author's `id` is only meaningful within its `source`; only Contentful authors link to the authors page. A Notion post has at most one author, named by its `Authors` text property (typed, or a mention of a workspace member), and no avatar. Notion gives a mentioned member's name only when the integration has the **Read user information** capability; without it, type the name instead of mentioning.
 
 ### Adapters
 
@@ -71,7 +71,7 @@ interface CMSAdapter {
 ```
 
 - **`ContentfulAdapter`** queries Contentful with the shared Apollo client (`network-only`), ordered by `publishDate_DESC`, and maps `BlogPostItem` to `UnifiedPost`. Its cursor is the offset of the next post. Listings only include posts that have a `publishDate`, the key the feed merges on.
-- **`NotionAdapter`** calls `/api/notion/posts` and `/api/notion/posts/:slug`, and maps the page properties listed under [Notion schema](#notion-schema). The `[slug]` function converts the page body to Markdown with `notion-to-md`, so both sources produce Markdown for `ArticlePage`. Its cursor is Notion's own `next_cursor`, passed through `/api/notion/posts?cursor=…`; each request reads one Notion page (at most 100 posts), so there is no limit on how far the feed can go. A Notion page is **published** when `draft` is unchecked **and** `published` is set (the feed merges on publish date, so an undated post has no place in it). It is listed only when it is published and its `slug` is not empty (a post without a slug could never be opened), and opened by slug only when it is published.
+- **`NotionAdapter`** calls `/api/notion/posts` and `/api/notion/posts/:slug`, and maps the page properties listed under [Notion schema](#notion-schema). The `[slug]` function converts the page body to Markdown with `notion-to-md`, so both sources produce Markdown for `ArticlePage`. Its cursor is Notion's own `next_cursor`, passed through `/api/notion/posts?cursor=…`; each request reads one Notion page (at most 100 posts), so there is no limit on how far the feed can go. A Notion page is **published** when its `Status` is `Published` **and** `Published` (the date) is set (the feed merges on publish date, so an undated post has no place in it). It is listed only when it is published and its `Slug` is not empty (a post without a slug could never be opened), and opened by slug only when it is published.
 
 #### Notion schema
 
@@ -79,17 +79,17 @@ The routes and the adapter read the 📰 Journal CMS data source, whose properti
 
 | Property | Notion type (API type) | Used for | `UnifiedPost` field |
 |---|---|---|---|
-| `title` | Title (`title`) | | `title` (`Untitled` when empty) |
-| `slug` | Text (`rich_text`) | Listed only when not empty; the slug route matches it exactly | `slug` |
-| `description` | Text (`rich_text`) | | `description` |
-| `category` | Select (`select`) | `?category=` filter (`select.equals`) | `category` |
-| `published` | Date (`date`) | Published only when set; sort, newest first | `publishDate` |
-| `draft` | Checkbox (`checkbox`) | Published only when unchecked | |
+| `Title` | Title (`title`) | | `title` (`Untitled` when empty) |
+| `Slug` | Text (`rich_text`) | Listed only when not empty; the slug route matches it exactly | `slug` |
+| `Description` | Text (`rich_text`) | | `description` |
+| `Categories` | Multi-select (`multi_select`) | `?category=` filter (`multi_select.contains`) | `category` (the first option; a post has one category, as in Contentful) |
+| `Published` | Date (`date`) | Published only when set; sort, newest first | `publishDate` |
+| `Status` | Status (`status`) | Published only when `Published` (the other options are Draft, In progress and Changed) | |
 | `Tags` | Multi-select (`multi_select`) | `?tag=` filter (`multi_select.contains`, see [Tags](#tags)) | `tags` |
-| `authors` | Text (`rich_text`) | | `authors` (one author, or none when empty) |
-| `cover_image` | Files & media (`files`) | First file | `heroImage` and `thumbnail`. Files uploaded to Notion have links that expire after an hour; the routes cache for at most 6 minutes. |
+| `Authors` | Text (`rich_text`) | | `authors` (one author, or none when empty) |
+| `Cover Image` | Files & media (`files`) | First file | `heroImage` and `thumbnail`. Files uploaded to Notion have links that expire after an hour; the routes cache for at most 6 minutes. |
 
-`canonical_url` exists in the database but isn't read yet. Text values are joined across their segments, since Notion splits text wherever its formatting changes.
+`Draft` (checkbox) also exists in the database but isn't read: `Status` decides whether a post is published. Text values are joined across their segments, since Notion splits text wherever its formatting changes.
 
 `src/services/cms/adapters.ts` is the registry: an ordered array of adapter instances. Array order is priority order when two sources publish the same slug.
 
