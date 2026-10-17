@@ -29,9 +29,12 @@ const notionPage = (properties: Record<string, unknown> = {}, extra: Record<stri
       type: 'rich_text',
       rich_text: [{ type: 'text', annotations: { bold: true }, plain_text: 'A Framework-Centric Approach' }],
     },
-    Category: { type: 'select', select: { id: 'V0tG', name: 'engineering strategy 101', color: 'brown' } },
+    Categories: {
+      type: 'multi_select',
+      multi_select: [{ id: 'V0tG', name: 'engineering strategy 101', color: 'brown' }],
+    },
     Published: { type: 'date', date: { start: '2024-02-07T04:00:00.000+00:00', end: null, time_zone: null } },
-    draft: { type: 'checkbox', checkbox: false },
+    Status: { type: 'status', status: { id: 'pub', name: 'Published', color: 'green' } },
     Tags: {
       type: 'multi_select',
       multi_select: [
@@ -134,7 +137,7 @@ describe('NotionAdapter', () => {
         notionPage({
           Title: { type: 'title', title: [] },
           Description: { type: 'rich_text', rich_text: [] },
-          Category: { type: 'select', select: null },
+          Categories: { type: 'multi_select', multi_select: [] },
           Published: { type: 'date', date: null },
           Tags: { type: 'multi_select', multi_select: [] },
           Authors: { type: 'rich_text', rich_text: [] },
