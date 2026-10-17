@@ -38,9 +38,10 @@ The site is a client-rendered React 18 single-page app built with Vite. Posts ca
 | `src/services/monitoring/`, `src/services/analytics/` | Sentry and Firebase Analytics wrappers. Both are no-ops outside production. |
 | `src/integrations/contentful/` | The Contentful Apollo client instance, plus queries and fragments. |
 | `src/clients/graphql/` | Apollo client factory and links (auth, retry, error reporting, HTTP). |
-| `src/config/` | Typed access to `import.meta.env`. |
+| `src/config/` | Typed access to the `VITE_*` configuration through `readEnv` (see [Configuration](#configuration)). |
 | `src/types/` | Ambient types: the unified post model (`cms.d.ts`) and Contentful GraphQL shapes (`gql/`). |
 | `api/notion/` | Vercel Functions that hold the Notion credentials. They compile with `api/tsconfig.json` (CommonJS, Node resolution), not the root Vite config: Node loads them as CommonJS because `package.json` has no `"type": "module"`. |
+| `server/` | The Docker image's Bun server. It serves `dist/`, runs the `api/` functions through a Vercel adapter and sets the runtime configuration in `index.html`. Vercel doesn't use it. |
 
 ### Path aliases
 
@@ -146,7 +147,13 @@ The About page's story section renders the Contentful `about` entry's `title` an
 
 ## Configuration
 
-All browser configuration is read in `src/config/` from `import.meta.env`. Only `VITE_*` variables (plus Vite's `MODE`, `DEV`, `PROD`) exist there; `NODE_ENV` and other unprefixed names are always `undefined` in the browser. See `.env.sample` for the full list.
+All browser configuration is read in `src/config/`. Only `VITE_*` variables (plus Vite's `MODE`, `DEV`, `PROD`) exist there; `NODE_ENV` and other unprefixed names are always `undefined` in the browser. See `.env.sample` for the full list.
+
+Each `VITE_*` value is read with `readEnv` (`src/config/runtimeEnv.ts`), which returns `window.__ENV__?.KEY ?? import.meta.env.KEY`. An inline `<script>` in `index.html`, before the app, sets `window.__ENV__` first: `window.__ENV__ = window.__ENV__ || {}; /*__RUNTIME_ENV__*/`. It is inline so that no host pays for an extra request before the first paint.
+
+- **On Vercel**, nothing replaces the placeholder, so `window.__ENV__` stays empty and the app uses the values Vite inlined at build time.
+- **In the Docker image**, the server reads `dist/index.html` once at startup and replaces the placeholder with the allowlisted `VITE_*` variables from the container's environment (`CLIENT_ENV_KEYS` and `injectEnv` in `server/envScript.ts`), never any other variable. `<` is escaped, so no value can close the script. The server refuses to start if the placeholder is missing. `server/envScript.spec.ts` checks that the placeholder survives `vite build`, and fails when the allowlist and the keys `src/config` reads differ, so add a new `VITE_*` key to both.
+- **Firebase:** because `VITE_FIREBASE_PROJECT_ID` can now arrive at runtime, Rollup can no longer drop the Firebase chunks from a build made without it. They are still loaded only by `import()`, so they stay out of the initial bundle.
 
 | Variable | Used by |
 |---|---|
@@ -159,9 +166,15 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
 
 ## Deployment topology
 
-- The SPA is static (`dist/`). The Notion integration **requires** a host that runs the `api/` functions; today that is Vercel, which builds every PR as a preview.
-- Production deploys through the Vercel GitHub integration. GitHub Actions does only what Vercel doesn't on pushes to `staging` and `production`: semantic-release tags (`release.yml`) and the nginx Docker image (`dockerimage.yml`). The Sentry release and source maps come from Vercel's own build (see `SENTRY_*` above), so they match the deployed bundle.
-- A static-only host (nginx Docker image, GitHub Pages) serves the app with Contentful content only. The aggregator degrades gracefully, but Notion posts won't appear.
+- The SPA is static (`dist/`). The Notion integration **requires** a host that runs the `api/` functions: Vercel, which builds every PR as a preview, or the Docker image.
+- Production deploys through the Vercel GitHub integration. GitHub Actions does only what Vercel doesn't on pushes to `staging` and `production`: semantic-release tags (`release.yml`) and the Docker image (`dockerimage.yml`), pushed to `ghcr.io/<owner>/journal` and tagged with the branch and the commit SHA. The Sentry release and source maps come from Vercel's own build (see `SENTRY_*` above), so they match the deployed bundle.
+- The **Docker image** runs the whole app, `api/` included, on Bun (`server/index.ts`), for hosts with a container runtime:
+  - **Static files:** `dist/`, with `index.html` for any other path (the SPA's routes). Files directly in `/assets/`, which Vite content-hashes, are cached for a year (`scripts/repo-policy.spec.ts` keeps unhashed files out of the top of `public/assets/`); `index.html` (with the configuration set) is `no-cache`. A missing `/assets/*` file is a 404, not `index.html`.
+  - **Functions:** `/api/...` runs the matching file in `api/` by Vercel's file-system rules: `api/notion/posts.ts` serves `/api/notion/posts`, `api/notion/posts/[slug].ts` serves `/api/notion/posts/:slug`, `api/a/index.ts` serves `/api/a`, and files and directories starting with `_` (such as `api/_forms/`) are not routes. An unknown `/api` path is a JSON 404, and a function that fails to load or throws a JSON 500. `server/adapter.ts` passes a handler the part of `VercelRequest` and `VercelResponse` the functions use: `req.method`, `req.query` (with the dynamic segments), `req.headers`, `req.body` (parsed when it is JSON), `req.socket.remoteAddress` (the client's address), and `res.status`, `res.setHeader`, `res.json`, `res.send` and `res.end`. A function that needs more must have it added there.
+  - **Build:** `bun server/build.ts` bundles the server and each function, with the packages they import, into `dist-server/`, so the image has no `node_modules`.
+  - **Configuration** comes from the container's environment when it starts: the `VITE_*` variables (set in `index.html`, see [Configuration](#configuration)) and the server-only ones (`NOTION_*`, and `RESEND_*` and `CONTACT_*` once the forms use Resend, #826). The image is built without build arguments, so one image runs in every environment. `PORT` changes the port (default 8080). Run it behind a proxy that overwrites `X-Forwarded-For`: the form functions (#826) rate-limit by the address in that header when it is set, so a client could otherwise send a new one with each request.
+  - **Health:** `/healthz` answers `ok`, and the Dockerfile's `HEALTHCHECK` polls it.
+- A static-only host (GitHub Pages) serves the app with Contentful content only. The aggregator degrades gracefully, but Notion posts won't appear.
 - `vite dev` does not run `api/`. Use `vercel dev` to work on Notion content locally (BrianLusina/journal#802).
 
 ## Testing
@@ -176,7 +189,7 @@ All browser configuration is read in `src/config/` from `import.meta.env`. Only 
   - Hooks are tested against a mocked aggregator.
   - Pages and features are tested against mocked hooks.
 - **CI:** GitHub Actions runs tests with coverage, ESLint and stylelint, and a production build on every push. All use bun with the committed text lockfile `bun.lock`. Dependabot updates it through the `bun` ecosystem.
-- **Type-checking:** `vite build` and Jest only transpile, so neither catches type errors. The Tests workflow runs `bun run typecheck` (`tsc -p tsconfig.app.json --noEmit`, all of `src/` including specs and stories) and fails on any error; `scripts/repo-policy.spec.ts` keeps that step in place. `tsconfig.app.json` is not `strict` yet, so `tsc` misses what only strict checks catch, such as `undefined` passed where a value is required, or story args set through `Template.bind({})` (typed `any` without `strictBindCallApply`). The Vercel functions in `api/` (not their specs) are type-checked by the Lint workflow (`bun run typecheck:api`), and `scripts/api-functions.spec.ts` checks that the config Vercel compiles each one with emits CommonJS.
+- **Type-checking:** `vite build` and Jest only transpile, so neither catches type errors. The Tests workflow runs `bun run typecheck` (`tsc -p tsconfig.app.json --noEmit`, all of `src/` including specs and stories) and fails on any error; `scripts/repo-policy.spec.ts` keeps that step in place. `tsconfig.app.json` is not `strict` yet, so `tsc` misses what only strict checks catch, such as `undefined` passed where a value is required, or story args set through `Template.bind({})` (typed `any` without `strictBindCallApply`). The Vercel functions in `api/` (not their specs) are type-checked by the Lint workflow (`bun run typecheck:api`), and `scripts/api-functions.spec.ts` checks that the config Vercel compiles each one with emits CommonJS. The Lint workflow also type-checks the Docker image's server (`bun run typecheck:server`, with `server/tsconfig.json`). `server/index.spec.ts` starts that server with Bun (so `bun` must be on the `PATH` for Jest) over a small `dist/` and `api/` of its own.
 
 ## Known limits and follow-ups
 

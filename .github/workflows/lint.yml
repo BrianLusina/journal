@@ -33,3 +33,6 @@ jobs:
 
     - name: Type-check Vercel functions
       run: bun run typecheck:api
+
+    - name: Type-check the Docker image server
+      run: bun run typecheck:server
