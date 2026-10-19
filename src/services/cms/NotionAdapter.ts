@@ -9,7 +9,7 @@ type NotionFile =
 
 /**
  * The subset of a Notion page object (as returned by the api/notion routes) that the adapter
- * reads. Keys are the 📰 Journal CMS properties named in api/notion/_schema.ts.
+ * reads. Keys are the 📔 Journal CMS properties named in api/notion/_schema.ts.
  */
 type NotionPage = {
   id: string;
@@ -18,7 +18,7 @@ type NotionPage = {
     [NOTION_PROPERTY.title]?: { title?: NotionText };
     [NOTION_PROPERTY.slug]?: { rich_text?: NotionText };
     [NOTION_PROPERTY.description]?: { rich_text?: NotionText };
-    [NOTION_PROPERTY.category]?: { select?: { name: string } | null };
+    [NOTION_PROPERTY.categories]?: { multi_select?: { name: string }[] };
     [NOTION_PROPERTY.published]?: { date?: { start: string } | null };
     [NOTION_PROPERTY.tags]?: { multi_select?: { name: string }[] };
     [NOTION_PROPERTY.authors]?: { rich_text?: NotionText };
@@ -51,7 +51,8 @@ function mapNotionPageToUnified(page: NotionPage): UnifiedPost {
   // text, so join every segment rather than taking the first.
   const slug = plainText(properties[NOTION_PROPERTY.slug]?.rich_text);
   const description = plainText(properties[NOTION_PROPERTY.description]?.rich_text) || undefined;
-  const category = properties[NOTION_PROPERTY.category]?.select?.name;
+  // Categories is a multi-select; a UnifiedPost has one category, as a Contentful post does.
+  const category = properties[NOTION_PROPERTY.categories]?.multi_select?.[0]?.name;
   const publishDate = properties[NOTION_PROPERTY.published]?.date?.start || page.created_time;
   const tags = properties[NOTION_PROPERTY.tags]?.multi_select?.map(tag => tag.name) || [];
 

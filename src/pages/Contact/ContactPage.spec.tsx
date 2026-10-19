@@ -25,15 +25,13 @@ const renderPage = async () => {
 };
 
 describe('ContactPage', () => {
-  // There is no backend to send messages to yet, so the page must not offer a form that
-  // pretends to send one.
-  it('renders no message form and never claims a message was sent', async () => {
-    const { container } = await renderPage();
+  // Sending and its outcomes are covered by ContactForm.spec.tsx.
+  it('offers the contact form', async () => {
+    await renderPage();
 
-    expect(container.querySelector('form')).toBeNull();
-    expect(screen.queryAllByRole('textbox')).toHaveLength(0);
-    expect(screen.queryByRole('button', { name: /send/i })).not.toBeInTheDocument();
-    expect(screen.queryByText(/message sent/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Send us a message' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Message')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Send Message' })).toBeInTheDocument();
   });
 
   it('links to the social accounts from Contentful', async () => {
@@ -50,6 +48,5 @@ describe('ContactPage', () => {
 
     expect(screen.queryByText(/@journal\.blog/)).not.toBeInTheDocument();
     expect(screen.queryByText(/555/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/use the form/i)).not.toBeInTheDocument();
   });
 });

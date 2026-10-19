@@ -59,7 +59,7 @@ describe('Notion API routes', () => {
     [
       'with a category',
       { category: 'engineering strategy 101' },
-      [{ property: 'category', select: { equals: 'engineering strategy 101' } }],
+      [{ property: 'Categories', multi_select: { contains: 'engineering strategy 101' } }],
     ],
   ])('lists only published posts that have a slug, newest first, %s', async (_, query, extraFilters) => {
     (notion.dataSources.query as jest.Mock).mockResolvedValue({ results: [], has_more: false, next_cursor: null });
@@ -67,16 +67,17 @@ describe('Notion API routes', () => {
     await postsHandler(request(query), response() as unknown as VercelResponse);
 
     // Property names as the 📰 Journal CMS data source spells them; Notion rejects any other.
-    // Published means not a draft and dated: the merged feed is ordered by publish date.
+    // Published means Status is Published and the post is dated: the merged feed is ordered by
+    // publish date.
     // A post without a slug cannot be opened: the slug route looks posts up by slug.
     expect(notion.dataSources.query).toHaveBeenCalledWith(
       expect.objectContaining({
-        sorts: [{ property: 'published', direction: 'descending' }],
+        sorts: [{ property: 'Published', direction: 'descending' }],
         filter: {
           and: [
-            { property: 'draft', checkbox: { equals: false } },
-            { property: 'published', date: { is_not_empty: true } },
-            { property: 'slug', rich_text: { is_not_empty: true } },
+            { property: 'Status', status: { equals: 'Published' } },
+            { property: 'Published', date: { is_not_empty: true } },
+            { property: 'Slug', rich_text: { is_not_empty: true } },
             ...extraFilters,
           ],
         },
@@ -124,9 +125,9 @@ describe('Notion API routes', () => {
         data_source_id: 'ds-1',
         filter: {
           and: [
-            { property: 'slug', rich_text: { equals: 'hello' } },
-            { property: 'draft', checkbox: { equals: false } },
-            { property: 'published', date: { is_not_empty: true } },
+            { property: 'Slug', rich_text: { equals: 'hello' } },
+            { property: 'Status', status: { equals: 'Published' } },
+            { property: 'Published', date: { is_not_empty: true } },
           ],
         },
       }),

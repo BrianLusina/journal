@@ -11,7 +11,7 @@ const notionPage = (properties: Record<string, unknown> = {}, extra: Record<stri
   created_time: '2024-02-06T10:12:00.000Z',
   cover: null,
   properties: {
-    title: {
+    Title: {
       id: 'title',
       type: 'title',
       title: [
@@ -24,14 +24,17 @@ const notionPage = (properties: Record<string, unknown> = {}, extra: Record<stri
         },
       ],
     },
-    slug: { type: 'rich_text', rich_text: [{ type: 'text', plain_text: 'navigating-decision-making' }] },
-    description: {
+    Slug: { type: 'rich_text', rich_text: [{ type: 'text', plain_text: 'navigating-decision-making' }] },
+    Description: {
       type: 'rich_text',
       rich_text: [{ type: 'text', annotations: { bold: true }, plain_text: 'A Framework-Centric Approach' }],
     },
-    category: { type: 'select', select: { id: 'V0tG', name: 'engineering strategy 101', color: 'brown' } },
-    published: { type: 'date', date: { start: '2024-02-07T04:00:00.000+00:00', end: null, time_zone: null } },
-    draft: { type: 'checkbox', checkbox: false },
+    Categories: {
+      type: 'multi_select',
+      multi_select: [{ id: 'V0tG', name: 'engineering strategy 101', color: 'brown' }],
+    },
+    Published: { type: 'date', date: { start: '2024-02-07T04:00:00.000+00:00', end: null, time_zone: null } },
+    Status: { type: 'status', status: { id: 'pub', name: 'Published', color: 'green' } },
     Tags: {
       type: 'multi_select',
       multi_select: [
@@ -40,7 +43,7 @@ const notionPage = (properties: Record<string, unknown> = {}, extra: Record<stri
       ],
     },
     // A text property whose value is a mention of a workspace member.
-    authors: {
+    Authors: {
       type: 'rich_text',
       rich_text: [
         {
@@ -50,7 +53,7 @@ const notionPage = (properties: Record<string, unknown> = {}, extra: Record<stri
         },
       ],
     },
-    cover_image: {
+    "Cover Image": {
       type: 'files',
       files: [
         {
@@ -103,12 +106,12 @@ describe('NotionAdapter', () => {
       results: [
         notionPage({
           // Notion splits text wherever its formatting changes.
-          title: { type: 'title', title: [{ plain_text: 'Clean code is ' }, { plain_text: 'not mandatory' }] },
+          Title: { type: 'title', title: [{ plain_text: 'Clean code is ' }, { plain_text: 'not mandatory' }] },
           // The slug route matches the whole slug text, so every segment must be part of the link.
-          slug: { type: 'rich_text', rich_text: [{ plain_text: 'clean-code-' }, { plain_text: 'is-not-mandatory' }] },
-          description: { type: 'rich_text', rich_text: [{ plain_text: 'On ' }, { plain_text: 'craft' }] },
-          authors: { type: 'rich_text', rich_text: [{ type: 'text', plain_text: 'kanekotic' }] },
-          cover_image: {
+          Slug: { type: 'rich_text', rich_text: [{ plain_text: 'clean-code-' }, { plain_text: 'is-not-mandatory' }] },
+          Description: { type: 'rich_text', rich_text: [{ plain_text: 'On ' }, { plain_text: 'craft' }] },
+          Authors: { type: 'rich_text', rich_text: [{ type: 'text', plain_text: 'kanekotic' }] },
+          "Cover Image": {
             type: 'files',
             files: [{ name: 'cover.png', type: 'external', external: { url: 'https://images/cover.png' } }],
           },
@@ -132,13 +135,13 @@ describe('NotionAdapter', () => {
     mockFetch(200, {
       results: [
         notionPage({
-          title: { type: 'title', title: [] },
-          description: { type: 'rich_text', rich_text: [] },
-          category: { type: 'select', select: null },
-          published: { type: 'date', date: null },
+          Title: { type: 'title', title: [] },
+          Description: { type: 'rich_text', rich_text: [] },
+          Categories: { type: 'multi_select', multi_select: [] },
+          Published: { type: 'date', date: null },
           Tags: { type: 'multi_select', multi_select: [] },
-          authors: { type: 'rich_text', rich_text: [] },
-          cover_image: { type: 'files', files: [] },
+          Authors: { type: 'rich_text', rich_text: [] },
+          "Cover Image": { type: 'files', files: [] },
         }),
       ],
       nextCursor: null,

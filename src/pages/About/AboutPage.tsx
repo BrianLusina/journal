@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm';
 import { GET_ABOUT_PAGES } from '@contentfulClient';
 import { captureException, captureScope, Severity } from '@monitoring';
 import MarkdownComponents from '@/components/ui/markdown';
+import SubscribeForm from '@/features/NewsLetter/SubscribeForm';
 import config from '@config';
 
 const AboutPage = () => {
@@ -130,6 +131,16 @@ const AboutPage = () => {
             </p>
           </div>
         </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="text-center py-12 px-4 rounded-2xl bg-card">
+        <h2 className="text-3xl font-bold mb-4">Join Our Community</h2>
+        <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
+          Subscribe to receive our latest articles, insights, and inspiration directly in your
+          inbox.
+        </p>
+        <SubscribeForm />
       </section>
     </main>
   );
