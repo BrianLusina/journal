@@ -80,9 +80,30 @@ Since Notion API version 2025-09-03, queries target a database's *data source*, 
 
 Do not prefix either variable with `VITE_`, because Vite exposes `VITE_*` variables to the browser. For local development, put the same variables in `.env.local` and run `vercel dev` so the Vite app and the API functions share one origin. The Notion integration must have access to the database in Notion.
 
-Production deploys through the Vercel GitHub integration. On pushes to `staging` and `production`, GitHub Actions also tags a release with semantic-release (`release.yml`) and publishes the nginx Docker image (`dockerimage.yml`). Vercel's build uploads source maps to Sentry when `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` and `SENTRY_PROJECT` are set in the Vercel project.
+Production deploys through the Vercel GitHub integration. On pushes to `staging` and `production`, GitHub Actions also tags a release with semantic-release (`release.yml`) and publishes the Docker image to `ghcr.io/brianlusina/journal` (`dockerimage.yml`), tagged with the branch and the commit SHA. Vercel's build uploads source maps to Sentry when `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` and `SENTRY_PROJECT` are set in the Vercel project.
 
-A static-only host (the nginx [Dockerfile](./Dockerfile), GitHub Pages) can serve the app with Contentful content only.
+### Docker
+
+The [Dockerfile](./Dockerfile) builds an image that runs the whole app, including the `api/` functions, on a small Bun server (`server/`). It reads its configuration from the container's environment when it starts, so one image runs in every environment:
+
+- **Client:** the `VITE_*` variables in `.env.sample`, set in the page the server sends. Only an allowlist of the keys the app reads is sent; never put a secret in a `VITE_*` variable.
+- **Server only:** `NOTION_API_KEY` with `NOTION_DATA_SOURCE_ID` (or `NOTION_DATABASE_ID`), plus `RESEND_*` and `CONTACT_*` for the contact and newsletter forms. These never reach the browser.
+- `PORT` (optional, default 8080).
+
+```bash
+docker build -t journal .
+docker run --rm -p 8080:8080 \
+  -e VITE_ENV=production \
+  -e VITE_CONTENTFUL_CMS_SPACE_ID=... \
+  -e VITE_CONTENTFUL_CMS_API_KEY=... \
+  -e NOTION_API_KEY=... \
+  -e NOTION_DATA_SOURCE_ID=... \
+  journal
+```
+
+Or pass a file of the same variables with `--env-file`. `/healthz` answers `ok` for health checks. To try the server without Docker, run `bun run build` and then `bun server/index.ts`.
+
+A static-only host (GitHub Pages) can serve the app with Contentful content only.
 
 ## Built With
 

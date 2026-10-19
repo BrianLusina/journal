@@ -1,6 +1,8 @@
+import { readEnv } from './runtimeEnv';
+
 // Vite only exposes MODE/DEV/PROD and VITE_-prefixed variables on import.meta.env.
 const NODE_ENV = import.meta.env.MODE || 'development';
-const ENV = import.meta.env.VITE_ENV || NODE_ENV;
+const ENV = readEnv('VITE_ENV') || NODE_ENV;
 
 export default {
     nodeEnv: NODE_ENV,
