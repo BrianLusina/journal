@@ -128,7 +128,7 @@ declare type GetAllAuthorsVariables = {
 } & GetAllItemsVariables;
 
 /**
- * The author fields BlogFragment fetches for each post.
+ * The author fields the api/contentful routes fetch for each post.
  */
 declare type BlogPostAuthor = {
   sys: { id: string };
