@@ -94,8 +94,10 @@
 
 			}, userConfig);
 
-			// Expand "target" if it's not a jQuery object already.
-				if (typeof config.target != 'jQuery')
+			// Expand "target" safely.
+				if (typeof config.target === 'string')
+					config.target = $($.find(config.target));
+				else if (!(config.target instanceof $))
 					config.target = $(config.target);
 
 		// Panel.
