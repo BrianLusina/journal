@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { NotionToMarkdown } from 'notion-to-md';
 import { methodNotAllowed, POSTS_CACHE_CONTROL } from '../../_routes';
+import { NOTION_PROPERTY, publishedFilters } from '../_schema';
 import { getDataSourceId, isNotionConfigured, notion } from '../_shared';
 
 const markdown = new NotionToMarkdown({ notionClient: notion });
@@ -23,8 +24,8 @@ export default async function handler(
       page_size: 1,
       filter: {
         and: [
-          { property: 'Slug', rich_text: { equals: request.query.slug } },
-          { property: 'Status', status: { equals: 'Published' } },
+          { property: NOTION_PROPERTY.slug, rich_text: { equals: request.query.slug } },
+          ...publishedFilters,
         ],
       },
     });

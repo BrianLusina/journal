@@ -31,8 +31,8 @@ describe('AboutPage', () => {
     expect(screen.getByText('Journal is a collection of thoughts.')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Our Story' })).not.toBeInTheDocument();
     expect(screen.queryByText(fallbackStory)).not.toBeInTheDocument();
-    // There is no newsletter provider yet, so there is nothing to subscribe to.
-    expect(screen.queryByRole('button', { name: /Subscribe/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Join Our Community' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Subscribe' })).toBeInTheDocument();
   });
 
   it('falls back to the built-in copy when Contentful has no about entry', () => {
