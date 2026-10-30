@@ -10,8 +10,9 @@ export default async function handler(
     return methodNotAllowed(response);
   }
 
+  // Every source is asked for every slug, so one that isn't configured has no such post.
   if (!isContentfulConfigured()) {
-    return response.status(500).json({ error: 'Contentful is not configured' });
+    return response.status(404).json({ error: 'Contentful is not configured' });
   }
 
   if (typeof request.query.slug !== 'string') {

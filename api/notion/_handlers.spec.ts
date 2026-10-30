@@ -1,11 +1,11 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import postsHandler from './posts';
 import postHandler from './posts/[slug]';
-import { getDataSourceId, notion } from './_shared';
+import { getDataSourceId, isNotionConfigured, notion } from './_shared';
 
 jest.mock('./_shared', () => ({
   getDataSourceId: jest.fn(),
-  isNotionConfigured: () => true,
+  isNotionConfigured: jest.fn(),
   notion: { dataSources: { query: jest.fn(), retrieve: jest.fn() } },
 }));
 jest.mock('notion-to-md', () => ({
@@ -27,6 +27,8 @@ const request = (query: Record<string, string>) => ({ method: 'GET', query }) as
 describe('Notion API routes', () => {
   beforeEach(() => {
     (getDataSourceId as jest.Mock).mockResolvedValue('ds-1');
+    (isNotionConfigured as jest.Mock).mockReturnValue(true);
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
   it('lists one page of posts from the resolved data source', async () => {
@@ -144,6 +146,36 @@ describe('Notion API routes', () => {
     await handler(request(query), res as unknown as VercelResponse);
 
     expect(res.status).toHaveBeenCalledWith(502);
+    expect(notion.dataSources.query).not.toHaveBeenCalled();
+  });
+
+  it('logs why the slug route could not fetch the post', async () => {
+    (notion.dataSources.query as jest.Mock).mockRejectedValue(new Error('Notion unavailable'));
+    const res = response();
+
+    await postHandler(request({ slug: 'hello' }), res as unknown as VercelResponse);
+
+    expect(res.status).toHaveBeenCalledWith(502);
+    expect(console.error).toHaveBeenCalledWith('Unable to fetch Notion post', expect.any(Error));
+  });
+
+  it('answers 400 from the slug route without a slug', async () => {
+    const res = response();
+
+    await postHandler(request({}), res as unknown as VercelResponse);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(notion.dataSources.query).not.toHaveBeenCalled();
+  });
+
+  // Every source is asked for every slug, so an unconfigured source must not fail the lookup.
+  it('answers 404 from the slug route when Notion is not configured', async () => {
+    (isNotionConfigured as jest.Mock).mockReturnValue(false);
+    const res = response();
+
+    await postHandler(request({ slug: 'hello' }), res as unknown as VercelResponse);
+
+    expect(res.status).toHaveBeenCalledWith(404);
     expect(notion.dataSources.query).not.toHaveBeenCalled();
   });
 });

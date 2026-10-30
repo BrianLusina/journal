@@ -1,5 +1,20 @@
 import type { VercelResponse } from '@vercel/node';
+import vercelConfig from '../vercel.json';
 import { getLimit, getParam, methodNotAllowed } from './_routes';
+
+describe('vercel.json rewrites', () => {
+  // Vercel tries user rewrites before the routes of dynamic functions such as
+  // api/notion/posts/[slug].ts, so a rewrite that matches /api/... serves index.html in their place.
+  it.each(['/api/contentful/posts/hello', '/api/notion/posts/hello'])('leave %s to its function', path => {
+    vercelConfig.rewrites.forEach(({ source }) => {
+      expect(new RegExp(`^${source}$`).test(path)).toBe(false);
+    });
+  });
+
+  it('still send every page to the app', () => {
+    expect(vercelConfig.rewrites.some(({ source }) => new RegExp(`^${source}$`).test('/article/1/hello'))).toBe(true);
+  });
+});
 
 describe('getLimit', () => {
   it.each([

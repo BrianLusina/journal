@@ -14,7 +14,12 @@ export default async function handler(
     return methodNotAllowed(response);
   }
 
-  if (!isNotionConfigured() || typeof request.query.slug !== 'string') {
+  // Every source is asked for every slug, so one that isn't configured has no such post.
+  if (!isNotionConfigured()) {
+    return response.status(404).json({ error: 'Notion is not configured' });
+  }
+
+  if (typeof request.query.slug !== 'string') {
     return response.status(400).json({ error: 'Invalid request' });
   }
 
@@ -41,7 +46,8 @@ export default async function handler(
     response.setHeader('Cache-Control', POSTS_CACHE_CONTROL);
 
     return response.status(200).json({ page, body });
-  } catch {
+  } catch (error) {
+    console.error('Unable to fetch Notion post', error);
     return response.status(502).json({ error: 'Unable to fetch Notion post' });
   }
 }
