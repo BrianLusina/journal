@@ -1,11 +1,11 @@
 import { readEnv } from './runtimeEnv';
 
 /**
- * Every feature flag and its value when VITE_FEATURES doesn't set it. The defaults are what
- * production shows today; a new, unfinished feature defaults to false.
+ * Every feature flag and its value when VITE_FEATURES doesn't set it. A new, unfinished feature
+ * defaults to false.
  */
 export const FEATURE_DEFAULTS = {
-  newsletter: true,
+  newsletter: false,
   search: false,
   notion: true,
 } as const satisfies Record<string, boolean>;

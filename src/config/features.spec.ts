@@ -36,31 +36,50 @@ describe('parseFeatures', () => {
   });
 
   it('applies several overrides and keeps the defaults of the others', () => {
-    expect(parseFeatures(' search = on , newsletter=off ')).toEqual({
+    expect(parseFeatures(' search = on , notion=off ')).toEqual({
       ...FEATURE_DEFAULTS,
       search: true,
-      newsletter: false,
+      notion: false,
     });
   });
 
   it.each(['serch=on', 'search=maybe', 'search=on=off', '=on', 'toString=on', 'search=constructor'])(
     'skips %p with a warning and still applies the valid entries',
     entry => {
-      expect(parseFeatures(`${entry},newsletter=off`)).toEqual({
+      expect(parseFeatures(`${entry},notion=off`)).toEqual({
         ...FEATURE_DEFAULTS,
-        newsletter: false,
+        notion: false,
       });
       expect(warn).toHaveBeenCalledWith(expect.stringContaining(entry));
     },
   );
 
-  it('reads VITE_FEATURES from the runtime configuration index.html sets', () => {
-    window.__ENV__ = { VITE_FEATURES: 'search=on' };
+  /** The flags features.ts exports, loaded afresh. */
+  const loadFeatures = (): typeof import('./features').default => {
     // jest.isolateModules hands back the module this file already imported, so reload it instead.
     jest.resetModules();
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const features: typeof import('./features').default = require('./features').default;
+    return require('./features').default;
+  };
 
-    expect(features.search).toBe(true);
+  it('reads VITE_FEATURES from the runtime configuration index.html sets', () => {
+    window.__ENV__ = { VITE_FEATURES: 'search=on' };
+
+    expect(loadFeatures().search).toBe(true);
+  });
+
+  it('falls back to the VITE_FEATURES value inlined at build time', () => {
+    const buildTimeValue = process.env.VITE_FEATURES;
+    process.env.VITE_FEATURES = 'search=on';
+    window.__ENV__ = {};
+    try {
+      expect(loadFeatures().search).toBe(true);
+    } finally {
+      if (buildTimeValue === undefined) {
+        delete process.env.VITE_FEATURES;
+      } else {
+        process.env.VITE_FEATURES = buildTimeValue;
+      }
+    }
   });
 });

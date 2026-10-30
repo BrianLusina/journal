@@ -19,6 +19,13 @@ describe('Feature', () => {
     expect(screen.getByText('Search bar')).toBeInTheDocument();
   });
 
+  it('hides the fallback while the feature is on', () => {
+    renderWith('search', true, 'Search is coming soon');
+
+    expect(screen.getByText('Search bar')).toBeInTheDocument();
+    expect(screen.queryByText('Search is coming soon')).not.toBeInTheDocument();
+  });
+
   it('renders nothing while the feature is off', () => {
     const { container } = renderWith('search', false);
 
