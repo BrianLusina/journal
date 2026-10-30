@@ -10,9 +10,11 @@ const indexHtml = readFileSync(path.join(repoRoot, 'index.html'), 'utf8');
 /** Runs the page's inline scripts in a fake window and returns the window.__ENV__ they set. */
 const runInlineScripts = (html: string): Record<string, string> => {
   const fakeWindow: { __ENV__?: Record<string, string> } = {};
-  [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].forEach(([, code]) =>
-    new Function('window', code)(fakeWindow),
-  );
+  // Parsed as the browser would, so a value that closes the script shows up as a broken script.
+  new DOMParser()
+    .parseFromString(html, 'text/html')
+    .querySelectorAll('script:not([src])')
+    .forEach(script => new Function('window', script.textContent ?? '')(fakeWindow));
   return fakeWindow.__ENV__ as Record<string, string>;
 };
 
