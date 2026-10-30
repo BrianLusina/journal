@@ -78,7 +78,7 @@ CONTENTFUL_CMS_GRAPHQL_URL       # optional, defaults to https://graphql.content
 CONTENTFUL_CMS_REST_API_URL      # optional, defaults to https://cdn.contentful.com
 ```
 
-Without them `/api/contentful/*` answers 500 and the site shows no Contentful posts. The `VITE_CONTENTFUL_CMS_*` variables are still read by the browser for authors, About and Social content.
+Without them `/api/contentful/posts` answers 500, `/api/contentful/posts/:slug` answers 404, and the site shows no Contentful posts. The `VITE_CONTENTFUL_CMS_*` variables are still read by the browser for authors, About and Social content.
 
 ### Vercel and Notion
 

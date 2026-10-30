@@ -185,16 +185,24 @@ describe('Contentful API routes', () => {
     expect(queryContentful).not.toHaveBeenCalled();
   });
 
-  it.each([
-    ['list', postsHandler, {}],
-    ['slug', postHandler, { slug: 'hello' }],
-  ])('answers 500 from the %s route when Contentful is not configured', async (_, handler, query) => {
+  it('answers 500 from the list route when Contentful is not configured', async () => {
     (isContentfulConfigured as jest.Mock).mockReturnValue(false);
     const res = response();
 
-    await handler(request(query), res as unknown as VercelResponse);
+    await postsHandler(request({}), res as unknown as VercelResponse);
 
     expect(res.status).toHaveBeenCalledWith(500);
+    expect(queryContentful).not.toHaveBeenCalled();
+  });
+
+  // Every source is asked for every slug, so an unconfigured source must not fail the lookup.
+  it('answers 404 from the slug route when Contentful is not configured', async () => {
+    (isContentfulConfigured as jest.Mock).mockReturnValue(false);
+    const res = response();
+
+    await postHandler(request({ slug: 'hello' }), res as unknown as VercelResponse);
+
+    expect(res.status).toHaveBeenCalledWith(404);
     expect(queryContentful).not.toHaveBeenCalled();
   });
 });
