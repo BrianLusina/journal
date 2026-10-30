@@ -181,6 +181,7 @@ Each `VITE_*` value is read with `readEnv` (`src/config/runtimeEnv.ts`), which r
 | `VITE_SENTRY_DSN`, `VITE_SENTRY_TRACES_SAMPLE_RATE` | Sentry (production only). |
 | `VITE_FIREBASE_*` | Firebase Analytics (optional, production only). |
 | `VITE_ENV`, `VITE_APP_NAME`, `VITE_APP_TITLE` | Environment label and site naming. |
+| `VITE_FEATURES` | Feature flag overrides, a comma-separated list such as `search=on,newsletter=off`. The flags and their defaults are `FEATURE_DEFAULTS` in `src/config/features.ts`; unknown names and values are ignored. Components read a flag with `useFeatureFlag(name)` or render through `<Feature name>`. |
 | `NOTION_API_KEY`, `NOTION_DATA_SOURCE_ID` (or `NOTION_DATABASE_ID`) | **Server only**, read by `api/notion`. Queries target a data source (Notion API 2025-09-03). `getDataSourceId()` in `api/notion/_shared.ts` uses `NOTION_DATA_SOURCE_ID` as is, or looks up the first data source of `NOTION_DATABASE_ID` once per function instance. |
 | `RESEND_API_KEY` | **Server only**, read by `api/contact` and `api/subscribe`. A Resend API key that can send emails and manage contacts. |
 | `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL` | **Server only**, read by `api/contact`. The address contact messages go to, and the sender they come from. The sender must be on a domain verified in Resend, and may include a name: `Journal <forms@example.com>`. |
