@@ -28,7 +28,7 @@ const AboutPage = () => {
   const content = about?.content;
 
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       {/* Hero Section */}
       <div className="mb-16 text-center space-y-6">
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight animate-slide-down">
@@ -142,7 +142,7 @@ const AboutPage = () => {
         </p>
         <SubscribeForm />
       </section>
-    </main>
+    </div>
   );
 };
 
