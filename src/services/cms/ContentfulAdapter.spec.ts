@@ -1,13 +1,4 @@
-import contentfulClient, { getTagId } from '@contentfulClient';
 import ContentfulAdapter from './ContentfulAdapter';
-
-jest.mock('@contentfulClient', () => ({
-  __esModule: true,
-  default: { query: jest.fn() },
-  getTagId: jest.fn(),
-  GET_ALL_BLOGS: 'GET_ALL_BLOGS',
-  GET_BLOG: 'GET_BLOG',
-}));
 
 const blogPost = (overrides: Record<string, unknown> = {}) => ({
   sys: { id: 'post-1', firstPublishedAt: '2024-01-02T10:00:00.000Z' },
@@ -27,16 +18,19 @@ const blogPost = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-const respondWith = (items: unknown[], total = items.length, limit = items.length) =>
-  (contentfulClient.query as jest.Mock).mockResolvedValue({
-    data: { blogPostCollection: { items, total, limit, skip: 0 } },
-  });
+const mockFetch = (status: number, body: unknown) => {
+  global.fetch = jest.fn().mockResolvedValue({
+    ok: status >= 200 && status < 300,
+    status,
+    json: () => Promise.resolve(body),
+  }) as jest.Mock;
+};
 
 describe('ContentfulAdapter', () => {
   const adapter = new ContentfulAdapter();
 
   it('maps a Contentful blog post onto the unified post model', async () => {
-    respondWith([blogPost()]);
+    mockFetch(200, { results: [blogPost()], nextCursor: null });
 
     const { items } = await adapter.getPosts({ limit: 10 });
 
@@ -58,9 +52,12 @@ describe('ContentfulAdapter', () => {
   });
 
   it('falls back to the first published date and tolerates missing images, tags and authors', async () => {
-    respondWith([
-      blogPost({ publishDate: null, heroImage: null, thumbnail: null, contentfulMetadata: null, authorsCollection: null }),
-    ]);
+    mockFetch(200, {
+      results: [
+        blogPost({ publishDate: null, heroImage: null, thumbnail: null, contentfulMetadata: null, authorsCollection: null }),
+      ],
+      nextCursor: null,
+    });
 
     const { items } = await adapter.getPosts({ limit: 10 });
 
@@ -73,106 +70,55 @@ describe('ContentfulAdapter', () => {
     });
   });
 
-  it('reads dated posts at the cursor offset, newest first, and returns the next offset as the cursor', async () => {
-    respondWith([blogPost()], 5, 1);
-
-    const result = await adapter.getPosts({ cursor: '2', limit: 1, category: 'Wellness' });
-
-    expect(contentfulClient.query).toHaveBeenCalledWith(
-      expect.objectContaining({
-        variables: { skip: 2, limit: 1, order: ['publishDate_DESC'], where: { publishDate_exists: true, category: 'Wellness' } },
-      }),
-    );
-    expect(result.nextCursor).toBe('3');
-  });
-
   it('shows the tags from both the Contentful tags and the legacy tags field, once each', async () => {
-    respondWith([blogPost({ tags: ['Mindfulness', 'Travel'] })]);
+    mockFetch(200, { results: [blogPost({ tags: ['Mindfulness', 'Travel'] })], nextCursor: null });
 
     const { items } = await adapter.getPosts({ limit: 10 });
 
     expect(items[0].tags).toEqual(['Mindfulness', 'Travel']);
   });
 
-  it('reads posts carrying the tag by name in the legacy field or by its ID in the Contentful tags', async () => {
-    (getTagId as jest.Mock).mockResolvedValue('datastructures');
-    respondWith([blogPost()], 1, 10);
+  it('passes the request on to the posts route and returns its cursor', async () => {
+    mockFetch(200, { results: [blogPost()], nextCursor: '3' });
 
-    await adapter.getPosts({ limit: 10, tag: 'Data Structures' });
+    const result = await adapter.getPosts({ cursor: '2', limit: 1, category: 'Wellness', tag: 'Data Structures' });
 
-    expect(getTagId).toHaveBeenCalledWith('Data Structures');
-    expect(contentfulClient.query).toHaveBeenCalledWith(
-      expect.objectContaining({
-        variables: expect.objectContaining({
-          where: {
-            publishDate_exists: true,
-            OR: [
-              { tags_contains_some: ['Data Structures'] },
-              { contentfulMetadata: { tags: { id_contains_some: ['datastructures'] } } },
-            ],
-          },
-        }),
-      }),
-    );
+    expect(global.fetch).toHaveBeenCalledWith('/api/contentful/posts?limit=1&category=Wellness&tag=Data+Structures&cursor=2');
+    expect(result.nextCursor).toBe('3');
   });
 
-  it('still reads the legacy field when the Contentful tag list cannot be fetched', async () => {
-    (getTagId as jest.Mock).mockRejectedValue(new Error('Unable to fetch Contentful tags: 503'));
-    respondWith([blogPost()], 1, 10);
+  it('asks only for the limit without a cursor, category or tag', async () => {
+    mockFetch(200, { results: [], nextCursor: null });
 
-    await adapter.getPosts({ limit: 10, tag: 'Kotlin' });
+    await adapter.getPosts({ limit: 10 });
 
-    expect(contentfulClient.query).toHaveBeenCalledWith(
-      expect.objectContaining({
-        variables: expect.objectContaining({
-          where: { publishDate_exists: true, OR: [{ tags_contains_some: ['Kotlin'] }] },
-        }),
-      }),
-    );
+    expect(global.fetch).toHaveBeenCalledWith('/api/contentful/posts?limit=10');
   });
 
-  it('reads the legacy field only when no Contentful tag has the name', async () => {
-    (getTagId as jest.Mock).mockResolvedValue(undefined);
-    respondWith([blogPost()], 1, 10);
+  it('rejects when the posts route fails', async () => {
+    mockFetch(502, { error: 'Unable to fetch Contentful posts' });
 
-    await adapter.getPosts({ limit: 10, tag: 'Browsers' });
-
-    expect(contentfulClient.query).toHaveBeenCalledWith(
-      expect.objectContaining({
-        variables: expect.objectContaining({
-          where: { publishDate_exists: true, OR: [{ tags_contains_some: ['Browsers'] }] },
-        }),
-      }),
-    );
+    await expect(adapter.getPosts({ limit: 10 })).rejects.toThrow('Unable to fetch Contentful posts: 502');
   });
 
-  it('starts at the first post without a cursor and ends with a null cursor', async () => {
-    respondWith([blogPost(), blogPost({ sys: { id: 'post-2' } })], 2, 10);
+  it('finds a post by slug, encoding the slug in the path', async () => {
+    mockFetch(200, { post: blogPost() });
 
-    const result = await adapter.getPosts({ limit: 10 });
+    const post = await adapter.getPostBySlug('a title/with?chars');
 
-    expect(contentfulClient.query).toHaveBeenCalledWith(
-      expect.objectContaining({
-        variables: { skip: 0, limit: 10, order: ['publishDate_DESC'], where: { publishDate_exists: true } },
-      }),
-    );
-    expect(result.nextCursor).toBeNull();
-  });
-
-  it('finds a post by slug', async () => {
-    respondWith([blogPost()]);
-
-    const post = await adapter.getPostBySlug('title');
-
-    expect(contentfulClient.query).toHaveBeenCalledWith(
-      expect.objectContaining({ variables: { limit: 1, where: { slug: 'title' } } }),
-    );
+    expect(global.fetch).toHaveBeenCalledWith('/api/contentful/posts/a%20title%2Fwith%3Fchars');
     expect(post?.id).toBe('post-1');
   });
 
   it('returns null when no post has the slug', async () => {
-    respondWith([]);
+    mockFetch(404, { error: 'Post not found' });
 
     await expect(adapter.getPostBySlug('missing')).resolves.toBeNull();
+  });
+
+  it('rejects when the slug route fails', async () => {
+    mockFetch(502, { error: 'Unable to fetch Contentful post' });
+
+    await expect(adapter.getPostBySlug('title')).rejects.toThrow('Unable to fetch Contentful post: 502');
   });
 });

@@ -4,7 +4,7 @@
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 
-Personal blog and journal built with [React](https://react.dev/), [Vite](https://vitejs.dev/) and [Tailwind CSS](https://tailwindcss.com/). Posts come from more than one headless CMS: [Contentful](https://www.contentful.com/) today, with [Notion](https://developers.notion.com/) added through a CMS adapter layer.
+Personal blog and journal built with [React](https://react.dev/), [Vite](https://vitejs.dev/) and [Tailwind CSS](https://tailwindcss.com/). Posts come from more than one headless CMS, [Contentful](https://www.contentful.com/) and [Notion](https://developers.notion.com/), both read through Vercel Functions behind a CMS adapter layer.
 
 How the code is organised, how content flows from each CMS to the page, and how to add another content source are covered in [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
 
@@ -37,11 +37,11 @@ Every variable in `.env.sample` is described in [docs/ARCHITECTURE.md](./docs/AR
 ### Running locally
 
 ```bash
-bun dev          # Vite dev server on http://localhost:8080 (Contentful only)
-vercel dev       # Vite plus the api/notion functions, needed for Notion content
+bun dev          # Vite dev server on http://localhost:8080 (no posts: it does not run api/)
+vercel dev       # Vite plus the api/ functions, needed for Contentful and Notion posts
 ```
 
-`bun dev` does not run the `api/` functions, so Notion posts only appear under `vercel dev` (see BrianLusina/journal#802).
+`bun dev` does not run the `api/` functions, so posts only appear under `vercel dev` (see BrianLusina/journal#802).
 
 ## Running tests
 
@@ -66,6 +66,20 @@ bun run build         # production build into dist/
 
 The build output in `dist/` is a static single-page app. Every pull request gets a Vercel preview deployment.
 
+### Vercel and Contentful
+
+Posts are read from Contentful through Vercel Functions under `/api/contentful`. Configure these server-only environment variables in the Vercel project settings (the same values as the `VITE_CONTENTFUL_CMS_*` ones, without the prefix):
+
+```text
+CONTENTFUL_CMS_API_KEY
+CONTENTFUL_CMS_SPACE_ID
+CONTENTFUL_CMS_ENVIRONMENT       # optional, defaults to master
+CONTENTFUL_CMS_GRAPHQL_URL       # optional, defaults to https://graphql.contentful.com
+CONTENTFUL_CMS_REST_API_URL      # optional, defaults to https://cdn.contentful.com
+```
+
+Without them `/api/contentful/*` answers 500 and the site shows no Contentful posts. The `VITE_CONTENTFUL_CMS_*` variables are still read by the browser for authors, About and Social content.
+
 ### Vercel and Notion
 
 The Notion integration uses Vercel Functions under `/api/notion`. Configure these server-only environment variables in the Vercel project settings:
@@ -78,7 +92,7 @@ NOTION_DATABASE_ID      # alternative: the database's first data source is used
 
 Since Notion API version 2025-09-03, queries target a database's *data source*, whose ID differs from the database ID. Copy it from the database's data source settings in Notion; it is not the ID in the database URL. If only `NOTION_DATABASE_ID` is set, the functions look up its first data source once per instance. A value that is already a data source ID also keeps working.
 
-Do not prefix either variable with `VITE_`, because Vite exposes `VITE_*` variables to the browser. For local development, put the same variables in `.env.local` and run `vercel dev` so the Vite app and the API functions share one origin. The Notion integration must have access to the database in Notion.
+Do not prefix any of these variables with `VITE_`, because Vite exposes `VITE_*` variables to the browser. For local development, put the same variables in `.env.local` and run `vercel dev` so the Vite app and the API functions share one origin. The Notion integration must have access to the database in Notion.
 
 Production deploys through the Vercel GitHub integration. On pushes to `staging` and `production`, GitHub Actions also tags a release with semantic-release (`release.yml`) and publishes the Docker image to `ghcr.io/brianlusina/journal` (`dockerimage.yml`), tagged with the branch and the commit SHA. Vercel's build uploads source maps to Sentry when `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` and `SENTRY_PROJECT` are set in the Vercel project.
 
@@ -87,7 +101,7 @@ Production deploys through the Vercel GitHub integration. On pushes to `staging`
 The [Dockerfile](./Dockerfile) builds an image that runs the whole app, including the `api/` functions, on a small Bun server (`server/`). It reads its configuration from the container's environment when it starts, so one image runs in every environment:
 
 - **Client:** the `VITE_*` variables in `.env.sample`, set in the page the server sends. Only an allowlist of the keys the app reads is sent; never put a secret in a `VITE_*` variable.
-- **Server only:** `NOTION_API_KEY` with `NOTION_DATA_SOURCE_ID` (or `NOTION_DATABASE_ID`), plus `RESEND_*` and `CONTACT_*` for the contact and newsletter forms. These never reach the browser.
+- **Server only:** `CONTENTFUL_CMS_API_KEY` with `CONTENTFUL_CMS_SPACE_ID`, `NOTION_API_KEY` with `NOTION_DATA_SOURCE_ID` (or `NOTION_DATABASE_ID`), plus `RESEND_*` and `CONTACT_*` for the contact and newsletter forms. These never reach the browser.
 - `PORT` (optional, default 8080).
 
 ```bash
@@ -96,6 +110,8 @@ docker run --rm -p 8080:8080 \
   -e VITE_ENV=production \
   -e VITE_CONTENTFUL_CMS_SPACE_ID=... \
   -e VITE_CONTENTFUL_CMS_API_KEY=... \
+  -e CONTENTFUL_CMS_API_KEY=... \
+  -e CONTENTFUL_CMS_SPACE_ID=... \
   -e NOTION_API_KEY=... \
   -e NOTION_DATA_SOURCE_ID=... \
   journal
@@ -103,7 +119,7 @@ docker run --rm -p 8080:8080 \
 
 Or pass a file of the same variables with `--env-file`. `/healthz` answers `ok` for health checks. To try the server without Docker, run `bun run build` and then `bun server/index.ts`.
 
-A static-only host (GitHub Pages) can serve the app with Contentful content only.
+A static-only host (GitHub Pages) does not run `api/`, so it serves no posts: only authors, About and Social content, which are still read from Contentful in the browser.
 
 ## Built With
 
@@ -111,8 +127,8 @@ A static-only host (GitHub Pages) can serve the app with Contentful content only
 2. [React 18](https://react.dev/) and [React Router 6](https://reactrouter.com/)
 3. [Vite](https://vitejs.dev/) with SWC
 4. [Tailwind CSS](https://tailwindcss.com/) and [shadcn/ui](https://ui.shadcn.com/) (Radix primitives)
-5. [Apollo Client](https://www.apollographql.com/docs/react/) for Contentful GraphQL
-6. [Notion API](https://developers.notion.com/) through [Vercel Functions](https://vercel.com/docs/functions)
+5. [Apollo Client](https://www.apollographql.com/docs/react/) for Contentful authors, About and Social content
+6. [Contentful](https://www.contentful.com/developers/docs/references/graphql/) and [Notion API](https://developers.notion.com/) posts through [Vercel Functions](https://vercel.com/docs/functions)
 7. [Sentry](https://sentry.io/) for monitoring and [Firebase Analytics](https://firebase.google.com/docs/analytics)
 
 ## Versioning

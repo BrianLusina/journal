@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { getLimit, getParam, methodNotAllowed, POSTS_CACHE_CONTROL } from '../_routes';
 import { NOTION_PROPERTY, publishedFilters } from './_schema';
-import { getDataSourceId, getLimit, isNotionConfigured, notion } from './_shared';
+import { getDataSourceId, isNotionConfigured, notion } from './_shared';
 
 /**
  * Whether `tag` is one of the Tags options. Tag pages are shared by every source, so most tags
@@ -17,8 +18,7 @@ export default async function handler(
   response: VercelResponse,
 ): Promise<VercelResponse> {
   if (request.method !== 'GET') {
-    response.setHeader('Allow', 'GET');
-    return response.status(405).json({ error: 'Method not allowed' });
+    return methodNotAllowed(response);
   }
 
   if (!isNotionConfigured()) {
@@ -26,18 +26,12 @@ export default async function handler(
   }
 
   const limit = getLimit(request.query.limit);
-  const cursor =
-    typeof request.query.cursor === 'string' && request.query.cursor
-      ? request.query.cursor
-      : undefined;
+  const cursor = getParam(request.query.cursor);
   const category =
     typeof request.query.category === 'string'
       ? request.query.category
       : undefined;
-  const tag =
-    typeof request.query.tag === 'string' && request.query.tag
-      ? request.query.tag
-      : undefined;
+  const tag = getParam(request.query.tag);
   // A post without a slug cannot be opened: the slug route looks posts up by slug.
   const hasSlugFilter = {
     property: NOTION_PROPERTY.slug,
@@ -56,10 +50,7 @@ export default async function handler(
   try {
     const dataSourceId = await getDataSourceId();
     if (tag && !(await isTagOption(dataSourceId, tag))) {
-      response.setHeader(
-        'Cache-Control',
-        's-maxage=60, stale-while-revalidate=300',
-      );
+      response.setHeader('Cache-Control', POSTS_CACHE_CONTROL);
       return response.status(200).json({ results: [], nextCursor: null });
     }
     const tagFilters = tag
@@ -81,10 +72,7 @@ export default async function handler(
       filter: queryFilter,
     });
 
-    response.setHeader(
-      'Cache-Control',
-      's-maxage=60, stale-while-revalidate=300',
-    );
+    response.setHeader('Cache-Control', POSTS_CACHE_CONTROL);
 
     return response.status(200).json({
       results: result.results,

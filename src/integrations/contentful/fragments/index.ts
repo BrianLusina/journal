@@ -5,7 +5,7 @@ import {
   TaxonomyFragment,
   ContentfulMetadataFragment,
 } from './fragment.metadata';
-import { PersonBioFragment, PersonFragment, BlogFragment } from './fragment.content';
+import { PersonBioFragment, PersonFragment } from './fragment.content';
 
 export {
   SysFragment,
@@ -15,5 +15,4 @@ export {
   ContentfulMetadataFragment,
   PersonBioFragment,
   PersonFragment,
-  BlogFragment,
 };

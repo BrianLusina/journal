@@ -1,8 +1,8 @@
-import contentfulClient, { GET_ALL_BLOGS, GET_BLOG, getTagId } from '@contentfulClient';
 import CMSAdapter from './CMSAdapter';
 
 /**
- * Maps the raw Contentful BlogPostItem to the generic UnifiedPost domain model.
+ * Maps a Contentful BlogPostItem (as returned by the api/contentful routes) to the generic
+ * UnifiedPost domain model.
  */
 function mapContentfulPostToUnified(post: BlogPostItem): UnifiedPost {
   return {
@@ -37,64 +37,37 @@ function mapContentfulPostToUnified(post: BlogPostItem): UnifiedPost {
   };
 }
 
-/**
- * Posts carry a tag either by name in the legacy `tags` field or as a Contentful tag, which can
- * only be filtered by its ID. Without the tag list, the legacy field still matches by name.
- */
-async function tagFilters(name: string): Promise<Partial<BlogPostFilter>[]> {
-  const id = await getTagId(name).catch(() => undefined);
-  return [
-    { tags_contains_some: [name] },
-    ...(id ? [{ contentfulMetadata: { tags: { id_contains_some: [id] } } }] : []),
-  ];
-}
-
 export default class ContentfulAdapter implements CMSAdapter {
   public readonly source: CMSSource = 'contentful';
 
   async getPosts({ cursor, limit, category, tag }: CMSPageRequest): Promise<CMSPage> {
-    const query = GET_ALL_BLOGS;
+    const params = new URLSearchParams({ limit: String(limit) });
+    if (category) params.set('category', category);
+    if (tag) params.set('tag', tag);
+    if (cursor) params.set('cursor', cursor);
+    const response = await fetch(`/api/contentful/posts?${params}`);
 
-    // The cursor is the offset of the next post. The merged feed orders every source by publish
-    // date, newest first, so a post without one has no place in it.
-    const skip = cursor ? Number(cursor) : 0;
-    const variables: GetAllBlogsVariables = {
-      skip,
-      limit,
-      order: ['publishDate_DESC'],
-      where: {
-        publishDate_exists: true,
-        ...(category ? { category } : {}),
-        ...(tag ? { OR: await tagFilters(tag) } : {}),
-      },
-    };
+    if (!response.ok) {
+      throw new Error(`Unable to fetch Contentful posts: ${response.status}`);
+    }
 
-    const { data } = await contentfulClient.query<BlogPostsData, GetAllBlogsVariables>({
-      query,
-      variables,
-      fetchPolicy: 'network-only', // or cache-first if preferred
-    });
+    const payload = await response.json();
 
-    const collection = data.blogPostCollection;
-    const next = skip + collection.items.length;
     return {
-      items: collection.items.map(mapContentfulPostToUnified),
-      nextCursor: next < collection.total ? String(next) : null,
+      items: payload.results.map(mapContentfulPostToUnified),
+      nextCursor: payload.nextCursor,
     };
   }
 
   async getPostBySlug(slug: string): Promise<UnifiedPost | null> {
-    const { data } = await contentfulClient.query<BlogPostsData, GetAllBlogsVariables>({
-      query: GET_ALL_BLOGS,
-      variables: {
-        limit: 1,
-        where: { slug },
-      },
-    });
+    const response = await fetch(`/api/contentful/posts/${encodeURIComponent(slug)}`);
+    if (response.status === 404) return null;
+    if (!response.ok) {
+      throw new Error(`Unable to fetch Contentful post: ${response.status}`);
+    }
 
-    const items = data.blogPostCollection.items;
-    if (!items || items.length === 0) return null;
+    const payload = await response.json();
 
-    return mapContentfulPostToUnified(items[0]);
+    return mapContentfulPostToUnified(payload.post);
   }
 }
