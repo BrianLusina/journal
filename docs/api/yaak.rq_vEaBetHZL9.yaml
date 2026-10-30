@@ -1,0 +1,156 @@
+type: http_request
+model: http_request
+id: rq_vEaBetHZL9
+createdAt: 2026-10-06T08:12:21.129018
+updatedAt: 2026-10-06T08:53:03.855505
+workspaceId: wk_m6u48eEXa2
+folderId: fl_6EdqhWbdr8
+authentication:
+  disabled: false
+  key: Bearer
+  token: ${[ secure(value=b64'WUVOQ19lVUUwYXpOdVF3RVF0b3J2cjFNcktKV054Qk5GNG5zVW1zeEJwdVFkb0FnazR6N0xHenpyVnRFN1VNdXVSQ1c4Mm5hLzNDZWF5RUVSQUpzZFVPd2xOWEhBTkJlcVJMeW9pQT09') ]}
+authenticationType: bearer
+body:
+  operationName: GetAllBlogs
+  query: |
+    fragment TagFragment on ContentfulTag {
+      id
+      name
+    }
+
+    fragment TaxonomyFragment on TaxonomyConcept {
+      id
+    }
+
+    fragment ContentfulMetadataFragment on ContentfulMetadata {
+      concepts {
+        ...TaxonomyFragment
+      }
+      tags {
+        ...TagFragment
+      }
+    }
+
+    fragment SysFragment on Sys {
+      environmentId
+      firstPublishedAt
+      id
+      locale
+      publishedAt
+      publishedVersion
+      spaceId
+    }
+
+    fragment AssetFragment on Asset {
+      contentfulMetadata {
+        ...ContentfulMetadataFragment
+      }
+      contentType
+      description
+      fileName
+      height
+      size
+      sys {
+        ...SysFragment
+      }
+      title
+      url
+      width
+    }
+
+    fragment BlogFragment on BlogPost {
+      heroImage {
+        ...AssetFragment
+      }
+      thumbnail {
+        ...AssetFragment
+      }
+      title
+      subtitle
+      description
+      category
+      slug
+      body
+      publishDate
+      sys {
+        ...SysFragment
+      }
+      contentfulMetadata {
+        ...ContentfulMetadataFragment
+      }
+      authorsCollection(limit: 5) {
+        items {
+          sys {
+            id
+          }
+          # name
+          # shortBio
+          # image {
+            # url
+          # }
+        }
+      }
+    }
+
+    query GetAllBlogs(
+      $skip: Int
+      $limit: Int
+      $preview: Boolean
+      $locale: String
+      $where: BlogPostFilter
+      $order: [BlogPostOrder]
+    ) {
+      blogPostCollection(
+        skip: $skip
+        limit: $limit
+        preview: $preview
+        locale: $locale
+        where: $where
+        order: $order
+      ) {
+        total
+        limit
+        items {
+          ...BlogFragment
+        }
+      }
+    }
+  variables: |-
+    {
+      "limit": 10,
+      "skip": 0,
+      "order": ["publishDate_DESC"],
+      "where": {
+        "publishDate_exists": true
+      }
+    }
+bodyType: graphql
+description: ''
+headers:
+- enabled: true
+  name: Content-Type
+  value: application/json
+  id: 2y89ujHPWP
+method: POST
+name: Query Blog Posts
+sortPriority: -1791274341127.0
+url: ${[ CONTENTFUL_GRAPHQL_URL ]}/content/v1/spaces/${[ CONTENTFUL_SPACE_ID ]}/environments/${[ CONTENTFUL_ENVIRONMENT ]}
+urlParameters: []
+settingSendCookies:
+  enabled: false
+  value: true
+settingStoreCookies:
+  enabled: false
+  value: true
+settingValidateCertificates:
+  enabled: false
+  value: true
+settingFollowRedirects:
+  enabled: false
+  value: true
+settingRequestTimeout:
+  enabled: false
+  value: 0
+settingHttpVersion:
+  enabled: false
+  value: auto

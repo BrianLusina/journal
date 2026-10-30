@@ -1,12 +1,11 @@
-import { GET_ALL_BLOGS } from '@graphQl/queries';
 import faker from 'faker';
 import { render, screen, act } from '@testing-library/react';
 import MockApp from '@testUtils/MockApp';
-import { MockedResponseType } from '@testUtils/MockAppWithGqlProvider';
-import * as Monitoring from '@services/monitoring';
+import * as Monitoring from '@monitoring';
 import MiniPosts from './MiniPosts';
+import { usePosts } from '@hooks';
 
-jest.mock('@services/monitoring', () => {
+jest.mock('@monitoring', () => {
   return {
     captureException: jest.fn(),
     captureScope: jest.fn(),
@@ -16,169 +15,101 @@ jest.mock('@services/monitoring', () => {
   };
 });
 
+jest.mock('@/hooks/cms/usePosts');
+
 describe('MiniPosts', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should render', async () => {
-    const miniPostsMock: MockedResponseType[] = [];
-    await act(async () => {
-      render(
-        <MockApp mocks={miniPostsMock}>
-          <MiniPosts />
-        </MockApp>,
-      );
+  it('should render loading state initially', async () => {
+    (usePosts as jest.Mock).mockReturnValue({
+      data: null,
+      loading: true,
+      error: null,
     });
+    
+    render(
+      <MockApp mocks={[]}>
+        <MiniPosts />
+      </MockApp>,
+    );
+
+    expect(screen.getByText('Loading...')).toBeInTheDocument();
   });
 
-  it('should display content as received from query', async () => {
+  it('should display content as received from hook', async () => {
     const items = [
       {
-        heroImage: {
-          title: faker.lorem.word(),
-          url: faker.image.imageUrl(),
-        },
-        thumbnail: {
-          title: 'thumbnail title',
-          url: faker.image.imageUrl(),
-        },
+        id: faker.datatype.uuid(),
+        source: 'contentful',
         title: 'Some Title',
         subtitle: faker.lorem.words(),
         description: faker.lorem.text(),
-        category: faker.lorem.text(),
-        slug: faker.random.word(),
-        body: faker.lorem.paragraphs(),
+        category: faker.lorem.word(),
+        slug: faker.lorem.word(),
         publishDate: faker.date.past().toISOString(),
-        sys: {
-          id: faker.datatype.uuid(),
+        thumbnail: {
+          url: faker.image.imageUrl(),
         },
-        contentfulMetadata: {
-          tags: [
-            {
-              name: faker.lorem.word(),
-              id: faker.datatype.uuid(),
-            },
-          ],
-        },
-        authorsCollection: {
-          total: 1,
-          items: [
-            {
-              sys: {
-                id: faker.datatype.uuid(),
-              },
-            },
-          ],
-        },
+        tags: [faker.lorem.word()],
+        authors: [{ id: faker.datatype.uuid() }],
       },
       {
-        heroImage: {
-          title: faker.lorem.word(),
-          url: faker.image.imageUrl(),
-        },
-        thumbnail: {
-          title: 'thumnail title 2',
-          url: faker.image.imageUrl(),
-        },
+        id: faker.datatype.uuid(),
+        source: 'notion',
         title: 'other title',
         subtitle: faker.lorem.words(),
         description: faker.lorem.text(),
-        category: faker.lorem.text(),
-        slug: faker.random.word(),
-        body: faker.lorem.paragraphs(),
+        category: faker.lorem.word(),
+        slug: faker.lorem.word(),
         publishDate: faker.date.past().toISOString(),
-        sys: {
-          id: faker.datatype.uuid(),
+        thumbnail: {
+          url: faker.image.imageUrl(),
         },
-        contentfulMetadata: {
-          tags: [
-            {
-              name: faker.lorem.word(),
-              id: faker.datatype.uuid(),
-            },
-          ],
-        },
-        authorsCollection: {
-          total: 1,
-          items: [
-            {
-              sys: {
-                id: faker.datatype.uuid(),
-              },
-            },
-          ],
-        },
+        tags: [faker.lorem.word()],
+        authors: [{ id: faker.datatype.uuid() }],
       },
     ];
 
-    const miniPostsMock: MockedResponseType[] = [
-      {
-        request: {
-          query: GET_ALL_BLOGS,
-          variables: {
-            limit: 5,
-          },
-        },
-        result: {
-          data: {
-            blogPostCollection: {
-              total: items.length,
-              limit: 5,
-              items,
-            },
-          },
-        },
+    (usePosts as jest.Mock).mockReturnValue({
+      data: {
+        items,
+        hasMore: false,
       },
-    ];
-
-    await act(async () => {
-      const { debug } = render(
-        <MockApp mocks={miniPostsMock}>
-          <MiniPosts />
-        </MockApp>,
-      );
-
-      debug();
+      loading: false,
+      error: null,
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    render(
+      <MockApp mocks={[]}>
+        <MiniPosts />
+      </MockApp>,
+    );
 
-    items.forEach((item) => {
-      const postTitleElement = screen.getByText(item.title);
-
+    for (const item of items) {
+      const postTitleElement = await screen.findByText(item.title);
       expect(postTitleElement).toBeInTheDocument();
-    });
+    }
   });
 
   it('should display error if query fails to fetch content', async () => {
-    const miniPostsMock: MockedResponseType[] = [
-      {
-        request: {
-          query: GET_ALL_BLOGS,
-          variables: {
-            limit: 5,
-          },
-        },
-        error: {
-          name: 'Error',
-          message: faker.lorem.words(),
-        },
-        result: {
-          data: undefined,
-        },
-      },
-    ];
-
-    await act(async () => {
-      render(
-        <MockApp mocks={miniPostsMock}>
-          <MiniPosts />
-        </MockApp>,
-      );
+    const mockError = new Error(faker.lorem.words());
+    
+    (usePosts as jest.Mock).mockReturnValue({
+      data: null,
+      loading: false,
+      error: mockError,
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    render(
+      <MockApp mocks={[]}>
+        <MiniPosts />
+      </MockApp>,
+    );
+
+    const errorMsg = await screen.findByText(/Yikes! Something terrible has happened/i);
+    expect(errorMsg).toBeInTheDocument();
 
     expect(Monitoring.captureException).toBeCalledTimes(1);
     expect(Monitoring.captureScope).toBeCalledTimes(1);

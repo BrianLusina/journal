@@ -8,43 +8,122 @@
  * or all of them combined
  */
 
-import { ErrorInfo } from 'react';
+import type { ErrorInfo } from 'react';
 import config from '@config';
-import {
-  initializeSentry,
-  captureAndLogSentryError,
-  captureSentryException,
-  captureSentryScope,
-  Severity,
-  SentryBreadcrumb,
-  SentryScope,
-} from './sentry';
-import { inititializeBugSnag, captureBugSnagError } from './bugsnag';
+import type { SentryBreadcrumb } from './sentry';
 
 const {
   env: { isProduction },
 } = config;
 
 /**
- * Initializes monitoring service
+ * Event levels, named as Sentry names them, defined here so that reporting an error does not
+ * load the Sentry SDK.
+ */
+export enum Severity {
+  Fatal = 'fatal',
+  Error = 'error',
+  Warning = 'warning',
+  Log = 'log',
+  Info = 'info',
+  Debug = 'debug',
+  Critical = 'critical',
+}
+
+/**
+ * What to attach to a reported error. It becomes a Sentry scope once Sentry has loaded.
+ */
+export type MonitoringScope = { breadcrumb: SentryBreadcrumb; level: Severity };
+
+type SentryService = typeof import('./sentry');
+
+let sentry: SentryService | undefined;
+// Reports made before Sentry has loaded, sent once it has. Null once Sentry failed to load.
+let pending: ((service: SentryService) => void)[] | null = [];
+
+const report = (send: (service: SentryService) => void): void => {
+  if (!isProduction) {
+    return;
+  }
+  if (sentry) {
+    send(sentry);
+  } else {
+    pending?.push(send);
+  }
+};
+
+// Uncaught errors and unhandled rejections before Sentry.init installs its own global handlers.
+const UNCAUGHT_MESSAGE = 'Uncaught before monitoring loaded';
+const onError = (event: ErrorEvent): void => {
+  captureException(
+    event.error instanceof Error ? event.error : new Error(event.message),
+    undefined,
+    UNCAUGHT_MESSAGE,
+  );
+};
+const onUnhandledRejection = (event: PromiseRejectionEvent): void => {
+  captureException(
+    event.reason instanceof Error ? event.reason : new Error(String(event.reason)),
+    undefined,
+    UNCAUGHT_MESSAGE,
+  );
+};
+const stopListening = (): void => {
+  window.removeEventListener('error', onError);
+  window.removeEventListener('unhandledrejection', onUnhandledRejection);
+};
+
+// Safari has no requestIdleCallback; a timeout still runs after the current render.
+const whenIdle = (callback: () => void): void => {
+  if ('requestIdleCallback' in window) {
+    // The timeout bounds the wait on a page that is never idle.
+    window.requestIdleCallback(callback, { timeout: 3000 });
+  } else {
+    setTimeout(callback);
+  }
+};
+
+/**
+ * Initializes monitoring service. The Sentry SDK is loaded once the browser is idle, so that it
+ * does not delay the first paint. Errors reported before then, including uncaught ones, are kept
+ * and sent once it has loaded.
  */
 export const initializeMonitoring = (): void => {
-  if (isProduction) {
-    initializeSentry();
-    inititializeBugSnag();
+  if (!isProduction) {
+    return;
   }
+  window.addEventListener('error', onError);
+  window.addEventListener('unhandledrejection', onUnhandledRejection);
+  whenIdle(() => {
+    import('./sentry')
+      .then(service => {
+        service.initializeSentry();
+        // Sentry's own global handlers report from here on.
+        stopListening();
+        sentry = service;
+        pending?.forEach(send => send(service));
+        pending = [];
+      })
+      .catch(() => {
+        // Without Sentry there is nowhere to report to, so stop keeping reports for it.
+        stopListening();
+        pending = null;
+      });
+  });
 };
 
 /**
  * capture and log any errors caught
  * @param error error in stacktrace
  * @param errorInfo Error information from React
+ * @param tags tags to index the error by
  */
-export const captureAndLogError = (error: Error, errorInfo: ErrorInfo): void => {
-  if (isProduction) {
-    captureAndLogSentryError(error, errorInfo);
-    captureBugSnagError(error);
-  }
+export const captureAndLogError = (
+  error: Error,
+  errorInfo: ErrorInfo,
+  tags?: Record<string, string>,
+): void => {
+  report(service => service.captureAndLogSentryError(error, errorInfo, tags));
 };
 
 /**
@@ -53,21 +132,21 @@ export const captureAndLogError = (error: Error, errorInfo: ErrorInfo): void => 
  */
 export const captureException = (
   error: Error,
-  scope?: SentryScope,
+  scope?: MonitoringScope,
   errorMessage = 'Error Caught',
 ): void => {
-  if (isProduction) {
-    captureSentryException(error, scope, errorMessage);
-    captureBugSnagError(error);
-  }
+  report(service =>
+    service.captureSentryException(
+      error,
+      scope && service.captureSentryScope(scope.breadcrumb, scope.level),
+      errorMessage,
+    ),
+  );
 };
 
 export const captureScope = (
   data: SentryBreadcrumb,
   level: Severity = Severity.Error,
-): SentryScope => {
-  return captureSentryScope(data, level);
-};
+): MonitoringScope => ({ breadcrumb: data, level });
 
 export type BreadCrumb = SentryBreadcrumb;
-export { Severity };
