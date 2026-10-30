@@ -54,7 +54,7 @@ const ArticlePage: FunctionComponent = () => {
   );
 
   return (
-    <main>
+    <div>
       <BackNavigation title="Back to Articles" link="/articles" />
 
       <ArticleHeroImage imageUrl={heroImage?.url || ''} title={title} />
@@ -81,7 +81,7 @@ const ArticlePage: FunctionComponent = () => {
         <NewsLetterCTA />
       </article>
       <RelatedArticles category={category} />
-    </main>
+    </div>
   );
 };
 
