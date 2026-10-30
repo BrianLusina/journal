@@ -1,6 +1,8 @@
 import { useQuery } from '@apollo/client';
 import { render, screen } from '@testUtils/rtlUtils';
 import * as Monitoring from '@monitoring';
+import { FEATURE_DEFAULTS } from '@/config/features';
+import FeaturesProvider from '@/providers/features';
 import AboutPage from './AboutPage';
 
 jest.mock('@apollo/client', () => ({ ...(jest.requireActual('@apollo/client') as object), useQuery: jest.fn() }));
@@ -31,8 +33,32 @@ describe('AboutPage', () => {
     expect(screen.getByText('Journal is a collection of thoughts.')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Our Story' })).not.toBeInTheDocument();
     expect(screen.queryByText(fallbackStory)).not.toBeInTheDocument();
+  });
+
+  it('shows the newsletter signup while the newsletter feature is on', () => {
+    (useQuery as jest.Mock).mockReturnValue({ loading: false, data: { aboutCollection: { items: [] } } });
+
+    render(
+      <FeaturesProvider value={{ ...FEATURE_DEFAULTS, newsletter: true }}>
+        <AboutPage />
+      </FeaturesProvider>,
+    );
+
     expect(screen.getByRole('heading', { name: 'Join Our Community' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Subscribe' })).toBeInTheDocument();
+  });
+
+  it('hides the newsletter signup while the newsletter feature is off', () => {
+    (useQuery as jest.Mock).mockReturnValue({ loading: false, data: { aboutCollection: { items: [] } } });
+
+    render(
+      <FeaturesProvider value={{ ...FEATURE_DEFAULTS, newsletter: false }}>
+        <AboutPage />
+      </FeaturesProvider>,
+    );
+
+    expect(screen.queryByRole('heading', { name: 'Join Our Community' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Subscribe' })).not.toBeInTheDocument();
   });
 
   it('falls back to the built-in copy when Contentful has no about entry', () => {

@@ -98,7 +98,7 @@ The routes and the adapter read the 📰 Journal CMS data source, whose properti
 
 `Draft` (checkbox) also exists in the database but isn't read: `Status` decides whether a post is published. Text values are joined across their segments, since Notion splits text wherever its formatting changes.
 
-`src/services/cms/adapters.ts` is the registry: an ordered array of adapter instances. Array order is priority order when two sources publish the same slug.
+`src/services/cms/adapters.ts` is the registry: an ordered array of adapter instances. Array order is priority order when two sources publish the same slug. Notion is registered only while the `notion` feature flag is on (see `VITE_FEATURES`); while it is off, the site never calls `/api/notion`, and Notion posts are neither listed nor found by slug.
 
 ### Aggregator
 
@@ -143,7 +143,7 @@ The About page's story section renders the Contentful `about` entry's `title` an
 
 ## Forms
 
-The contact form (`features/ContactForm`) and the newsletter signup (`features/NewsLetter/SubscribeForm`, on the home page, after articles and on the About page) POST JSON to Vercel Functions that call [Resend](https://resend.com/docs/api-reference) with `fetch`, so the API key stays on the server:
+The contact form (`features/ContactForm`) and the newsletter signup (`features/NewsLetter/SubscribeForm`, on the home page, after articles and on the About page, shown only while the `newsletter` feature flag is on) POST JSON to Vercel Functions that call [Resend](https://resend.com/docs/api-reference) with `fetch`, so the API key stays on the server:
 
 - `POST /api/contact` takes `{ name, email, subject?, message }` and emails it to `CONTACT_TO_EMAIL` (`POST /emails`), with `reply_to` set to the reader's address.
 - `POST /api/subscribe` takes `{ email }` and adds it to the Resend audience `RESEND_AUDIENCE_ID` (`POST /audiences/{id}/contacts`). Resend has renamed audiences to segments and deprecated these endpoints; they still work. An address that is already subscribed gets the same answer as a new one, so the form never tells whether an address is on the list.
