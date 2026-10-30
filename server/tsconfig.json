@@ -1,0 +1,17 @@
+{
+  // The Docker image's server runs on Bun, which runs TypeScript as is. The api/ functions it
+  // loads are type-checked with api/tsconfig.json, not this one.
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["es2022"],
+    // @types/node declares the Fetch API (Request, Response, Headers) as well; bun.d.ts the rest.
+    "types": ["node"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["**/*.spec.ts"]
+}

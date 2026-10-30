@@ -1,3 +1,3 @@
 interface window {
-    _env_: any
+    _env_: Record<string, string>
 }
