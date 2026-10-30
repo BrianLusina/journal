@@ -2,7 +2,8 @@
 version: 2
 
 updates:
-  - package-ecosystem: npm
+  # bun is the package manager; only the "bun" ecosystem can update the text bun.lock.
+  - package-ecosystem: "bun"
     versioning-strategy: "lockfile-only"
     open-pull-requests-limit: 10
     directory: "/"

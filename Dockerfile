@@ -1,39 +1,28 @@
-# BUILD
-FROM node:10 as builder
-
-RUN mkdir -p /usr/src/app
+# BUILD: the app, then the server and the api/ functions bundled with the packages they import
+FROM oven/bun:1.3.14-alpine AS builder
 
 WORKDIR /usr/src/app
 
-ENV PATH /usr/src/app/node_modules/.bin:$PATH
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
 
 COPY . /usr/src/app
-RUN yarn install
-RUN yarn build:prod
+RUN bun run build
+RUN bun server/build.ts
 
-# production
-FROM nginx:1.15.5-alpine
+# RUNTIME: no node_modules. The app's VITE_ variables and the functions' secrets are read from the
+# container's environment when it starts, so one image serves every environment.
+FROM oven/bun:1.3.14-alpine
 
-# Create a non-privilleged user that we'll use to run nginx during the build
-RUN adduser -D user
+WORKDIR /app
+ENV NODE_ENV=production
 
-COPY nginx /etc/nginx
+COPY --from=builder /usr/src/app/dist ./dist
+COPY --from=builder /usr/src/app/dist-server ./
 
-# Allow all users to write to /var/cache/nginx
-RUN chmod -Rc a+w /var/cache/nginx
-
- # Allow all users to write to /run (for nginx.pid files)
-RUN chmod -c a+w /run
-
-COPY --from=builder /usr/src/app/public /usr/share/nginx/html
-
-# Switch to our user
-USER user
-
-RUN nginx -t
-
-# Remove the created nginx.pid file
-RUN rm -v /var/run/nginx.pid
+# The unprivileged user of the oven/bun image.
+USER bun
 
 EXPOSE 8080
-CMD ["nginx", "-g", "daemon off;"]
+HEALTHCHECK --interval=30s --timeout=3s CMD wget -q -O /dev/null "http://127.0.0.1:${PORT:-8080}/healthz" || exit 1
+CMD ["bun", "server/index.js"]

@@ -1,0 +1,18 @@
+{
+  // Vercel compiles each function with the nearest tsconfig.json. The root one targets Vite
+  // (ES modules, no Node resolution), but Node loads these functions as CommonJS because
+  // package.json has no "type": "module".
+  "compilerOptions": {
+    "target": "es2020",
+    // Node only: no DOM globals, and no test-runner globals from the other installed @types.
+    "lib": ["es2020"],
+    "types": ["node"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["**/*.spec.ts"]
+}

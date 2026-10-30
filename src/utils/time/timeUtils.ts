@@ -1,9 +1,33 @@
-import getUnixTime from 'date-fns/getUnixTime';
-import formatDistance from 'date-fns/formatDistance';
-import formatDistanceStrict from 'date-fns/formatDistanceStrict';
-import moment from 'moment';
-// eslint-disable-next-line camelcase
+import { getUnixTime, formatDistance, formatDistanceStrict, formatDistanceToNow, format, parse, parseISO, isValid } from 'date-fns';
+ 
 import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_TIME_FORMAT_MMMM_D_ha } from './constants';
+
+/**
+ * Mapping from moment.js format tokens to date-fns format tokens.
+ */
+const momentToDateFnsFormat = (momentFormat: string): string => {
+  return momentFormat
+    .replace(/YYYY/g, 'yyyy')
+    .replace(/YY/g, 'yy')
+    .replace(/DD/g, 'dd')
+    .replace(/D/g, 'd')
+    .replace(/MMMM/g, 'LLLL')
+    .replace(/MMM/g, 'LLL')
+    .replace(/a/g, 'aaa');
+};
+
+const safeParse = (time: string, formatStr: string): Date => {
+  if (!time) {
+    return new Date(NaN);
+  }
+  const dfnsFormat = momentToDateFnsFormat(formatStr);
+  const parsedDate = parse(time, dfnsFormat, new Date());
+  if (isValid(parsedDate)) {
+    return parsedDate;
+  }
+  // parseISO, unlike new Date(), reads date-only strings (e.g. Notion's '2024-02-01') as local time.
+  return parseISO(time);
+};
 
 /**
  * Gets the time in 24 hours
@@ -80,8 +104,11 @@ export const humanizeDateTime = (
   fromFormat = DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss,
   toFormat = DATE_TIME_FORMAT_MMMM_D_ha,
 ): string => {
-  const mom = moment(time, fromFormat);
-  return mom.format(toFormat);
+  const parsedDate = safeParse(time, fromFormat);
+  if (!isValid(parsedDate)) {
+    return '';
+  }
+  return format(parsedDate, momentToDateFnsFormat(toFormat));
 };
 
 /**
@@ -96,8 +123,8 @@ export const fromNow = (
   fromFormat = DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss,
   removePrefix = false,
 ): string => {
-  const mom = moment(time, fromFormat);
-  return mom.fromNow(removePrefix);
+  const parsedDate = safeParse(time, fromFormat);
+  return formatDistanceToNow(parsedDate, { addSuffix: !removePrefix });
 };
 
 /**
@@ -114,8 +141,8 @@ export const getHumanizedDuration = (
   formart = DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss,
   strict = true,
 ): string => {
-  const startDate = moment(startDateTime, formart).toDate();
-  const endDate = moment(endDateTime, formart).toDate();
+  const startDate = safeParse(startDateTime, formart);
+  const endDate = safeParse(endDateTime, formart);
 
   if (strict) {
     return formatDistanceStrict(startDate, endDate);

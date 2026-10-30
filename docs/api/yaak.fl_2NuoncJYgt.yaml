@@ -1,0 +1,34 @@
+type: folder
+model: folder
+id: fl_2NuoncJYgt
+createdAt: 2026-09-14T17:45:01.133704
+updatedAt: 2026-09-14T17:45:01.133704
+workspaceId: wk_m6u48eEXa2
+folderId: fl_iomCXbhMHF
+authentication: {}
+authenticationType: null
+description: ''
+headers: []
+name: Pages
+sortPriority: -1789407901132.0
+settingSendCookies:
+  enabled: false
+  value: true
+settingStoreCookies:
+  enabled: false
+  value: true
+settingValidateCertificates:
+  enabled: false
+  value: true
+settingFollowRedirects:
+  enabled: false
+  value: true
+settingRequestTimeout:
+  enabled: false
+  value: 0
+settingRequestMessageSize:
+  enabled: false
+  value: 67108864
+settingHttpVersion:
+  enabled: false
+  value: auto
