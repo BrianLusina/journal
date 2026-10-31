@@ -1,0 +1,246 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+inheritance: true
+language: en-US
+
+reviews:
+  profile: assertive
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: true
+  sequence_diagrams: true
+
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - develop
+      - main
+    ignore_title_keywords:
+      - "WIP"
+      - "chore(deps)"
+      - "chore(release)"
+
+  # Generated, vendored and build output never need review.
+  path_filters:
+    - "!**/node_modules/**"
+    - "!dist/**"
+    - "!coverage/**"
+    - "!storybook-static/**"
+    - "!.vercel/**"
+    - "!.idea/**"
+    - "!bun.lock"
+    - "!**/__generated__/**"
+    - "!docs/api/yaak.*.yaml" # Exported API client workspace, not hand-written
+    - "!.junie/**"
+
+  path_instructions:
+    # Application code
+    - path: "src/**/*.{ts,tsx}"
+      instructions: |
+        React 18 and TypeScript:
+        - Function components and hooks only. Hooks follow the rules of hooks, and every effect lists its real dependencies.
+        - Effects clean up subscriptions, timers, listeners and in-flight requests (AbortController) on unmount.
+        - Derive state during render instead of syncing it in an effect. Keep state as local as possible.
+        - Lists use stable, unique keys (never the array index for reorderable data).
+        - Add React.memo, useMemo and useCallback only where a measured or obvious re-render cost justifies it.
+        - Routes are lazy-loaded with React.lazy and Suspense, and heavy dependencies are not imported into the main bundle.
+        - Prefer `import type` for type-only imports. Avoid `any` and non-null assertions, and use `unknown` plus narrowing instead.
+        - Use the path aliases from tsconfig.app.json rather than deep relative imports.
+        - Do not leave `console.*` calls; use the logger in src/services/logger.
+
+        Accessibility (WCAG 2.2 AA):
+        - Use semantic elements (button, a, nav, main, article) before ARIA. Every page has exactly one `main` landmark.
+        - Images have meaningful `alt` text (empty for decorative ones). Interactive elements are keyboard operable with a visible focus state.
+        - Form controls have labels and associated error messages (aria-describedby / aria-invalid).
+        - Do not rely on color alone, and keep contrast sufficient in both light and dark themes.
+
+        Security:
+        - No secrets, tokens or CMS credentials in client code. Only non-sensitive config may use the `VITE_` prefix.
+        - Never use dangerouslySetInnerHTML with CMS or user content unless it is sanitized. Validate external URLs before rendering them as links.
+
+        Data fetching:
+        - REST calls go through TanStack Query and GraphQL through Apollo Client, with loading, error and empty states handled.
+        - Content comes from the CMS adapter layer (src/services/cms), not directly from a vendor SDK in components.
+
+    - path: "src/components/**"
+      instructions: |
+        - Each component lives in its own directory with a colocated `*.spec.tsx` test and a `*.stories.tsx` story, and is exported through the directory's `index.ts`.
+        - Components are presentational and typed with an explicit props interface. Variants use class-variance-authority, and classes are merged with `cn`/clsx.
+        - Styling uses Tailwind utilities and design tokens; flag inline styles and hard-coded colors.
+        - Stories cover the main states (default, loading, empty, error) so Storybook accessibility checks have something to run on.
+
+    - path: "src/components/ui/**"
+      instructions: |
+        - These are shadcn/ui and Radix based primitives. Keep them generic and free of business logic or data fetching.
+        - Preserve Radix accessibility behavior (focus management, aria attributes, keyboard handling) when customizing.
+
+    - path: "src/pages/**"
+      instructions: |
+        - Each page has its own directory with a colocated `*.spec.tsx` test and `index.ts`, and is lazy-loaded from src/routes.
+        - Pages set a document title and meta description, render one `h1`, and handle loading, error and not-found states.
+
+    - path: "src/features/**"
+      instructions: |
+        - Feature modules compose components with data and behavior. They must not import from other features' internals.
+        - Forms use React Hook Form with a Zod schema, show field errors accessibly, and disable submit while pending.
+
+    - path: "src/hooks/**"
+      instructions: |
+        - Custom hooks are named `useX`, have a stable return shape, and are covered with renderHook tests.
+        - Hooks that subscribe or fetch clean up on unmount.
+
+    - path: "src/services/**"
+      instructions: |
+        - Keep vendor SDKs (Contentful, Notion, Firebase, Sentry) behind adapters so components stay vendor-agnostic.
+        - Map external payloads to the app's own types at the boundary, and handle failures explicitly without swallowing errors.
+
+    - path: "src/routes/**"
+      instructions: |
+        - Routes are lazy-loaded and every route has an error boundary and a fallback. Check that new routes are reachable and that unknown paths reach NotFound.
+
+    - path: "src/config/**"
+      instructions: |
+        - Environment access goes through src/config (env.ts and runtimeEnv.ts) only. Flag direct `import.meta.env` or `process.env` use elsewhere.
+        - Feature flags are declared in features.ts with a test in features.spec.ts.
+
+    - path: "src/styles/**"
+      instructions: |
+        - Prefer Tailwind utilities and CSS variables for tokens. Keep global CSS minimal and compatible with the stylelint rules.
+
+    # Tests. The project names tests `*.spec.*`; `*.test.*` is kept so the config also covers that convention.
+    - path: "**/*.{spec,test}.{ts,tsx,js,jsx}"
+      instructions: |
+        - Test behavior as a user sees it with @testing-library/react: query by role, label or text (`getByRole` first) and avoid testing implementation details, class names or snapshots of large trees.
+        - Use `userEvent` over `fireEvent`, and `findBy*` / `waitFor` for async work. Flag arbitrary timeouts, unawaited promises and `act` warnings.
+        - Mock the network with msw or a mocked `fetch`, not by stubbing the component under test. Reset mocks and timers between tests.
+        - Tests are deterministic and independent: no shared mutable state, no dependence on test order, current time, randomness or the real network.
+        - Cover the error, loading and empty paths as well as the happy path, and assert accessibility where it applies (roles, names, focus).
+        - New features and bug fixes ship with tests; a bug fix includes a test that fails without the fix.
+        - Use the shared render helpers in src/test (rtlUtils, MockApp*) instead of ad hoc providers.
+
+    - path: "**/*.stories.{ts,tsx}"
+      instructions: |
+        - Stories use CSF3 with typed `Meta` and `StoryObj`, and cover meaningful states. Flag stories that fetch from the real network or rely on secrets.
+
+    # Serverless functions and the production server
+    - path: "api/**"
+      instructions: |
+        Vercel functions:
+        - Validate every request (method, query, body) with Zod before use, and return consistent JSON errors with correct HTTP status codes.
+        - Never return secrets or raw upstream errors to the client. Credentials come from server-only environment variables, never `VITE_*`.
+        - Forms (contact, subscribe) need rate limiting, input validation and abuse protection. Check for header-trust and injection issues.
+        - Set sensible cache headers for read endpoints.
+        - Handlers stay thin and shared logic lives in the `_shared`/`_forms` modules. Every handler has a colocated `*.spec.ts`, and route changes are reflected in `_routes.ts`.
+        - Keep the response contract in sync with the client adapters in src/services/cms and with docs/api.
+
+    - path: "server/**"
+      instructions: |
+        - This is the production server that serves the SPA and the API from the container. Check security headers, static file path traversal, caching, graceful shutdown and the `PORT` handling.
+        - Tests are required for router and adapter changes.
+
+    - path: "scripts/**"
+      instructions: |
+        - Repo policy and build scripts must be deterministic, fail with a non-zero exit code on violations, and have a colocated `*.spec.ts` where they enforce policy.
+
+    # Documentation
+    - path: "{README.md,docs/**/*.md,AGENTS.md,CLAUDE.md}"
+      instructions: |
+        - Check grammar, clarity and that commands, paths, ports and environment variable names match the code (bun scripts in package.json, Makefile targets, vite and vercel config).
+        - Flag stale instructions and broken relative links. Update docs when user-facing or setup behavior changes.
+        - Architecture changes must be reflected in docs/ARCHITECTURE.md.
+
+    # Configuration and tooling
+    - path: "{vite.config.mts,tsconfig*.json,jest.config.js,eslint.config.js,tailwind.config.ts,postcss.config.js,vercel.json,components.json}"
+      instructions: |
+        - Treat config changes as high impact: confirm they work for dev, test, build and Vercel, and that path aliases stay defined only in tsconfig.app.json.
+        - Flag loosened compiler or lint strictness, disabled rules and widened proxy or CORS settings without a reason.
+        - vercel.json rewrites must keep `/api/*` out of the SPA fallback.
+
+    - path: "{package.json,bun.lock,.nvmrc}"
+      instructions: |
+        - Use bun. Flag new dependencies that are unmaintained, duplicate an existing one, or are large for the client bundle (the bundle budget is enforced by scripts/bundle-budget.js).
+        - Build-time tools belong in devDependencies. Pin versions consistently with the rest of the file.
+
+    - path: "{Dockerfile,.dockerignore,.make/**,Makefile}"
+      instructions: |
+        - The image is built without build arguments so one image runs everywhere. Flag baked-in secrets, running as root and unpinned base images.
+        - Make targets stay documented in .make/README.md.
+
+    - path: ".github/**"
+      instructions: |
+        - Pin third-party actions to a version or SHA, use least-privilege `permissions`, and never echo secrets.
+        - CI must run lint, typecheck (app, api and server), tests and build.
+
+    - path: "{.env.sample,.storybook/**}"
+      instructions: |
+        - `.env.sample` lists every variable with placeholder values only. Real values never belong in the repo.
+        - Storybook config must not depend on secrets and should keep the accessibility addon enabled.
+
+  finishing_touches:
+    docstrings:
+      enabled: false
+    unit_tests:
+      enabled: true
+
+  pre_merge_checks:
+    title:
+      mode: warning
+      requirements: "Use Conventional Commits, for example `feat(ui): add tag filter` or `fix: contact form error message`."
+    description:
+      mode: warning
+    custom_checks:
+      - name: "Tests accompany code changes"
+        mode: warning
+        instructions: |
+          Pass if every change to files under src/, api/ or server/ that adds or alters behavior includes new or updated
+          tests (`*.spec.ts` or `*.spec.tsx`), or the PR explains why none are needed. Fail otherwise.
+      - name: "No secrets in client code"
+        mode: error
+        instructions: |
+          Fail if the diff adds API keys, tokens, CMS credentials or other secrets to the repository, or exposes a
+          server-only variable to the browser through a `VITE_` prefix or `index.html`.
+      - name: "New components have stories"
+        mode: warning
+        instructions: |
+          Pass if every new component under src/components has a colocated `*.stories.tsx` and `*.spec.tsx`.
+          Pages and non-visual modules are exempt.
+
+  tools:
+    eslint:
+      enabled: true
+    markdownlint:
+      enabled: true
+    yamllint:
+      enabled: true
+    actionlint:
+      enabled: true
+    hadolint:
+      enabled: true
+    shellcheck:
+      enabled: true
+    gitleaks:
+      enabled: true
+    languagetool:
+      enabled: true
+      level: default
+    github-checks:
+      enabled: true
+      timeout_ms: 90000
+
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - "AGENTS.md"
+      - "CLAUDE.md"
+      - "docs/ARCHITECTURE.md"
+      - ".github/PULL_REQUEST_TEMPLATE.md"
+
+chat:
+  auto_reply: true
+
+issue_enrichment:
+  auto_enrich:
+    enabled: true
