@@ -121,6 +121,22 @@ Or pass a file of the same variables with `--env-file`. `/healthz` answers `ok` 
 
 A static-only host (GitHub Pages) does not run `api/`, so it serves no posts: only authors, About and Social content, which are still read from Contentful in the browser.
 
+### Feature flags
+
+Some features are switched per environment with the `VITE_FEATURES` variable, a comma-separated list of overrides. The newsletter signup is off unless it is turned on:
+
+```bash
+VITE_FEATURES=newsletter=on
+```
+
+| Flag | Default | Turns on or off |
+|---|---|---|
+| `newsletter` | off | The newsletter signup on the home, article and About pages |
+| `search` | off | The search menu (still a stub) |
+| `notion` | on | Notion as a post source |
+
+On Vercel, set it for Production and Preview separately and redeploy; it is read at build time. In Docker, pass it with `-e` and restart the container. Unknown names and values are ignored. See [Feature flags](./docs/ARCHITECTURE.md#feature-flags) for how to add or remove a flag.
+
 ## Built With
 
 1. [TypeScript](https://www.typescriptlang.org/)
