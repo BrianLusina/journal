@@ -9,12 +9,13 @@ const sentryFactory = () => {
     captureAndLogSentryError: jest.fn(),
     captureSentryException: jest.fn(),
     captureSentryScope: jest.fn(),
+    addSentryBreadcrumb: jest.fn(),
   };
 };
 
 type Monitoring = typeof import('./Monitoring');
 type SentryService = Record<
-  'initializeSentry' | 'captureAndLogSentryError' | 'captureSentryException' | 'captureSentryScope',
+  'initializeSentry' | 'captureAndLogSentryError' | 'captureSentryException' | 'captureSentryScope' | 'addSentryBreadcrumb',
   jest.Mock
 >;
 
@@ -143,6 +144,18 @@ describe('Monitoring', () => {
     monitoring.captureException(error, monitoring.captureScope({ type: 'component' }));
 
     expect(service.captureSentryException).toHaveBeenCalledWith(error, 'sentry-scope', 'Error Caught');
+  });
+
+  it('keeps a breadcrumb added before Sentry loads and adds it once Sentry has initialized', async () => {
+    const monitoring = loadMonitoring(true);
+    monitoring.initializeMonitoring();
+    const breadcrumb = { category: 'search', message: 'Search index loaded', data: { documents: 3 } };
+
+    monitoring.addBreadcrumb(breadcrumb);
+    becomeIdle();
+    await flush();
+
+    expect(sentry().addSentryBreadcrumb).toHaveBeenCalledWith(breadcrumb);
   });
 
   it('drops reports and stops listening, instead of failing or queueing forever, when the Sentry SDK cannot load', async () => {

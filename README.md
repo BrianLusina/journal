@@ -132,7 +132,7 @@ VITE_FEATURES=newsletter=on
 | Flag | Default | Turns on or off |
 |---|---|---|
 | `newsletter` | off | The newsletter signup on the home, article and About pages |
-| `search` | off | The search menu (still a stub) |
+| `search` | off | Site search: the navbar search button, ⌘K / Ctrl+K / `/`, and the `/search` page |
 | `notion` | on | Notion as a post source |
 
 On Vercel, set it for Production and Preview separately and redeploy; it is read at build time. In Docker, pass it with `-e` and restart the container. Unknown names and values are ignored. See [Feature flags](./docs/ARCHITECTURE.md#feature-flags) for how to add or remove a flag.

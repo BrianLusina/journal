@@ -15,4 +15,9 @@ export default interface CMSAdapter {
    * @param slug The URL slug of the post.
    */
   getPostBySlug(slug: string): Promise<UnifiedPost | null>;
+
+  /**
+   * Retrieves every listed post without its body, for the search index.
+   */
+  getSearchIndex(): Promise<UnifiedPost[]>;
 }

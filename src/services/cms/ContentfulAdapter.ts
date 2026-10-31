@@ -70,4 +70,15 @@ export default class ContentfulAdapter implements CMSAdapter {
 
     return mapContentfulPostToUnified(payload.post);
   }
+
+  async getSearchIndex(): Promise<UnifiedPost[]> {
+    const response = await fetch('/api/contentful/search-index');
+    if (!response.ok) {
+      throw new Error(`Unable to fetch the Contentful search index: ${response.status}`);
+    }
+
+    const payload = await response.json();
+
+    return payload.results.map(mapContentfulPostToUnified);
+  }
 }

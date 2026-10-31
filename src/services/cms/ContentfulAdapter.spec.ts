@@ -121,4 +121,20 @@ describe('ContentfulAdapter', () => {
 
     await expect(adapter.getPostBySlug('title')).rejects.toThrow('Unable to fetch Contentful post: 502');
   });
+
+  it('reads the search index and maps each post', async () => {
+    mockFetch(200, { results: [blogPost()] });
+
+    const posts = await adapter.getSearchIndex();
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/contentful/search-index');
+    expect(posts).toHaveLength(1);
+    expect(posts[0].source).toBe('contentful');
+  });
+
+  it('rejects when the search index route fails', async () => {
+    mockFetch(502, { error: 'Unable to fetch the Contentful search index' });
+
+    await expect(adapter.getSearchIndex()).rejects.toThrow('Unable to fetch the Contentful search index: 502');
+  });
 });

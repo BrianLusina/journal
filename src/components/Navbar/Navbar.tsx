@@ -6,6 +6,8 @@ import { Menu, X, Moon, Sun } from 'lucide-react';
 import { Button } from '@components';
 import navbarItems from './constants';
 import Logo from '../ui/logo';
+import Feature from '../Feature';
+import SearchLauncher from '../SearchLauncher';
 // import './navbar.scss';
 
 const Navbar: FunctionComponent = () => {
@@ -34,6 +36,10 @@ const Navbar: FunctionComponent = () => {
 
         {/* Actions */}
         <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+          {/* Outside the mobile menu, so search is one tap away on every screen size. */}
+          <Feature name="search">
+            <SearchLauncher />
+          </Feature>
           <button
             onClick={toggleTheme}
             className="p-1.5 sm:p-2 rounded-full hover:bg-muted/60 transition-all"

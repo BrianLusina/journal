@@ -11,13 +11,15 @@ interface ArticleCardProps {
   date: string;
   thumbnail: string;
   size?: "small" | "large";
+  onClick?: () => void;
 }
 
-const ArticleCard: FunctionComponent<ArticleCardProps> = ({ id, slug, title, category, date, thumbnail: image, size = "small" }: ArticleCardProps) => {
+const ArticleCard: FunctionComponent<ArticleCardProps> = ({ id, slug, title, category, date, thumbnail: image, size = "small", onClick }: ArticleCardProps) => {
 
   return (
     <Link
       to={`/article/${id}/${slug}`}
+      onClick={onClick}
       className={`group relative block rounded-[2.5rem] overflow-hidden card-hover ${
         size === "large" ? "col-span-1 md:col-span-2 row-span-2" : ""
       }`}

@@ -144,6 +144,13 @@ export const captureException = (
   );
 };
 
+/**
+ * Records a breadcrumb, such as a measurement, that later reported errors carry.
+ */
+export const addBreadcrumb = (breadcrumb: SentryBreadcrumb): void => {
+  report(service => service.addSentryBreadcrumb(breadcrumb));
+};
+
 export const captureScope = (
   data: SentryBreadcrumb,
   level: Severity = Severity.Error,
