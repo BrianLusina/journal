@@ -1,6 +1,7 @@
 import { FC, lazy, Suspense } from 'react';
 import { Header, Navbar, Footer } from '@components';
 import Feature from '@/components/Feature';
+import ErrorBoundary from '@/components/Errors/ErrorBoundary';
 
 // Loaded only while the search feature is on, so they stay out of the initial bundle.
 const Menu = lazy(() => import('@/components/Menu'));
@@ -14,9 +15,12 @@ const MainLayout: FC<{ children: React.ReactNode }> = ({ children }) => (
       </Header>
       {/* TODO: add search functionality */}
       <Feature name="search">
-        <Suspense fallback={null}>
-          <Menu searchBar={<Search />} />
-        </Suspense>
+        {/* If the search chunks fail to load, drop the search menu instead of the whole page. */}
+        <ErrorBoundary fallback={<></>}>
+          <Suspense fallback={null}>
+            <Menu searchBar={<Search />} />
+          </Suspense>
+        </ErrorBoundary>
       </Feature>
       <main id="main" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {children}
