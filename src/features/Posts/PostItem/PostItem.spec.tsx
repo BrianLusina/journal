@@ -14,7 +14,7 @@ describe('PostItem', () => {
       src: faker.image.imageUrl(),
       alt: faker.lorem.word(),
     };
-    const tags = [faker.lorem.word(), faker.lorem.word()];
+    const tags = ['first-tag', 'second-tag'];
 
     const props = {
       id: faker.random.uuid(),

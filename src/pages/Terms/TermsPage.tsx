@@ -1,7 +1,7 @@
 // TODO: This is a placeholder page. We need to write the actual terms of service content here.
 const TermsPage: React.FC = () => {
     return (
-              <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+              <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Section */}
         <div className="mb-12 space-y-4">
           <h1 className="text-4xl md:text-5xl font-bold leading-tight animate-slide-down">
@@ -123,7 +123,7 @@ const TermsPage: React.FC = () => {
             </p>
           </section>
         </div>
-      </main>
+      </div>
     )
 }
 

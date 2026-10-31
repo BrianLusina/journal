@@ -11,6 +11,7 @@ import { BackNavigation } from '@/components/ui/navigation';
 import { ArticleHeader, ArticleHeroImage } from './components';
 import { Tags } from '@/components/ui/tag';
 import { NewsLetterCTA } from '@/features/NewsLetter';
+import Feature from '@/components/Feature';
 import MobileShareButtons from '@/components/ui/share';
 import MarkdownComponents from '@/components/ui/markdown';
 import RelatedArticles from '@/features/RelatedArticles';
@@ -54,7 +55,7 @@ const ArticlePage: FunctionComponent = () => {
   );
 
   return (
-    <main>
+    <div>
       <BackNavigation title="Back to Articles" link="/articles" />
 
       <ArticleHeroImage imageUrl={heroImage?.url || ''} title={title} />
@@ -78,10 +79,12 @@ const ArticlePage: FunctionComponent = () => {
 
         <Tags tags={tags} />
         <MobileShareButtons title={'Share this article'} />
-        <NewsLetterCTA />
+        <Feature name="newsletter">
+          <NewsLetterCTA />
+        </Feature>
       </article>
       <RelatedArticles category={category} />
-    </main>
+    </div>
   );
 };
 
