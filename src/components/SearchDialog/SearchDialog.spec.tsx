@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { loadSearchEngine } from '@/services/search';
@@ -88,6 +88,18 @@ describe('SearchDialog', () => {
     expect(onOpenChange).toHaveBeenCalledWith(false);
     expect(logSearch).toHaveBeenCalledWith('react', 2, 'modal');
     expect(logSearchSelection).toHaveBeenCalledWith('c2-slug', 'modal');
+  });
+
+  it('leaves Enter to the input method while it is composing text', async () => {
+    const user = userEvent.setup();
+    await renderDialog();
+    const input = screen.getByRole('combobox');
+
+    await user.type(input, 'react');
+    await screen.findAllByRole('option');
+    fireEvent.keyDown(input, { key: 'Enter', isComposing: true });
+
+    expect(screen.getByTestId('location')).toHaveTextContent(/^\/$/);
   });
 
   it('opens the search page for the query from "See all results"', async () => {

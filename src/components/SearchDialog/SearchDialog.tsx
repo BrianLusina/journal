@@ -24,7 +24,7 @@ const SearchDialog: FunctionComponent<SearchDialogProps> = ({ open, onOpenChange
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
-  const { status, results, retry } = useSearch(query);
+  const { status, results, retry } = useSearch(query, open);
   const listboxId = useId();
   // Radix only gives focus back to a Dialog.Trigger, and this dialog also opens from shortcuts,
   // so it remembers what had focus. A layout effect runs before Radix moves focus into the dialog.
@@ -41,8 +41,8 @@ const SearchDialog: FunctionComponent<SearchDialogProps> = ({ open, onOpenChange
 
   useEffect(() => setActive(0), [query]);
   useEffect(() => {
-    document.getElementById(optionId(active))?.scrollIntoView?.({ block: 'nearest' });
-  });
+    document.getElementById(`${listboxId}-option-${active}`)?.scrollIntoView?.({ block: 'nearest' });
+  }, [active, listboxId]);
 
   const go = (path: string) => {
     logSearch(query, results.length, 'modal');
@@ -57,7 +57,8 @@ const SearchDialog: FunctionComponent<SearchDialogProps> = ({ open, onOpenChange
   const choose = (index: number) => (index < shown.length ? openResult(shown[index]) : seeAll());
 
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (optionCount === 0) return;
+    // Enter while an input method composes text (Japanese, Chinese, …) commits the text.
+    if (optionCount === 0 || event.nativeEvent.isComposing) return;
     if (event.key === 'ArrowDown') {
       event.preventDefault();
       setActive(index => (index + 1) % optionCount);

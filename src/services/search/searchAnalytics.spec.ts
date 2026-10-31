@@ -46,6 +46,13 @@ describe('search analytics', () => {
     expect(analytics.logEvent).not.toHaveBeenCalled();
   });
 
+  it('checks the whole term for personal data before cutting it to 100 characters', () => {
+    logSearch(`${'a'.repeat(90)} john.doe@gmail.com`, 0, 'page');
+    logSearch(`${'b'.repeat(95)} 4111111111111111`, 0, 'page');
+
+    expect(analytics.logEvent).not.toHaveBeenCalled();
+  });
+
   it('sends a select_content event with the opened post slug', () => {
     logSearchSelection('my-post', 'page');
 

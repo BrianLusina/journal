@@ -1,4 +1,5 @@
 import analytics from '@/services/analytics';
+import { MIN_QUERY_LENGTH } from './SearchDocument';
 
 /** Where a search was made. */
 export type SearchSource = 'modal' | 'page';
@@ -27,8 +28,10 @@ let lastLoggedTerm: string | undefined;
  * The analytics service only sends in production.
  */
 export function logSearch(term: string, resultsCount: number, source: SearchSource): void {
+  // Checked before the term is cut, so personal data straddling the cut is still caught.
+  if (mayBePersonal(term)) return;
   const searchTerm = normalizeSearchTerm(term);
-  if (searchTerm.length < 2 || searchTerm === lastLoggedTerm || mayBePersonal(searchTerm)) return;
+  if (searchTerm.length < MIN_QUERY_LENGTH || searchTerm === lastLoggedTerm) return;
   lastLoggedTerm = searchTerm;
   analytics.logEvent('search', { search_term: searchTerm, results_count: resultsCount, source });
 }
