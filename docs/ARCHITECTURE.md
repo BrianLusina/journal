@@ -181,12 +181,36 @@ Each `VITE_*` value is read with `readEnv` (`src/config/runtimeEnv.ts`), which r
 | `VITE_SENTRY_DSN`, `VITE_SENTRY_TRACES_SAMPLE_RATE` | Sentry (production only). |
 | `VITE_FIREBASE_*` | Firebase Analytics (optional, production only). |
 | `VITE_ENV`, `VITE_APP_NAME`, `VITE_APP_TITLE` | Environment label and site naming. |
-| `VITE_FEATURES` | Feature flag overrides, a comma-separated list such as `search=on,newsletter=off`. The flags and their defaults are `FEATURE_DEFAULTS` in `src/config/features.ts`; unknown names and values are ignored. Components read a flag with `useFeatureFlag(name)` or render through `<Feature name>`. |
+| `VITE_FEATURES` | Feature flag overrides, a comma-separated list such as `newsletter=on,search=off`. See [Feature flags](#feature-flags). |
 | `NOTION_API_KEY`, `NOTION_DATA_SOURCE_ID` (or `NOTION_DATABASE_ID`) | **Server only**, read by `api/notion`. Queries target a data source (Notion API 2025-09-03). `getDataSourceId()` in `api/notion/_shared.ts` uses `NOTION_DATA_SOURCE_ID` as is, or looks up the first data source of `NOTION_DATABASE_ID` once per function instance. |
 | `RESEND_API_KEY` | **Server only**, read by `api/contact` and `api/subscribe`. A Resend API key that can send emails and manage contacts. |
 | `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL` | **Server only**, read by `api/contact`. The address contact messages go to, and the sender they come from. The sender must be on a domain verified in Resend, and may include a name: `Journal <forms@example.com>`. |
 | `RESEND_AUDIENCE_ID` | **Server only**, read by `api/subscribe`. The ID of the Resend audience (now called a segment) that newsletter subscribers join. |
 | `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` | Build only, set in the Vercel project: `@sentry/vite-plugin` creates the Sentry release and uploads the source maps of the bundle Vercel deploys. Without them the plugin skips the upload. |
+
+### Feature flags
+
+Feature flags turn a feature on or off per environment without a code change. They ride on the same `readEnv` path as the rest of the configuration, so they are known before the first render: no extra request, no flicker, and nothing that can be down.
+
+| Flag | Default | Gates |
+|---|---|---|
+| `newsletter` | off | The newsletter signup: `NewsLetterSection` on the home page, `NewsLetterCTA` after articles, and the "Join Our Community" section on the About page. |
+| `search` | off | The search menu in `MainLayout`. `Menu` and `Search` are loaded with `lazy()` only while it is on, inside their own `ErrorBoundary`, so a failed chunk drops the menu, not the page. The search itself is still a stub. |
+| `notion` | on | Notion as a post source. While it is off, `NotionAdapter` is not registered, so the site never calls `/api/notion` and Notion posts are neither listed nor found by slug. `api/notion` itself is not gated. |
+
+**Setting flags.** `VITE_FEATURES` holds overrides as a comma-separated list, such as `newsletter=on,search=off`. A value is `on`/`off`, `true`/`false` or `1`/`0` (any case), and a bare name means on. A flag the list doesn't name keeps its default. An unknown name, an unknown value or a malformed entry is skipped, with a `console.warn` in development, so a typo never breaks the app. Flags are read once when the page loads.
+
+- **Vercel:** set `VITE_FEATURES` in the project's environment variables, separately for Production and Preview, then redeploy. Vite inlines it at build time, so a change only takes effect with the next deployment.
+- **Docker:** pass `-e VITE_FEATURES=...` (or put it in the `--env-file`) and restart the container. No rebuild is needed.
+- **Locally:** set it in `.env.local` and restart `bun dev`.
+
+**Reading a flag.** Wrap UI in `<Feature name="search" fallback={...}>` (`src/components/Feature`), which renders its children only while the flag is on, or call `useFeatureFlag('search')` (`src/hooks/features`). Code outside React imports the parsed flags from `src/config/features.ts` (`import features from '@/config/features'`), as `src/services/cms/adapters.ts` does. Names are checked by TypeScript, so a misspelt flag fails `bun run typecheck`.
+
+Code behind a flag that is off still ships in the bundle, because the value can change at runtime in the Docker image. Load anything sizeable behind a flag with `lazy()`, as `MainLayout` does for search, to keep it out of the initial bundle.
+
+**Adding a flag.** Add it to `FEATURE_DEFAULTS` in `src/config/features.ts`, which is the only place flags are declared. A new or unfinished feature defaults to `false`, so an environment without `VITE_FEATURES` hides it. Gate the feature with `<Feature>`, `useFeatureFlag` or `features.<name>`. Test both states: render under `<FeaturesProvider value={{ ...FEATURE_DEFAULTS, <name>: true }}>` (`src/providers/features`), or set `window.__ENV__ = { VITE_FEATURES: '...' }` and reload the module for code outside React (`src/services/cms/adapters.spec.ts`). Add the flag to the table above. `VITE_FEATURES` is already in `CLIENT_ENV_KEYS`, so no server change is needed.
+
+**Removing a flag.** Once a feature has been on in production for a release and isn't expected to be turned off again, delete it from `FEATURE_DEFAULTS`, unwrap its `<Feature>` (or remove its check), delete the code for the off state and its tests, and drop it from the table above and from any `VITE_FEATURES` values. A name left in `VITE_FEATURES` after its flag is gone is ignored with a development warning. Flags meant as lasting switches (`notion`) stay.
 
 ## Deployment topology
 
