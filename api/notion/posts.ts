@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getLimit, getParam, methodNotAllowed, POSTS_CACHE_CONTROL } from '../_routes';
-import { NOTION_PROPERTY, publishedFilters } from './_schema';
+import { listedFilters, NOTION_PROPERTY } from './_schema';
 import { getDataSourceId, isNotionConfigured, notion } from './_shared';
 
 /**
@@ -32,12 +32,6 @@ export default async function handler(
       ? request.query.category
       : undefined;
   const tag = getParam(request.query.tag);
-  // A post without a slug cannot be opened: the slug route looks posts up by slug.
-  const hasSlugFilter = {
-    property: NOTION_PROPERTY.slug,
-    rich_text: { is_not_empty: true as const },
-  };
-  const listedFilters = [...publishedFilters, hasSlugFilter];
   const categoryFilters = category
     ? [
         {

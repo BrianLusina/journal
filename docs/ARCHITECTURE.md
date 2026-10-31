@@ -40,6 +40,7 @@ Authors, About and Social content bypasses `api/`: `hooks/api/*` and the feature
 | `src/hooks/cms/` | `usePosts` and `usePost`: React state around the CMS aggregator. |
 | `src/hooks/api/` | Thin Apollo hooks for Contentful content that is not a post (authors, About, Social). |
 | `src/services/cms/` | The multi-CMS seam: `CMSAdapter` interface, adapters, adapter registry, aggregator. |
+| `src/services/search/` | Site search: the search index, MiniSearch ranking and the search analytics rules (see [Search](#search)). |
 | `src/services/monitoring/`, `src/services/analytics/` | Sentry and Firebase Analytics wrappers. Both are no-ops outside production. |
 | `src/integrations/contentful/` | The Contentful Apollo client instance, plus the queries and fragments for authors, About and Social content. Post queries live in `api/contentful/_shared.ts`. |
 | `src/clients/graphql/` | Apollo client factory and links (auth, retry, error reporting, HTTP). |
@@ -74,6 +75,8 @@ interface CMSAdapter {
   // Next page of posts, newest first by publish date. Pass the previous page's nextCursor.
   getPosts(request: { cursor?: string; limit: number; category?: string; tag?: string }): Promise<{ items: UnifiedPost[]; nextCursor: string | null }>;
   getPostBySlug(slug: string): Promise<UnifiedPost | null>;
+  // Every listed post without its body, for the search index (see Search).
+  getSearchIndex(): Promise<UnifiedPost[]>;
 }
 ```
 
@@ -120,9 +123,21 @@ The hooks are thin. `usePosts({ limit, category, tag })` keeps one feed per cate
 2. Implement `CMSAdapter` in `src/services/cms/<Name>Adapter.ts`, mapping onto `UnifiedPost`. Body text must be Markdown.
 3. If the source needs a secret, put the calls behind a function in `api/` (as Contentful and Notion do), using the helpers in `api/_routes.ts`. Never use a `VITE_`-prefixed variable for a secret, because Vite inlines those into the browser bundle.
 4. Register an instance in `src/services/cms/adapters.ts`.
-5. Add `<Name>Adapter.spec.ts` covering mapping, fallbacks, pagination and not-found. `ContentfulAdapter.spec.ts` and `NotionAdapter.spec.ts` show the pattern; the functions get specs next to them (`api/contentful/_handlers.spec.ts`).
+5. Implement `getSearchIndex()`: every listed post, without its body, from a route that reads the source to its end. Search then covers the source with no other change.
+6. Add `<Name>Adapter.spec.ts` covering mapping, fallbacks, pagination and not-found. `ContentfulAdapter.spec.ts` and `NotionAdapter.spec.ts` show the pattern; the functions get specs next to them (`api/contentful/_handlers.spec.ts`).
 
 No hook, page or aggregator change is needed.
+
+### Search
+
+Search runs in the browser over an index of every post's metadata, so results are ranked, consistent across sources, and need no request per keystroke. Post bodies are not searched (see #886 for the options weighed and the decisions behind this).
+
+- **Index routes.** `GET /api/contentful/search-index` and `GET /api/notion/search-index` answer `{ results }` with every listed post of their source, in the same raw shape as the posts routes and by the same listing rules (`publishDate_exists`; `listedFilters` in `api/notion/_schema.ts`). Contentful uses a slim query, `GET_SEARCH_INDEX`, without bodies or hero images; a Notion query never returns bodies. Each route reads 100 posts per CMS request until the source is exhausted, so no post is left out once a source passes one page, and sets `X-Search-Documents` to the number of posts, so the index's growth shows in the request logs. Responses are edge-cached like the posts routes, so the index costs one CMS request per 100 posts per cache refresh.
+- **Index.** `loadSearchIndex` (`src/services/search/searchIndex.ts`) calls `getSearchIndex()` on every registered adapter, so the adapters' existing mapping applies and the `notion` flag is respected: while it is off, nothing calls `/api/notion`. A failing source is left out and reported to Sentry, as in the feed; loading fails only when every source fails. Documents are `SearchDocument`s: title, subtitle, description, category, tags, author names, slug, date and thumbnail.
+- **Ranking.** `createSearchEngine` (`searchEngine.ts`) indexes them with MiniSearch. Every word of the query must match, as a prefix or with one typo in a word of five characters or more; field boosts rank title over tags, then subtitle and description, then author and category. Queries under two characters return nothing. Both sit behind the `SearchEngine` interface, so moving search to the server (to search bodies, or past a couple of thousand posts) only replaces the index source and this module.
+- **Loading.** `src/services/search/index.ts` holds MiniSearch and is only loaded with `import()`, by `useSearch` (`src/hooks/search`), the first time a search is shown. The loaded engine is shared by the modal and the page. Load time and document count go to Sentry as a breadcrumb.
+- **UI.** `SearchLauncher`, in the navbar, is the search button and the ⌘K / Ctrl+K / `/` shortcuts (ignored while typing in a field). It loads `SearchDialog` with `lazy()` on first use: a Radix dialog whose input is a combobox over the best 8 results (↑/↓, Enter, Esc), then "See all results", which opens `/search?q=…`. `SearchPage` keeps the query in `?q=` (replacing the history entry while typing), shows results as `ArticleCard`s, and sets `noindex, follow`. Both render through `SearchResults`, which owns the too-short, loading, failed and no-match states.
+- **Analytics.** `src/services/search/searchAnalytics.ts` sends GA4 `search` (`search_term`, `results_count`, `source`: `modal` or `page`) for a settled query: on Enter, on opening a result, or after a 1 s pause in typing. Terms are trimmed, lowercased, whitespace-collapsed and cut to 100 characters; a term is not sent twice in a row, and never when it looks like an email address or a number of seven digits or more. Opening a result also sends `select_content` with the post's slug. Like all analytics, nothing is sent outside production. The Privacy page says search terms are collected.
 
 ### Tags
 
@@ -195,7 +210,7 @@ Feature flags turn a feature on or off per environment without a code change. Th
 | Flag | Default | Gates |
 |---|---|---|
 | `newsletter` | off | The newsletter signup: `NewsLetterSection` on the home page, `NewsLetterCTA` after articles, and the "Join Our Community" section on the About page. |
-| `search` | off | The search menu in `MainLayout`. `Menu` and `Search` are loaded with `lazy()` only while it is on, inside their own `ErrorBoundary`, so a failed chunk drops the menu, not the page. The search itself is still a stub. |
+| `search` | off | Site search (see [Search](#search)): the navbar search button and its shortcuts, and the `/search` page, which is not found while the flag is off. The dialog and the search index load with `lazy()` and `import()` on first use, the dialog inside its own `ErrorBoundary`, so a failed chunk drops the dialog, not the navbar. |
 | `notion` | on | Notion as a post source. While it is off, `NotionAdapter` is not registered, so the site never calls `/api/notion` and Notion posts are neither listed nor found by slug. `api/notion` itself is not gated. |
 
 **Setting flags.** `VITE_FEATURES` holds overrides as a comma-separated list, such as `newsletter=on,search=off`. A value is `on`/`off`, `true`/`false` or `1`/`0` (any case), and a bare name means on. A flag the list doesn't name keeps its default. An unknown name, an unknown value or a malformed entry is skipped, with a `console.warn` in development, so a typo never breaks the app. Flags are read once when the page loads.
@@ -206,7 +221,7 @@ Feature flags turn a feature on or off per environment without a code change. Th
 
 **Reading a flag.** Wrap UI in `<Feature name="search" fallback={...}>` (`src/components/Feature`), which renders its children only while the flag is on, or call `useFeatureFlag('search')` (`src/hooks/features`). Code outside React imports the parsed flags from `src/config/features.ts` (`import features from '@/config/features'`), as `src/services/cms/adapters.ts` does. Names are checked by TypeScript, so a misspelt flag fails `bun run typecheck`.
 
-Code behind a flag that is off still ships in the bundle, because the value can change at runtime in the Docker image. Load anything sizeable behind a flag with `lazy()`, as `MainLayout` does for search, to keep it out of the initial bundle.
+Code behind a flag that is off still ships in the bundle, because the value can change at runtime in the Docker image. Load anything sizeable behind a flag with `lazy()`, as `SearchLauncher` does for the search dialog, to keep it out of the initial bundle.
 
 **Adding a flag.** Add it to `FEATURE_DEFAULTS` in `src/config/features.ts`, which is the only place flags are declared. A new or unfinished feature defaults to `false`, so an environment without `VITE_FEATURES` hides it. Gate the feature with `<Feature>`, `useFeatureFlag` or `features.<name>`. Test both states: render under `<FeaturesProvider value={{ ...FEATURE_DEFAULTS, <name>: true }}>` (`src/providers/features`), or set `window.__ENV__ = { VITE_FEATURES: '...' }` and reload the module for code outside React (`src/services/cms/adapters.spec.ts`). Add the flag to the table above. `VITE_FEATURES` is already in `CLIENT_ENV_KEYS`, so no server change is needed.
 

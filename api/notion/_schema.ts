@@ -31,3 +31,12 @@ export const publishedFilters = [
   { property: NOTION_PROPERTY.status, status: { equals: PUBLISHED_STATUS } },
   { property: NOTION_PROPERTY.published, date: { is_not_empty: true as const } },
 ];
+
+/**
+ * A post is listed when it is published and has a slug: the slug route looks posts up by slug, so
+ * a post without one cannot be opened. The posts and search-index routes both list by this.
+ */
+export const listedFilters = [
+  ...publishedFilters,
+  { property: NOTION_PROPERTY.slug, rich_text: { is_not_empty: true as const } },
+];

@@ -2,20 +2,24 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useTheme } from 'next-themes';
 import MockAppWithRouter from '@testUtils/MockAppWithRouter';
+import { FEATURE_DEFAULTS } from '@/config/features';
+import FeaturesProvider from '@/providers/features';
 import ThemeProvider from '@providers/theme/ThemeProvider';
 import navbarItems from './constants';
 import Navbar from './Navbar';
 
 const ResolvedTheme = () => <span data-testid="resolved-theme">{useTheme().resolvedTheme}</span>;
 
-const renderNavbar = () =>
+const renderNavbar = (search: boolean = FEATURE_DEFAULTS.search) =>
   render(
-    <ThemeProvider>
-      <MockAppWithRouter>
-        <Navbar />
-        <ResolvedTheme />
-      </MockAppWithRouter>
-    </ThemeProvider>,
+    <FeaturesProvider value={{ ...FEATURE_DEFAULTS, search }}>
+      <ThemeProvider>
+        <MockAppWithRouter>
+          <Navbar />
+          <ResolvedTheme />
+        </MockAppWithRouter>
+      </ThemeProvider>
+    </FeaturesProvider>,
   );
 
 describe('Navbar', () => {
@@ -31,6 +35,15 @@ describe('Navbar', () => {
     navbarItems.forEach((item) => {
       expect(screen.getAllByText(item.name)[0]).toBeInTheDocument();
     });
+  });
+
+  it('shows the search button only while the search feature is on', () => {
+    const { unmount } = renderNavbar(false);
+    expect(screen.queryByRole('button', { name: 'Search posts' })).not.toBeInTheDocument();
+    unmount();
+
+    renderNavbar(true);
+    expect(screen.getByRole('button', { name: 'Search posts' })).toBeInTheDocument();
   });
 
   it('closes the mobile menu after a link is followed', async () => {

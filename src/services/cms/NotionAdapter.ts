@@ -120,4 +120,15 @@ export default class NotionAdapter implements CMSAdapter {
 
     return post;
   }
+
+  async getSearchIndex(): Promise<UnifiedPost[]> {
+    const response = await fetch('/api/notion/search-index');
+    if (!response.ok) {
+      throw new Error(`Unable to fetch the Notion search index: ${response.status}`);
+    }
+
+    const payload = await response.json();
+
+    return payload.results.map(mapNotionPageToUnified);
+  }
 }

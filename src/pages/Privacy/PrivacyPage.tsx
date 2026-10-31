@@ -8,7 +8,7 @@ const PrivacyPage = () => {
           Privacy Policy
         </h1>
         <p className="text-muted-foreground animate-slide-up stagger-1">
-          Last updated: March 20, 2025
+          Last updated: October 31, 2026
         </p>
       </div>
 
@@ -44,6 +44,14 @@ const PrivacyPage = () => {
             When you visit our website, we may automatically collect certain information about your
             device, including information about your web browser, IP address, time zone, and some of
             the cookies installed on your device.
+          </p>
+
+          <h3 className="text-xl font-semibold mb-3 mt-6">Search Terms</h3>
+          <p className="text-muted-foreground">
+            When you search the site, the terms you search for are sent to Firebase Analytics (Google
+            Analytics) to help us improve search. They are linked to a pseudonymous identifier for
+            your browser rather than to your name, and terms that look like an email address or a
+            long number are not sent.
           </p>
         </section>
 

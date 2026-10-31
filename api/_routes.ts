@@ -6,6 +6,12 @@ import type { VercelResponse } from '@vercel/node';
 /** Edge caching for post responses: fresh for a minute, then served stale while revalidating. */
 export const POSTS_CACHE_CONTROL = 's-maxage=60, stale-while-revalidate=300';
 
+/**
+ * The response header of the search-index routes that holds how many posts the index has, so its
+ * growth shows in request logs without anyone checking.
+ */
+export const SEARCH_DOCUMENTS_HEADER = 'X-Search-Documents';
+
 export function methodNotAllowed(response: VercelResponse): VercelResponse {
   response.setHeader('Allow', 'GET');
   return response.status(405).json({ error: 'Method not allowed' });
