@@ -223,7 +223,7 @@ Code behind a flag that is off still ships in the bundle, because the value can 
   - **Configuration** comes from the container's environment when it starts: the `VITE_*` variables (set in `index.html`, see [Configuration](#configuration)) and the server-only ones (`CONTENTFUL_CMS_*`, `NOTION_*`, `RESEND_*` and `CONTACT_*`). The image is built without build arguments, so one image runs in every environment. `PORT` changes the port (default 8080). Run it behind a proxy that overwrites `X-Forwarded-For`: the form functions rate-limit by the address in that header when it is set, so a client could otherwise send a new one with each request.
   - **Health:** `/healthz` answers `ok`, and the Dockerfile's `HEALTHCHECK` polls it.
 - A static-only host (GitHub Pages) serves the app without any posts: the aggregator degrades gracefully, but both sources fail, and the forms show their error message. Only the Apollo-queried authors, About and Social content appears.
-- `vite dev` does not run `api/`, but proxies `/api/*` to `vercel dev` on port 3000 (`API_PROXY_TARGET` overrides it). Run both to work on posts or the forms locally (BrianLusina/journal#802).
+- `bun dev` does not run `api/`, but proxies `/api/*` to `vercel dev` on port 3000 (`API_PROXY_TARGET` overrides it). Run both to work on posts or the forms locally (BrianLusina/journal#802).
 
 ## Testing
 

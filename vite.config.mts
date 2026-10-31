@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => {
       // Mirrors the deployed setup, where /api/* is served by Vercel functions on the same origin:
       // locally, `vercel dev` runs them on port 3000, so forward /api/* there.
       proxy: {
-        '/api': env.API_PROXY_TARGET || 'http://localhost:3000',
+        '^/api(?:/|$)': env.API_PROXY_TARGET || 'http://localhost:3000',
       },
     },
     plugins: [
