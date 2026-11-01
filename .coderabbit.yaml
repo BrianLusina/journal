@@ -29,7 +29,6 @@ reviews:
     - "!storybook-static/**"
     - "!.vercel/**"
     - "!.idea/**"
-    - "!bun.lock"
     - "!**/__generated__/**"
     - "!docs/api/yaak.*.yaml" # Exported API client workspace, not hand-written
     - "!.junie/**"
