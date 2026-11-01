@@ -19,7 +19,6 @@ reviews:
       - main
     ignore_title_keywords:
       - "WIP"
-      - "chore(deps)"
       - "chore(release)"
 
   # Generated, vendored and build output never need review.
