@@ -13,7 +13,8 @@ const SocialIcon: FunctionComponent<SocialIconProps> = ({ name, link, theme }) =
         // TODO: Add LinkedIn icon here once a suitable SVG or component is available 
         return <Linkedin className="w-5 h-5" />
       default:
-        return null;
+        // No icon for this account yet: show its name so the link isn't an empty circle.
+        return <span className="text-xs font-medium">{name}</span>;
     }
   }
   
@@ -22,6 +23,7 @@ const SocialIcon: FunctionComponent<SocialIconProps> = ({ name, link, theme }) =
   return (
     <a
       href={link}
+      aria-label={name}
       className="w-12 h-12 rounded-full border-2 border-border hover:border-primary hover:bg-muted transition-all flex items-center justify-center hover:scale-110"
       target="_blank"
       rel="noopener noreferrer"
