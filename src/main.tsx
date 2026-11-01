@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { initializeMonitoring } from './services/monitoring';
 import config from './config';
 import ErrorBoundary from './components/Errors/ErrorBoundary';
@@ -36,6 +37,7 @@ createRoot(document.getElementById('root')!).render(
           </TooltipProvider>
         </ThemeProvider>
         <Analytics />
+        <SpeedInsights />
       </QueryClientProvider>
     </GraphqlProvider>
   </StrictMode>,
