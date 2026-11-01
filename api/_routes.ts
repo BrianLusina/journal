@@ -7,8 +7,8 @@ import type { VercelResponse } from '@vercel/node';
 export const POSTS_CACHE_CONTROL = 's-maxage=60, stale-while-revalidate=300';
 
 /**
- * The response header of the search-index routes that holds how many posts the index has, so its
- * growth shows in request logs without anyone checking.
+ * The response header of the search-index routes that holds how many posts the index has. Request
+ * logs don't record response headers, so read it from a response, for example with `curl -i`.
  */
 export const SEARCH_DOCUMENTS_HEADER = 'X-Search-Documents';
 

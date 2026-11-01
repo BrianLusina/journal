@@ -50,7 +50,7 @@ describe('Contentful search index route', () => {
     expect(res.setHeader).toHaveBeenCalledWith('X-Search-Documents', '230');
   });
 
-  it('stops at an empty page even when the total says more remain', async () => {
+  it('answers 502 without caching, rather than a partial index, when a page comes back empty before the total', async () => {
     (queryContentful as jest.Mock)
       .mockResolvedValueOnce({ blogPostCollection: { total: 150, items: posts(0, 100) } })
       .mockResolvedValueOnce({ blogPostCollection: { total: 150, items: [] } });
@@ -59,7 +59,8 @@ describe('Contentful search index route', () => {
     await handler(request(), res as unknown as VercelResponse);
 
     expect(queryContentful).toHaveBeenCalledTimes(2);
-    expect(res.json).toHaveBeenCalledWith({ results: posts(0, 100) });
+    expect(res.status).toHaveBeenCalledWith(502);
+    expect(res.setHeader).not.toHaveBeenCalled();
   });
 
   it('answers 502 without caching when Contentful fails', async () => {

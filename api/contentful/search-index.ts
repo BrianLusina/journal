@@ -32,8 +32,11 @@ export default async function handler(
       });
       results.push(...blogPostCollection.items);
       total = blogPostCollection.total;
-      // An empty page ends the read even if the total says otherwise, so it can never loop.
-      if (blogPostCollection.items.length === 0) break;
+      // An empty page before the total means the listing changed mid-read. Stop, so it can never
+      // loop, and fail rather than cache an index missing posts.
+      if (blogPostCollection.items.length === 0 && results.length < total) {
+        throw new Error('Contentful returned an empty page before the end of the listing');
+      }
     } while (results.length < total);
 
     response.setHeader('Cache-Control', POSTS_CACHE_CONTROL);
