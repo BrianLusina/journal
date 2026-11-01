@@ -33,6 +33,10 @@ export default async function handler(
         filter: { and: listedFilters },
       });
       results.push(...page.results);
+      // An index missing posts must not be cached as if it were whole.
+      if (page.has_more && !page.next_cursor) {
+        throw new Error('Notion reported more posts without a cursor');
+      }
       cursor = page.has_more ? page.next_cursor ?? undefined : undefined;
     } while (cursor);
 

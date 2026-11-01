@@ -47,14 +47,15 @@ describe('Notion search index route', () => {
     expect(res.setHeader).toHaveBeenCalledWith('X-Search-Documents', '105');
   });
 
-  it('stops when Notion says it has more but gives no cursor', async () => {
+  it('answers 502 without caching, rather than a partial index, when Notion says it has more but gives no cursor', async () => {
     (notion.dataSources.query as jest.Mock).mockResolvedValueOnce({ results: pages(0, 1), has_more: true, next_cursor: null });
     const res = response();
 
     await handler(request(), res as unknown as VercelResponse);
 
     expect(notion.dataSources.query).toHaveBeenCalledTimes(1);
-    expect(res.json).toHaveBeenCalledWith({ results: pages(0, 1) });
+    expect(res.status).toHaveBeenCalledWith(502);
+    expect(res.setHeader).not.toHaveBeenCalled();
   });
 
   it('answers 502 without caching when Notion fails', async () => {

@@ -112,6 +112,27 @@ describe('SearchDialog', () => {
     expect(screen.getByTestId('location')).toHaveTextContent('/search?q=react');
   });
 
+  it('starts again from the first option when a reloaded index changes the results', async () => {
+    const user = userEvent.setup();
+    const ui = (open: boolean) => (
+      <MemoryRouter>
+        <SearchDialog open={open} onOpenChange={jest.fn()} />
+      </MemoryRouter>
+    );
+    const { rerender } = render(ui(true));
+    await act(async () => undefined);
+    await user.type(screen.getByRole('combobox'), 'react');
+    await user.keyboard('{ArrowDown}{ArrowDown}');
+    expect(screen.getByRole('option', { name: /See all results/ })).toHaveAttribute('aria-selected', 'true');
+
+    rerender(ui(false));
+    (loadSearchEngine as jest.Mock).mockResolvedValue(createSearchEngine([doc('c1', 'React Hooks')]));
+    rerender(ui(true));
+
+    await waitFor(() => expect(screen.getAllByRole('option')).toHaveLength(2));
+    expect(screen.getByRole('option', { name: /React Hooks/ })).toHaveAttribute('aria-selected', 'true');
+  });
+
   it('opens a result when it is clicked', async () => {
     const user = userEvent.setup();
     await renderDialog();

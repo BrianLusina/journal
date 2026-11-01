@@ -11,7 +11,7 @@ describe('search analytics', () => {
     expect(normalizeSearchTerm('a'.repeat(150))).toHaveLength(100);
   });
 
-  it.each(['ada@example.com', 'call +1 (555) 123-4567', '4111 1111 1111 1111'])('treats %p as personal', term => {
+  it.each(['ada@example.com', 'call +1 (555) 123-4567', '4111 1111 1111 1111', '555/123/4567', '123,456,7890'])('treats %p as personal', term => {
     expect(mayBePersonal(term)).toBe(true);
   });
 

@@ -39,7 +39,8 @@ const SearchDialog: FunctionComponent<SearchDialogProps> = ({ open, onOpenChange
   const optionCount = shown.length > 0 ? shown.length + 1 : 0;
   const optionId = (index: number) => `${listboxId}-option-${index}`;
 
-  useEffect(() => setActive(0), [query]);
+  // A reloaded index can change the results without the query changing.
+  useEffect(() => setActive(0), [query, optionCount]);
   useEffect(() => {
     document.getElementById(`${listboxId}-option-${active}`)?.scrollIntoView?.({ block: 'nearest' });
   }, [active, listboxId]);

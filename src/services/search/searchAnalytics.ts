@@ -17,7 +17,7 @@ const LONG_NUMBER = /\d{7,}/;
 
 /** Whether a term may be personal data, which Google Analytics terms forbid sending. */
 export const mayBePersonal = (term: string): boolean =>
-  EMAIL.test(term) || LONG_NUMBER.test(term.replace(/[\s().+-]/g, ''));
+  EMAIL.test(term) || LONG_NUMBER.test(term.replace(/[\s().,/+-]/g, ''));
 
 // Shared by the modal and the page, so following "See all results" doesn't log the term again.
 let lastLoggedTerm: string | undefined;

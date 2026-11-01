@@ -58,4 +58,30 @@ describe('useSearch', () => {
 
     expect(loadSearchEngine).not.toHaveBeenCalled();
   });
+
+  it('asks for the engine again when the query changes, so a page left open picks up a newer index', async () => {
+    const fresh = { ...result, title: 'React, refreshed' };
+    (loadSearchEngine as jest.Mock).mockResolvedValue({ search: () => [result] });
+    const { result: hook, rerender } = renderHook(({ query }) => useSearch(query), { initialProps: { query: 'react' } });
+    await waitFor(() => expect(hook.current.status).toBe('ready'));
+
+    (loadSearchEngine as jest.Mock).mockResolvedValue({ search: () => [fresh] });
+    rerender({ query: 'reacts' });
+
+    await waitFor(() => expect(hook.current.results).toEqual([fresh]));
+    expect(hook.current.status).toBe('ready');
+  });
+
+  it('keeps searching the engine it has when a later reload fails', async () => {
+    (loadSearchEngine as jest.Mock).mockResolvedValue({ search: () => [result] });
+    const { result: hook, rerender } = renderHook(({ query }) => useSearch(query), { initialProps: { query: 'react' } });
+    await waitFor(() => expect(hook.current.status).toBe('ready'));
+
+    (loadSearchEngine as jest.Mock).mockRejectedValue(new Error('offline'));
+    rerender({ query: 'reacts' });
+    await act(async () => undefined);
+
+    expect(hook.current.status).toBe('ready');
+    expect(hook.current.results).toEqual([result]);
+  });
 });
