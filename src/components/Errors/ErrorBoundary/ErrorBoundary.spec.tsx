@@ -23,7 +23,6 @@ function Bomb({ shouldThrow = false }: { shouldThrow: boolean }): null {
 
 describe('ErrorBoundary', () => {
   beforeAll(() => {
-     
     vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
