@@ -41,6 +41,12 @@ describe('toolchain left over from Create React App', () => {
     expect(workflow).not.toMatch(/actions\/cache@v2\b/);
   });
 
+  it.each(workflows)('%s does not use the deprecated CodeQL v1/v2 actions', file => {
+    const workflow = read(`.github/workflows/${file}`);
+
+    expect(workflow).not.toMatch(/github\/codeql-action\/[\w-]+@v[12]\b/);
+  });
+
   it.each(workflows)('%s uses the Vite variable names and output directory', file => {
     const workflow = read(`.github/workflows/${file}`);
 
@@ -73,6 +79,9 @@ describe('toolchain left over from Create React App', () => {
     'config/webpack.config.js',
     'scripts/start.js',
     '.eslintrc.js',
+    '.eslintignore',
+    'public/scripts',
+    'config/jest/babelTransform.js',
   ])('does not bring back %s', file => {
     expect(existsSync(path.join(root, file))).toBe(false);
   });
