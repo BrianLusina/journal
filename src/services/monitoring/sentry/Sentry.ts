@@ -86,5 +86,14 @@ export const captureSentryScope = (data: Breadcrumb, level: `${Severity}`): Scop
   return new Scope();
 };
 
+/**
+ * Adds a breadcrumb that the next event reported from this page carries.
+ */
+export const addSentryBreadcrumb = (breadcrumb: Breadcrumb): void => {
+  if (NODE_ENV === 'production' || ENV === 'production') {
+    Sentry.addBreadcrumb(breadcrumb);
+  }
+};
+
 export type SentryBreadcrumb = Breadcrumb;
 export type SentryScope = Scope;

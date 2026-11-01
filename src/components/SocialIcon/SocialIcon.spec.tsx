@@ -4,10 +4,9 @@ import SocialIcon from './SocialIcon';
 
 describe('SocialIcon', () => {
   it('should render with provided props', () => {
-    const icon = faker.random.word();
     const link = faker.internet.url();
     const name = faker.random.word();
-    render(<SocialIcon link={link} name={name} icon={icon} />);
+    render(<SocialIcon link={link} name={name} />);
 
     const nameElement = screen.getByText(name);
     const linkElement = screen.getByRole('link');

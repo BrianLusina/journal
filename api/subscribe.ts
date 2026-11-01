@@ -1,5 +1,5 @@
 import { createFormHandler, resend } from './_forms/handler';
-import { subscribeSchema } from './_forms/schemas';
+import { subscribeSchema } from '../shared/forms';
 
 /**
  * Adds a newsletter subscriber to the Resend audience. Resend now calls audiences "segments" and

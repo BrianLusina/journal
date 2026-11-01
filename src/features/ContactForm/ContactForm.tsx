@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components';
 import { postForm } from '@/lib/postForm';
-import { contactSchema, type ContactValues } from '../../../api/_forms/schemas';
+import { contactSchema, type ContactValues } from '@shared/forms';
 
 const inputClassName =
   'w-full px-4 py-3 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring aria-[invalid=true]:border-destructive';

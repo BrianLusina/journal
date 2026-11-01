@@ -211,4 +211,20 @@ describe('NotionAdapter', () => {
 
     await expect(adapter.getPostBySlug('missing')).resolves.toBeNull();
   });
+
+  it('reads the search index and maps each post', async () => {
+    mockFetch(200, { results: [notionPage()] });
+
+    const posts = await adapter.getSearchIndex();
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/notion/search-index');
+    expect(posts).toHaveLength(1);
+    expect(posts[0].source).toBe('notion');
+  });
+
+  it('rejects when the search index route fails', async () => {
+    mockFetch(502, { error: 'Unable to fetch the Notion search index' });
+
+    await expect(adapter.getSearchIndex()).rejects.toThrow('Unable to fetch the Notion search index: 502');
+  });
 });

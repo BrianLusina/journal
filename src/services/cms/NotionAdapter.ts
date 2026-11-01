@@ -1,4 +1,4 @@
-import { NOTION_PROPERTY } from '../../../api/notion/_schema';
+import { NOTION_PROPERTY } from '@shared/notion';
 import CMSAdapter from './CMSAdapter';
 
 type NotionText = { type?: string; plain_text?: string; mention?: { type: string } }[];
@@ -9,7 +9,7 @@ type NotionFile =
 
 /**
  * The subset of a Notion page object (as returned by the api/notion routes) that the adapter
- * reads. Keys are the 📔 Journal CMS properties named in api/notion/_schema.ts.
+ * reads. Keys are the 📔 Journal CMS properties named in shared/notion.ts.
  */
 type NotionPage = {
   id: string;
@@ -119,5 +119,16 @@ export default class NotionAdapter implements CMSAdapter {
     post.body = payload.body;
 
     return post;
+  }
+
+  async getSearchIndex(): Promise<UnifiedPost[]> {
+    const response = await fetch('/api/notion/search-index');
+    if (!response.ok) {
+      throw new Error(`Unable to fetch the Notion search index: ${response.status}`);
+    }
+
+    const payload = await response.json();
+
+    return payload.results.map(mapNotionPageToUnified);
   }
 }

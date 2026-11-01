@@ -40,6 +40,7 @@ Authors, About and Social content bypasses `api/`: `hooks/api/*` and the feature
 | `src/hooks/cms/` | `usePosts` and `usePost`: React state around the CMS aggregator. |
 | `src/hooks/api/` | Thin Apollo hooks for Contentful content that is not a post (authors, About, Social). |
 | `src/services/cms/` | The multi-CMS seam: `CMSAdapter` interface, adapters, adapter registry, aggregator. |
+| `src/services/search/` | Site search: the search index, MiniSearch ranking and the search analytics rules (see [Search](#search)). |
 | `src/services/monitoring/`, `src/services/analytics/` | Sentry and Firebase Analytics wrappers. Both are no-ops outside production. |
 | `src/integrations/contentful/` | The Contentful Apollo client instance, plus the queries and fragments for authors, About and Social content. Post queries live in `api/contentful/_shared.ts`. |
 | `src/clients/graphql/` | Apollo client factory and links (auth, retry, error reporting, HTTP). |
@@ -47,7 +48,8 @@ Authors, About and Social content bypasses `api/`: `hooks/api/*` and the feature
 | `src/types/` | Ambient types: the unified post model (`cms.d.ts`) and Contentful GraphQL shapes (`gql/`). |
 | `api/contentful/`, `api/notion/` | Vercel Functions that hold the CMS credentials. `api/_routes.ts` has what both share: the method check, `limit` and query-parameter parsing, and the cache header. They compile with `api/tsconfig.json` (CommonJS, Node resolution), not the root Vite config: Node loads them as CommonJS because `package.json` has no `"type": "module"`. |
 | `server/` | The Docker image's Bun server. It serves `dist/`, runs the `api/` functions through a Vercel adapter and sets the runtime configuration in `index.html`. Vercel doesn't use it. |
-| `api/contact.ts`, `api/subscribe.ts`, `api/_forms/` | Vercel Functions behind the contact form and the newsletter signup (see [Forms](#forms)). `api/_forms/schemas.ts` holds the zod schemas that the forms in `src/` import too. |
+| `api/contact.ts`, `api/subscribe.ts`, `api/_forms/` | Vercel Functions behind the contact form and the newsletter signup (see [Forms](#forms)). `shared/forms.ts` holds the zod schemas that the forms in `src/` import too. |
+| `shared/` | The contract between `api/` and `src/`: the Notion property names and listing filters (`notion.ts`) and the form schemas (`forms.ts`). Import it as `@shared/*` from `src/` and relatively from `api/`. Keep it free of Node and DOM APIs, and never put source that the browser imports under `api/`: the dev server proxies `/api/*` to `vercel dev`. |
 
 ### Path aliases
 
@@ -74,6 +76,8 @@ interface CMSAdapter {
   // Next page of posts, newest first by publish date. Pass the previous page's nextCursor.
   getPosts(request: { cursor?: string; limit: number; category?: string; tag?: string }): Promise<{ items: UnifiedPost[]; nextCursor: string | null }>;
   getPostBySlug(slug: string): Promise<UnifiedPost | null>;
+  // Every listed post without its body, for the search index (see Search).
+  getSearchIndex(): Promise<UnifiedPost[]>;
 }
 ```
 
@@ -82,7 +86,7 @@ interface CMSAdapter {
 
 #### Notion schema
 
-The routes and the adapter read the 📰 Journal CMS data source, whose properties mirror the Contentful blog post fields. Every property name lives in `api/notion/_schema.ts`, shared by both routes and `NotionAdapter`. Notion matches names exactly, case included, and rejects a whole query (the routes then answer 502) when a filter or sort names a property it doesn't have or uses the wrong type. **A rename or type change in the database needs the same change in `_schema.ts`, `NotionAdapter` and this table.**
+The routes and the adapter read the 📰 Journal CMS data source, whose properties mirror the Contentful blog post fields. Every property name lives in `shared/notion.ts`, shared by both routes and `NotionAdapter`. Notion matches names exactly, case included, and rejects a whole query (the routes then answer 502) when a filter or sort names a property it doesn't have or uses the wrong type. **A rename or type change in the database needs the same change in `shared/notion.ts`, `NotionAdapter` and this table.**
 
 | Property | Notion type (API type) | Used for | `UnifiedPost` field |
 |---|---|---|---|
@@ -120,9 +124,21 @@ The hooks are thin. `usePosts({ limit, category, tag })` keeps one feed per cate
 2. Implement `CMSAdapter` in `src/services/cms/<Name>Adapter.ts`, mapping onto `UnifiedPost`. Body text must be Markdown.
 3. If the source needs a secret, put the calls behind a function in `api/` (as Contentful and Notion do), using the helpers in `api/_routes.ts`. Never use a `VITE_`-prefixed variable for a secret, because Vite inlines those into the browser bundle.
 4. Register an instance in `src/services/cms/adapters.ts`.
-5. Add `<Name>Adapter.spec.ts` covering mapping, fallbacks, pagination and not-found. `ContentfulAdapter.spec.ts` and `NotionAdapter.spec.ts` show the pattern; the functions get specs next to them (`api/contentful/_handlers.spec.ts`).
+5. Implement `getSearchIndex()`: every listed post, without its body, from a route that reads the source to its end. Search then covers the source with no other change.
+6. Add `<Name>Adapter.spec.ts` covering mapping, fallbacks, pagination and not-found. `ContentfulAdapter.spec.ts` and `NotionAdapter.spec.ts` show the pattern; the functions get specs next to them (`api/contentful/_handlers.spec.ts`).
 
 No hook, page or aggregator change is needed.
+
+### Search
+
+Search runs in the browser over an index of every post's metadata, so results are ranked, consistent across sources, and need no request per keystroke. Post bodies are not searched (see #886 for the options weighed and the decisions behind this).
+
+- **Index routes.** `GET /api/contentful/search-index` and `GET /api/notion/search-index` answer `{ results }` with every listed post of their source, in the same raw shape as the posts routes and by the same listing rules (`publishDate_exists`; `listedFilters` in `shared/notion.ts`). Contentful uses a slim query, `GET_SEARCH_INDEX`, without bodies or hero images; a Notion query never returns bodies. Each route reads 100 posts per CMS request until the source is exhausted, so no post is left out once a source passes one page, and sets `X-Search-Documents` to the number of posts (read it from a response with `curl -i`; request logs don't record response headers). The Sentry breadcrumb below records the size each reader's browser loads. Responses are edge-cached like the posts routes, so the index costs one CMS request per 100 posts per cache refresh.
+- **Index.** `loadSearchIndex` (`src/services/search/searchIndex.ts`) calls `getSearchIndex()` on every registered adapter, so the adapters' existing mapping applies and the `notion` flag is respected: while it is off, nothing calls `/api/notion`. A failing source is left out and reported to Sentry, as in the feed; loading fails only when every source fails. Documents are `SearchDocument`s: title, subtitle, description, category, tags, author names, slug, date and thumbnail.
+- **Ranking.** `createSearchEngine` (`searchEngine.ts`) indexes them with MiniSearch. Every word of the query must match, as a prefix or with one typo in a word of five characters or more; field boosts rank title over tags, then subtitle and description, then author and category. Queries under two characters return nothing. Both sit behind the `SearchEngine` interface, so moving search to the server (to search bodies, or past a couple of thousand posts) only replaces the index source and this module.
+- **Loading.** `src/services/search/index.ts` holds MiniSearch and is only loaded with `import()`, by `useSearch` (`src/hooks/search`), the first time a search is shown. The loaded engine is shared by the modal and the page for 5 minutes, the routes' edge-cache lifetime, so new posts and Notion's expiring signed thumbnail links don't go stale in a long-open tab; `useSearch` asks for it again on each query and each time the modal opens, which costs nothing while it is fresh. An engine built while a source failed is used but not kept, so the next search retries that source. Load time and document count go to Sentry as a breadcrumb.
+- **UI.** `SearchLauncher`, in the navbar, is the search button and the ⌘K / Ctrl+K / `/` shortcuts (ignored while typing in a field). It loads `SearchDialog` with `lazy()` on first use: a Radix dialog whose input is a combobox over the best 8 results (↑/↓, Enter, Esc), then "See all results", which opens `/search?q=…`. `SearchPage` keeps the query in `?q=` (replacing the history entry while typing), shows results as `ArticleCard`s, and sets `noindex, follow`. Both render through `SearchResults`, which owns the too-short, loading, failed and no-match states.
+- **Analytics.** `src/services/search/searchAnalytics.ts` sends GA4 `search` (`search_term`, `results_count`, `source`: `modal` or `page`) for a settled query: on Enter, on opening a result, or after a 1 s pause in typing. Terms are trimmed, lowercased, whitespace-collapsed and cut to 100 characters; a term is not sent twice in a row, and never when it looks like an email address or a number of seven digits or more. Opening a result also sends `select_content` with the post's slug. Like all analytics, nothing is sent outside production. The Privacy page says search terms are collected. Because `/search?q=…` keeps the raw query in the URL, the analytics wrapper (`src/services/analytics`) sends every event with a `page_location` stripped of `q`, Firebase's own page view (which would carry the full URL) is turned off, and `usePageViews` logs one page view per path rather than per keystroke.
 
 ### Tags
 
@@ -148,7 +164,7 @@ The contact form (`features/ContactForm`) and the newsletter signup (`features/N
 - `POST /api/contact` takes `{ name, email, subject?, message }` and emails it to `CONTACT_TO_EMAIL` (`POST /emails`), with `reply_to` set to the reader's address.
 - `POST /api/subscribe` takes `{ email }` and adds it to the Resend audience `RESEND_AUDIENCE_ID` (`POST /audiences/{id}/contacts`). Resend has renamed audiences to segments and deprecated these endpoints; they still work. An address that is already subscribed gets the same answer as a new one, so the form never tells whether an address is on the list.
 
-Both forms validate with react-hook-form and the zod schemas in `api/_forms/schemas.ts`, and the functions validate again with the same schemas. The schemas live under `api/` because Vercel compiles every file a function imports with the nearest `tsconfig.json`, and only `api/tsconfig.json` emits the CommonJS Node loads; the browser bundle imports them from there. The form shows its success message only after a 2xx answer; on any other answer it shows an error and keeps what the reader typed.
+Both forms validate with react-hook-form and the zod schemas in `shared/forms.ts`, and the functions validate again with the same schemas. The schemas live in `shared/`, the contract between `api/` and `src/`: it has its own `tsconfig.json` because Vercel compiles every file a function imports with the nearest one and Node loads the result as CommonJS, and it is not under `api/` because the dev server proxies `/api/*` to `vercel dev`, so a source module requested from that path would never reach Vite. `src/` imports it as `@shared/*`; `api/` imports it relatively. The form shows its success message only after a 2xx answer; on any other answer it shows an error and keeps what the reader typed.
 
 `createFormHandler` in `api/_forms/handler.ts` answers, in order: `405` to anything but `POST`, `503` while the form's environment variables are not all set (the function logs which are missing), `429` after 5 requests from one address in 10 minutes, `200` without sending anything when the hidden `website` honeypot field is filled (and a log line, so autofill that fills it shows up), `400` with `fieldErrors` when the schema rejects the body, `502` when Resend fails or takes over 10 seconds (Resend's answer goes to the function logs, not to the browser), and `200` once Resend accepts the form.
 
@@ -195,7 +211,7 @@ Feature flags turn a feature on or off per environment without a code change. Th
 | Flag | Default | Gates |
 |---|---|---|
 | `newsletter` | off | The newsletter signup: `NewsLetterSection` on the home page, `NewsLetterCTA` after articles, and the "Join Our Community" section on the About page. |
-| `search` | off | The search menu in `MainLayout`. `Menu` and `Search` are loaded with `lazy()` only while it is on, inside their own `ErrorBoundary`, so a failed chunk drops the menu, not the page. The search itself is still a stub. |
+| `search` | off | Site search (see [Search](#search)): the navbar search button and its shortcuts, and the `/search` page, which is not found while the flag is off. The dialog and the search index load with `lazy()` and `import()` on first use, the dialog inside its own `ErrorBoundary`, so a failed chunk drops the dialog, not the navbar. |
 | `notion` | on | Notion as a post source. While it is off, `NotionAdapter` is not registered, so the site never calls `/api/notion` and Notion posts are neither listed nor found by slug. `api/notion` itself is not gated. |
 
 **Setting flags.** `VITE_FEATURES` holds overrides as a comma-separated list, such as `newsletter=on,search=off`. A value is `on`/`off`, `true`/`false` or `1`/`0` (any case), and a bare name means on. A flag the list doesn't name keeps its default. An unknown name, an unknown value or a malformed entry is skipped, with a `console.warn` in development, so a typo never breaks the app. Flags are read once when the page loads.
@@ -206,7 +222,7 @@ Feature flags turn a feature on or off per environment without a code change. Th
 
 **Reading a flag.** Wrap UI in `<Feature name="search" fallback={...}>` (`src/components/Feature`), which renders its children only while the flag is on, or call `useFeatureFlag('search')` (`src/hooks/features`). Code outside React imports the parsed flags from `src/config/features.ts` (`import features from '@/config/features'`), as `src/services/cms/adapters.ts` does. Names are checked by TypeScript, so a misspelt flag fails `bun run typecheck`.
 
-Code behind a flag that is off still ships in the bundle, because the value can change at runtime in the Docker image. Load anything sizeable behind a flag with `lazy()`, as `MainLayout` does for search, to keep it out of the initial bundle.
+Code behind a flag that is off still ships in the bundle, because the value can change at runtime in the Docker image. Load anything sizeable behind a flag with `lazy()`, as `SearchLauncher` does for the search dialog, to keep it out of the initial bundle.
 
 **Adding a flag.** Add it to `FEATURE_DEFAULTS` in `src/config/features.ts`, which is the only place flags are declared. A new or unfinished feature defaults to `false`, so an environment without `VITE_FEATURES` hides it. Gate the feature with `<Feature>`, `useFeatureFlag` or `features.<name>`. Test both states: render under `<FeaturesProvider value={{ ...FEATURE_DEFAULTS, <name>: true }}>` (`src/providers/features`), or set `window.__ENV__ = { VITE_FEATURES: '...' }` and reload the module for code outside React (`src/services/cms/adapters.spec.ts`). Add the flag to the table above. `VITE_FEATURES` is already in `CLIENT_ENV_KEYS`, so no server change is needed.
 

@@ -12,12 +12,23 @@ type SendEvent = (eventName: CustomEventName<string>, eventParams?: EventParams)
  * Loads the Firebase SDK, which is kept out of the bundle every visit downloads first.
  */
 const loadFirebaseAnalytics = async (): Promise<SendEvent> => {
-  const [{ getAnalytics, logEvent }, { default: firebaseApp }] = await Promise.all([
+  const [{ initializeAnalytics, logEvent }, { default: firebaseApp }] = await Promise.all([
     import('firebase/analytics'),
     import('@firebaseClient'),
   ]);
-  const analytics = getAnalytics(firebaseApp);
+  // usePageViews logs page views. Firebase's own would carry the full URL, search query included.
+  const analytics = initializeAnalytics(firebaseApp, { config: { send_page_view: false } });
   return (eventName, eventParams) => logEvent(analytics, eventName, eventParams);
+};
+
+/**
+ * The page's URL without the search page's query (`?q=`), which holds whatever a reader typed,
+ * personal data included. Firebase would otherwise send the full URL with every event.
+ */
+const pageLocation = (): string => {
+  const url = new URL(window.location.href);
+  url.searchParams.delete('q');
+  return url.toString();
 };
 
 /**
@@ -39,7 +50,9 @@ export class Analytics {
     this.sendEvent = this.sendEvent || loadFirebaseAnalytics();
     // Analytics is best effort: when the SDK cannot load (a failed download or a blocked
     // storage), the event is dropped rather than surfacing as an error on the page.
-    this.sendEvent.then(send => send(eventName, eventParams)).catch(() => undefined);
+    // Read now: the page may have changed by the time the SDK has loaded.
+    const params = { page_location: pageLocation(), ...eventParams };
+    this.sendEvent.then(send => send(eventName, params)).catch(() => undefined);
   }
 }
 

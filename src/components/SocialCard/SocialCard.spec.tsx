@@ -4,12 +4,10 @@ import SocialCard from './SocialCard';
 
 describe('SocialCard', () => {
   it('should render with provided props', () => {
-    const icon = faker.random.word();
     const link = faker.internet.url();
     const name = faker.random.word();
     const items = [
       {
-        icon,
         link,
         name,
       },

@@ -76,6 +76,52 @@ export const GET_BLOG_POSTS = `
   }
 `;
 
+/**
+ * The fields the search index needs: what a post is found by and what a result shows. No body,
+ * which is most of a post's size, and no hero image.
+ */
+export const GET_SEARCH_INDEX = `
+  query GetSearchIndex($skip: Int, $limit: Int, $where: BlogPostFilter, $order: [BlogPostOrder]) {
+    blogPostCollection(skip: $skip, limit: $limit, where: $where, order: $order) {
+      total
+      items {
+        sys {
+          id
+          firstPublishedAt
+        }
+        title
+        subtitle
+        description
+        category
+        slug
+        publishDate
+        tags
+        thumbnail {
+          url
+          description
+          title
+        }
+        contentfulMetadata {
+          tags {
+            id
+            name
+          }
+        }
+        authorsCollection(limit: 5) {
+          items {
+            sys {
+              id
+            }
+            ... on Person {
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
 export type BlogPostCollection = { total: number; items: unknown[] };
 
 /** Runs a GraphQL query against the Contentful space. Rejects on an HTTP or GraphQL error. */
