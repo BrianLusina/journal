@@ -37,11 +37,11 @@ Every variable in `.env.sample` is described in [docs/ARCHITECTURE.md](./docs/AR
 ### Running locally
 
 ```bash
-bun dev          # Vite dev server on http://localhost:8080 (no posts: it does not run api/)
-vercel dev       # Vite plus the api/ functions, needed for Contentful and Notion posts
+bun dev          # Vite dev server on http://localhost:8080, proxies /api/* to vercel dev
+vercel dev       # the api/ functions on http://localhost:3000, needed for Contentful and Notion posts
 ```
 
-`bun dev` does not run the `api/` functions, so posts only appear under `vercel dev` (see BrianLusina/journal#802).
+`bun dev` does not run the `api/` functions itself. It forwards `/api/*` to `vercel dev` on port 3000 (override with `API_PROXY_TARGET`), so run both and open http://localhost:8080 (see BrianLusina/journal#802).
 
 ## Running tests
 
@@ -132,7 +132,7 @@ VITE_FEATURES=newsletter=on
 | Flag | Default | Turns on or off |
 |---|---|---|
 | `newsletter` | off | The newsletter signup on the home, article and About pages |
-| `search` | off | The search menu (still a stub) |
+| `search` | off | Site search: the navbar search button, ⌘K / Ctrl+K / `/`, and the `/search` page |
 | `notion` | on | Notion as a post source |
 
 On Vercel, set it for Production and Preview separately and redeploy; it is read at build time. In Docker, pass it with `-e` and restart the container. Unknown names and values are ignored. See [Feature flags](./docs/ARCHITECTURE.md#feature-flags) for how to add or remove a flag.

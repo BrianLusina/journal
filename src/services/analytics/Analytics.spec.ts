@@ -2,14 +2,14 @@
 const mockSdkLoads = { analytics: 0, app: 0 };
 jest.mock('firebase/analytics', () => {
   mockSdkLoads.analytics += 1;
-  return { getAnalytics: jest.fn(), logEvent: jest.fn() };
+  return { initializeAnalytics: jest.fn(), logEvent: jest.fn() };
 });
 jest.mock('@firebaseClient', () => {
   mockSdkLoads.app += 1;
   return { __esModule: true, default: 'firebase-app' };
 });
 
-type FirebaseAnalytics = { getAnalytics: jest.Mock; logEvent: jest.Mock };
+type FirebaseAnalytics = { initializeAnalytics: jest.Mock; logEvent: jest.Mock };
 
 /** Lets the SDK's dynamic import resolve and the queued events run. */
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
@@ -26,7 +26,7 @@ const loadAnalytics = (isProduction: boolean, projectId: string) => {
 const firebase = (): FirebaseAnalytics => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const sdk = require('firebase/analytics') as FirebaseAnalytics;
-  sdk.getAnalytics.mockReturnValue('firebase-analytics');
+  sdk.initializeAnalytics.mockReturnValue('firebase-analytics');
   return sdk;
 };
 
@@ -50,8 +50,12 @@ describe('Analytics', () => {
     analytics.logEvent('page_view', { page_path: '/' });
     await flush();
 
-    expect(sdk.getAnalytics).toHaveBeenCalledWith('firebase-app');
-    expect(sdk.logEvent).toHaveBeenCalledWith('firebase-analytics', 'page_view', { page_path: '/' });
+    // Page views are logged by usePageViews, so Firebase's own (with the full URL) is turned off.
+    expect(sdk.initializeAnalytics).toHaveBeenCalledWith('firebase-app', { config: { send_page_view: false } });
+    expect(sdk.logEvent).toHaveBeenCalledWith('firebase-analytics', 'page_view', {
+      page_location: 'http://localhost/',
+      page_path: '/',
+    });
   });
 
   it('keeps events logged before the SDK loads and sends them in order once it has', async () => {
@@ -66,10 +70,25 @@ describe('Analytics', () => {
     await flush();
 
     expect(sdk.logEvent.mock.calls).toEqual([
-      ['firebase-analytics', 'page_view', { page_path: '/' }],
-      ['firebase-analytics', 'page_view', { page_path: '/about' }],
+      ['firebase-analytics', 'page_view', { page_location: 'http://localhost/', page_path: '/' }],
+      ['firebase-analytics', 'page_view', { page_location: 'http://localhost/', page_path: '/about' }],
     ]);
-    expect(sdk.getAnalytics).toHaveBeenCalledTimes(1);
+    expect(sdk.initializeAnalytics).toHaveBeenCalledTimes(1);
+  });
+
+  it('sends the page URL without the search query, which can hold anything a reader types', async () => {
+    window.history.replaceState(null, '', '/search?q=ada%40example.com&utm_source=mail');
+    const analytics = loadAnalytics(true, 'project');
+    const sdk = firebase();
+
+    analytics.logEvent('search', { search_term: 'react' });
+    window.history.replaceState(null, '', '/');
+    await flush();
+
+    expect(sdk.logEvent).toHaveBeenCalledWith('firebase-analytics', 'search', {
+      page_location: 'http://localhost/search?utm_source=mail',
+      search_term: 'react',
+    });
   });
 
   it('drops events quietly when the SDK cannot load, since analytics must not break the page', async () => {

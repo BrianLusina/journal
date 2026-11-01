@@ -61,7 +61,7 @@ describe('toolchain left over from Create React App', () => {
 
   it('has no package scripts for the webpack toolchain, Surge or the build/ directory', () => {
     const scripts: string[] = Object.values(JSON.parse(read('package.json')).scripts);
-    const craScript = /start-storybook|^build-storybook|scripts\/\w+\.js|\bsurge\b|(?:-s|-rf) build\b/;
+    const craScript = /start-storybook|^storybook:build|scripts\/\w+\.js|\bsurge\b|(?:-s|-rf) build\b/;
 
     expect(scripts.filter(script => craScript.test(script))).toEqual([]);
   });

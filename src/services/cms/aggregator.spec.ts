@@ -15,6 +15,7 @@ const adapter = (source: CMSSource, impl: Partial<CMSAdapter>): CMSAdapter => ({
   source,
   getPosts: jest.fn().mockResolvedValue({ items: [], nextCursor: null }),
   getPostBySlug: jest.fn().mockResolvedValue(null),
+  getSearchIndex: jest.fn().mockResolvedValue([]),
   ...impl,
 });
 

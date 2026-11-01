@@ -14,6 +14,7 @@ import {
   CONTACT_US_PAGE_ROUTE,
   HOME_PAGE_ROUTE,
   PRIVACY_PAGE_ROUTE,
+  SEARCH_PAGE_ROUTE,
   TERMS_PAGE_ROUTE,
 } from './links';
 
@@ -45,6 +46,9 @@ const TermsPage = lazy(() => import('@/pages/Terms'));
 
 // Authors page
 const AuthorsPage = lazy(() => import('@/pages/Authors'));
+
+// Search page
+const SearchPage = lazy(() => import('@/pages/Search'));
 
 const Posts = lazy(() => import('@/features/Posts'));
 
@@ -93,6 +97,11 @@ export default [
     path: AUTHORS_PAGE_ROUTE,
     alternatePaths: [],
     component: AuthorsPage,
+  },
+  {
+    path: SEARCH_PAGE_ROUTE,
+    alternatePaths: [],
+    component: SearchPage,
   },
   {
     // TODO: setup author detail page

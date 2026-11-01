@@ -1,0 +1,44 @@
+type: http_request
+model: http_request
+id: rq_996vKapU4E
+createdAt: 2026-11-01T11:39:46.688604
+updatedAt: 2026-11-01T11:41:19.588952
+workspaceId: wk_m6u48eEXa2
+folderId: fl_xTJwsniagE
+authentication: {}
+authenticationType: null
+body: {}
+bodyType: null
+description: ''
+headers: []
+method: GET
+name: Get Notion Posts Via Proxy
+sortPriority: -1789407456056.999
+url: ${[ SITE_URL ]}/api/notion/posts
+urlParameters:
+- enabled: true
+  name: limit
+  value: '10'
+  id: SWEiJppRVU
+- enabled: true
+  name: ''
+  value: ''
+  id: 0xXzFJQx5I
+settingSendCookies:
+  enabled: false
+  value: true
+settingStoreCookies:
+  enabled: false
+  value: true
+settingValidateCertificates:
+  enabled: false
+  value: true
+settingFollowRedirects:
+  enabled: false
+  value: true
+settingRequestTimeout:
+  enabled: false
+  value: 0
+settingHttpVersion:
+  enabled: false
+  value: auto

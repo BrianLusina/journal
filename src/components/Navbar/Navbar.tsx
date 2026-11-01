@@ -6,6 +6,8 @@ import { Menu, X, Moon, Sun } from 'lucide-react';
 import { Button } from '@components';
 import navbarItems from './constants';
 import Logo from '../ui/logo';
+import Feature from '../Feature';
+import SearchLauncher from '../SearchLauncher';
 // import './navbar.scss';
 
 const Navbar: FunctionComponent = () => {
@@ -34,6 +36,10 @@ const Navbar: FunctionComponent = () => {
 
         {/* Actions */}
         <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+          {/* Outside the mobile menu, so search is one tap away on every screen size. */}
+          <Feature name="search">
+            <SearchLauncher />
+          </Feature>
           <button
             onClick={toggleTheme}
             className="p-1.5 sm:p-2 rounded-full hover:bg-muted/60 transition-all"
@@ -46,9 +52,11 @@ const Navbar: FunctionComponent = () => {
             )}
           </button>
 
-          <Button className="hidden md:flex bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 py-2 hover:scale-105 transition-all">
-            Join Now
-          </Button>
+          <Feature name="newsletter">
+            <Button className="hidden md:flex bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 py-2 hover:scale-105 transition-all">
+              Join Now
+            </Button>
+          </Feature>
 
           {/* Mobile Menu Button */}
           <button
@@ -79,12 +87,14 @@ const Navbar: FunctionComponent = () => {
                 {name}
               </Link>
             ))}
-            <Button
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full w-full"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Join Now
-            </Button>
+            <Feature name="newsletter">
+              <Button
+                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full w-full"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Join Now
+              </Button>
+            </Feature>
           </nav>
         </div>
       )}

@@ -55,8 +55,9 @@
       "@styles/*": ["./src/styles/*"],
       "@styled/*": ["./src/styles/ts/*"],
       "@scss/*": ["./src/styles/scss/*"],
-      "@css/*": ["./src/styles/css/*"]      
+      "@css/*": ["./src/styles/css/*"],
+      "@shared/*": ["./shared/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "shared"]
 }
