@@ -1,4 +1,5 @@
-import { FunctionComponent, lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { FunctionComponent, Suspense, useCallback, useEffect, useState } from 'react';
+import { lazy } from '@/lib/chunkReload';
 import { Search } from 'lucide-react';
 import ErrorBoundary from '@/components/Errors/ErrorBoundary';
 

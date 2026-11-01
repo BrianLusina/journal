@@ -1,4 +1,5 @@
-import { Suspense, FunctionComponent, lazy } from 'react';
+import { Suspense, FunctionComponent } from 'react';
+import { lazy } from '@/lib/chunkReload';
 import { Routes, Route } from 'react-router-dom';
 import MainLayout from '@/layouts/MainLayout';
 import usePageViews from '@/hooks/analytics/usePageView';

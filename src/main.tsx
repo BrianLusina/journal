@@ -16,7 +16,10 @@ import reportWebVitals from './reportWebVitals';
 import "./styles/css/index.css";
 import { Toaster } from './components/ui/sonner';
 import ThemeProvider from './providers/theme/ThemeProvider';
+import { reloadOnChunkLoadError } from './lib/chunkReload';
 
+// Before anything loads lazily, monitoring included.
+reloadOnChunkLoadError();
 initializeMonitoring();
 const queryClient = new QueryClient();
 
