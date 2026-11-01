@@ -3,7 +3,7 @@ model: environment
 id: ev_QkZkpxyZ22
 workspaceId: wk_m6u48eEXa2
 createdAt: 2026-09-14T17:37:07.762661
-updatedAt: 2026-10-08T10:39:03.339758
+updatedAt: 2026-11-01T11:40:50.060823
 name: Dev
 public: true
 base: false
@@ -18,5 +18,9 @@ variables:
   name: BASE_URL
   value: http://localhost:3000
   id: wMEJNUuUqm
+- enabled: true
+  name: SITE_URL
+  value: http://localhost:8080
+  id: dTkaKI34gI
 color: var(--danger)
 sortPriority: 0.0

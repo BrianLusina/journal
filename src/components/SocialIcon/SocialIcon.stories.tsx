@@ -3,7 +3,6 @@ import faker from 'faker';
 import SocialIcon from './SocialIcon';
 
 const link = faker.internet.url();
-const name = faker.random.word();
 
 export default {
   title: 'Components/SocialIcon',
@@ -12,9 +11,9 @@ export default {
 
 const Template: StoryFn<typeof SocialIcon> = (args) => <SocialIcon {...args} />;
 
-export const FacebookSocialIcon = Template.bind({});
-FacebookSocialIcon.args = {
+export const InstagramSocialIcon = Template.bind({});
+InstagramSocialIcon.args = {
   link,
-  name,
-  icon: 'facebook',
+  name: 'instagram',
+  theme: 'light',
 };

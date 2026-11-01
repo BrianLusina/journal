@@ -11,12 +11,6 @@ const MainLayout: FC<{ children: React.ReactNode }> = ({ children }) => (
         {children}
       </main>
       <Footer />
-      {/*
-      <Sidebar>
-        <MiniPosts />
-        <AboutBlurb />
-        <Social />
-      </Sidebar> */}
     </div>
   </div>
 );

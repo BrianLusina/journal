@@ -30,8 +30,8 @@
     "prepare": "husky install",
     "pre-commit": "lint-staged",
     "postinstall": "husky install",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "storybook:dev": "storybook dev -p 6006",
+    "storybook:build": "storybook build"
   },
   "dependencies": {
     "@apollo/client": "^3.4.16",

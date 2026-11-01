@@ -1,5 +1,5 @@
 import { createFormHandler, resend } from './_forms/handler';
-import { contactSchema } from './_forms/schemas';
+import { contactSchema } from '../shared/forms';
 
 /** Emails a contact form message to the owner through Resend. Replies go to the reader. */
 export default createFormHandler({

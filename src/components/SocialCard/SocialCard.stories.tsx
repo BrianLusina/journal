@@ -3,7 +3,6 @@ import faker from 'faker';
 import SocialCard from './SocialCard';
 
 const link = faker.internet.url();
-const name = faker.random.word();
 
 export default {
   title: 'Components/SocialCard',
@@ -17,13 +16,11 @@ SocialCardItems.args = {
   items: [
     {
       link,
-      name,
-      icon: 'facebook',
+      name: 'facebook',
     },
     {
       link,
-      name,
-      icon: 'twitter',
+      name: 'twitter',
     },
   ],
 };

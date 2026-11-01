@@ -31,12 +31,12 @@ test: ## runs tests
 .PHONY: storybook.dev
 storybook.dev: ## Runs storybook dev server
 	@echo "${GREEN} running storybook dev server"
-	bun storybook
+	bun storybook:dev
 
 .PHONY: storybook.build
 storybook.build: ## Runs storybook build
 	@echo "${GREEN} running storybook build"
-	bun run build-storybook
+	bun run storybook:build
 	@echo "${GREEN} done building storybook"
 
 .PHONY: lint

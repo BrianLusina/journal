@@ -2,9 +2,9 @@ import { z } from 'zod';
 
 /*
  * The contact and newsletter forms validate with these schemas in the browser (src/) and again in
- * the functions (api/). They live under api/ because Vercel compiles every file a function imports
- * with the nearest tsconfig.json, and only api/tsconfig.json emits the CommonJS that Node loads.
- * Keep this file free of Node APIs: the browser bundle imports it.
+ * the functions (api/). They live in shared/, not api/, so Vite never serves a source module from
+ * the /api path that the dev server proxies to `vercel dev`. Keep this file free of Node APIs: the
+ * browser bundle imports it.
  */
 
 const email = z

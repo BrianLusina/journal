@@ -52,9 +52,11 @@ const Navbar: FunctionComponent = () => {
             )}
           </button>
 
-          <Button className="hidden md:flex bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 py-2 hover:scale-105 transition-all">
-            Join Now
-          </Button>
+          <Feature name="newsletter">
+            <Button className="hidden md:flex bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 py-2 hover:scale-105 transition-all">
+              Join Now
+            </Button>
+          </Feature>
 
           {/* Mobile Menu Button */}
           <button
@@ -85,12 +87,14 @@ const Navbar: FunctionComponent = () => {
                 {name}
               </Link>
             ))}
-            <Button
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full w-full"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Join Now
-            </Button>
+            <Feature name="newsletter">
+              <Button
+                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full w-full"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Join Now
+              </Button>
+            </Feature>
           </nav>
         </div>
       )}

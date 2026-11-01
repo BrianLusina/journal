@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getLimit, getParam, methodNotAllowed, POSTS_CACHE_CONTROL } from '../_routes';
-import { listedFilters, NOTION_PROPERTY } from './_schema';
+import { listedFilters, NOTION_PROPERTY } from '../../shared/notion';
 import { getDataSourceId, isNotionConfigured, notion } from './_shared';
 
 /**

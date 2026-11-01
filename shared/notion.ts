@@ -4,8 +4,8 @@
  * have. The posts routes and NotionAdapter read every name from here. docs/ARCHITECTURE.md lists
  * each property's type; change both when the database changes.
  *
- * This file lives under api/ so Vercel compiles it as CommonJS with the functions; it holds only
- * constants, so the browser bundle can import it too.
+ * This file is part of the contract shared by api/ and src/ (see shared/tsconfig.json); it holds
+ * only constants, so the browser bundle can import it too.
  */
 export const NOTION_PROPERTY = {
   title: 'Title',

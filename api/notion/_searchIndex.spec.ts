@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import handler from './search-index';
-import { listedFilters } from './_schema';
+import { listedFilters } from '../../shared/notion';
 import { getDataSourceId, isNotionConfigured, notion } from './_shared';
 
 jest.mock('./_shared', () => ({
