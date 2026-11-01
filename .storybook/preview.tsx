@@ -20,7 +20,7 @@ const preview: Preview = {
         <Story />
       </MockAppWithRouter>
     ),
-    // The app's theme provider, so the Navbar's dark-mode toggle switches the theme as it does in the app.
+    // Wraps stories in the app's theme provider, so the Navbar's dark-mode toggle switches the theme as it does in the app.
     Story => (
       <ThemeProvider>
         <Story />
