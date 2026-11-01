@@ -1,10 +1,11 @@
+import type { Mock } from 'vitest';
 import { render, screen, userEvent } from '@testUtils/rtlUtils';
 import * as Monitoring from '@monitoring';
 import { usePosts } from '@hooks';
 import ArticlesPage from './ArticlesPage';
 
-jest.mock('@monitoring', () => ({ captureException: jest.fn(), captureScope: jest.fn(), Severity: { Error: 'error' } }));
-jest.mock('@/hooks/cms/usePosts');
+vi.mock('@monitoring', () => ({ captureException: vi.fn(), captureScope: vi.fn(), Severity: { Error: 'error' } }));
+vi.mock('@/hooks/cms/usePosts');
 
 const post = (id: string, overrides: Partial<UnifiedPost> = {}): UnifiedPost => ({
   id,
@@ -20,7 +21,7 @@ const post = (id: string, overrides: Partial<UnifiedPost> = {}): UnifiedPost => 
 });
 
 const mockPosts = (items: UnifiedPost[], hasMore = false, loading = false) =>
-  (usePosts as jest.Mock).mockReturnValue({
+  (usePosts as Mock).mockReturnValue({
     data: { items, hasMore },
     loading,
     error: null,
@@ -28,7 +29,7 @@ const mockPosts = (items: UnifiedPost[], hasMore = false, loading = false) =>
 
 describe('ArticlesPage', () => {
   it('shows the page loader before the first page arrives', () => {
-    (usePosts as jest.Mock).mockReturnValue({ data: null, loading: true, error: null });
+    (usePosts as Mock).mockReturnValue({ data: null, loading: true, error: null });
 
     render(<ArticlesPage />);
 
@@ -36,7 +37,7 @@ describe('ArticlesPage', () => {
   });
 
   it('reports and shows an error when posts cannot be loaded', () => {
-    (usePosts as jest.Mock).mockReturnValue({ data: null, loading: false, error: new Error('down') });
+    (usePosts as Mock).mockReturnValue({ data: null, loading: false, error: new Error('down') });
 
     render(<ArticlesPage />);
 

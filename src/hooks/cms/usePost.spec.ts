@@ -1,13 +1,14 @@
+import type { Mock } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { findPostBySlug } from '@cmsService';
 import { usePost } from './usePost';
 
-jest.mock('@cmsService', () => ({ cmsAdapters: ['adapters'], findPostBySlug: jest.fn() }));
+vi.mock('@cmsService', () => ({ cmsAdapters: ['adapters'], findPostBySlug: vi.fn() }));
 
 describe('usePost', () => {
   it('returns the post found across the registered adapters', async () => {
     const post = { id: 'n1', source: 'notion', title: 'Post', slug: 'post', publishDate: '2024-01-01', tags: [], authors: [] };
-    (findPostBySlug as jest.Mock).mockResolvedValue(post);
+    (findPostBySlug as Mock).mockResolvedValue(post);
 
     const { result } = renderHook(() => usePost('post'));
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -17,7 +18,7 @@ describe('usePost', () => {
   });
 
   it('reports a missing post as no data and no error so the page can show a 404', async () => {
-    (findPostBySlug as jest.Mock).mockResolvedValue(null);
+    (findPostBySlug as Mock).mockResolvedValue(null);
 
     const { result } = renderHook(() => usePost('missing'));
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -27,7 +28,7 @@ describe('usePost', () => {
 
   it('surfaces the error when the post could not be loaded', async () => {
     const error = new Error('Contentful unavailable');
-    (findPostBySlug as jest.Mock).mockRejectedValue(error);
+    (findPostBySlug as Mock).mockRejectedValue(error);
 
     const { result } = renderHook(() => usePost('post'));
     await waitFor(() => expect(result.current.loading).toBe(false));

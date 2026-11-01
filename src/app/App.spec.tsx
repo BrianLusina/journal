@@ -4,15 +4,15 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import App from './App';
 
-jest.mock('@/hooks/analytics/usePageView', () => jest.fn());
-jest.mock('@/layouts/MainLayout', () => ({
+vi.mock('@/hooks/analytics/usePageView', () => ({ default: vi.fn() }));
+vi.mock('@/layouts/MainLayout', () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => <main>{children}</main>,
 }));
-jest.mock('@/pages/NotFound', () => ({ __esModule: true, default: () => <p>Not found</p> }));
-jest.mock('@/routes/routes', () => {
-  const { lazy } = jest.requireActual('react');
-  const { Link } = jest.requireActual('react-router-dom');
+vi.mock('@/pages/NotFound', () => ({ __esModule: true, default: () => <p>Not found</p> }));
+vi.mock('@/routes/routes', async () => {
+  const { lazy } = await vi.importActual<typeof import('react')>('react');
+  const { Link } = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
   const FirstPage = () => (
     <>
       <p>First page</p>

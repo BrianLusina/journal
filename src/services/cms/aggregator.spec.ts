@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import CMSAdapter from './CMSAdapter';
 import { createMergedFeed, findPostBySlug, type MergedPosts } from './aggregator';
 
@@ -13,9 +14,9 @@ const post = (id: string, source: CMSSource, publishDate: string): UnifiedPost =
 
 const adapter = (source: CMSSource, impl: Partial<CMSAdapter>): CMSAdapter => ({
   source,
-  getPosts: jest.fn().mockResolvedValue({ items: [], nextCursor: null }),
-  getPostBySlug: jest.fn().mockResolvedValue(null),
-  getSearchIndex: jest.fn().mockResolvedValue([]),
+  getPosts: vi.fn().mockResolvedValue({ items: [], nextCursor: null }),
+  getPostBySlug: vi.fn().mockResolvedValue(null),
+  getSearchIndex: vi.fn().mockResolvedValue([]),
   ...impl,
 });
 
@@ -24,7 +25,7 @@ const adapter = (source: CMSSource, impl: Partial<CMSAdapter>): CMSAdapter => ({
  * at most 100 posts per page like the Notion API, recording every request.
  */
 const pagedAdapter = (source: CMSSource, posts: UnifiedPost[]) => {
-  const getPosts = jest.fn(async ({ cursor, limit }: CMSPageRequest): Promise<CMSPage> => {
+  const getPosts = vi.fn(async ({ cursor, limit }: CMSPageRequest): Promise<CMSPage> => {
     const start = cursor ? Number(cursor) : 0;
     const end = start + Math.min(limit, 100);
     return { items: posts.slice(start, end), nextCursor: end < posts.length ? String(end) : null };
@@ -34,7 +35,7 @@ const pagedAdapter = (source: CMSSource, posts: UnifiedPost[]) => {
 
 const ids = (feed: MergedPosts) => feed.items.map(item => item.id);
 
-const cursors = (source: CMSAdapter) => (source.getPosts as jest.Mock).mock.calls.map(([request]) => request.cursor);
+const cursors = (source: CMSAdapter) => (source.getPosts as Mock).mock.calls.map(([request]) => request.cursor);
 
 /** `count` posts from `source`, one day apart, newest first. */
 const dated = (prefix: string, source: CMSSource, count: number) =>
@@ -89,7 +90,7 @@ describe('createMergedFeed', () => {
   });
 
   it('reads past an empty page that still has a next cursor', async () => {
-    const getPosts = jest
+    const getPosts = vi
       .fn()
       .mockResolvedValueOnce({ items: [], nextCursor: 'next' })
       .mockResolvedValueOnce({ items: [post('n1', 'notion', '2024-06-01')], nextCursor: null });
@@ -101,7 +102,7 @@ describe('createMergedFeed', () => {
   });
 
   it('shows a post once even when consecutive pages overlap', async () => {
-    const getPosts = jest
+    const getPosts = vi
       .fn()
       .mockResolvedValueOnce({ items: [post('n1', 'notion', '2024-04-01')], nextCursor: '1' })
       .mockResolvedValueOnce({ items: [post('n1', 'notion', '2024-04-01'), post('n2', 'notion', '2024-02-01')], nextCursor: null });
@@ -146,7 +147,7 @@ describe('createMergedFeed', () => {
 
   it('keeps serving healthy sources when one source fails, and reports the failure', async () => {
     const failure = new Error('Notion is down');
-    const feed = createMergedFeed([contentful(), adapter('notion', { getPosts: jest.fn().mockRejectedValue(failure) })]);
+    const feed = createMergedFeed([contentful(), adapter('notion', { getPosts: vi.fn().mockRejectedValue(failure) })]);
 
     const result = await feed.load(3);
 
@@ -157,7 +158,7 @@ describe('createMergedFeed', () => {
 
   it('retries a failed source on the next load from where it stopped', async () => {
     const failure = new Error('Notion is down');
-    const getPosts = jest
+    const getPosts = vi
       .fn()
       .mockResolvedValueOnce({ items: [post('n1', 'notion', '2024-04-01')], nextCursor: '1' })
       .mockRejectedValueOnce(failure)
@@ -176,7 +177,7 @@ describe('createMergedFeed', () => {
 
   it('resolves empty rather than failing when one source has no posts and another fails', async () => {
     const failure = new Error('Notion is down');
-    const feed = createMergedFeed([adapter('contentful', {}), adapter('notion', { getPosts: jest.fn().mockRejectedValue(failure) })]);
+    const feed = createMergedFeed([adapter('contentful', {}), adapter('notion', { getPosts: vi.fn().mockRejectedValue(failure) })]);
 
     const result = await feed.load(2);
 
@@ -187,8 +188,8 @@ describe('createMergedFeed', () => {
   it('throws when every source fails', async () => {
     const failure = new Error('Contentful is down');
     const feed = createMergedFeed([
-      adapter('contentful', { getPosts: jest.fn().mockRejectedValue(failure) }),
-      adapter('notion', { getPosts: jest.fn().mockRejectedValue(new Error('Notion is down')) }),
+      adapter('contentful', { getPosts: vi.fn().mockRejectedValue(failure) }),
+      adapter('notion', { getPosts: vi.fn().mockRejectedValue(new Error('Notion is down')) }),
     ]);
 
     await expect(feed.load(2)).rejects.toBe(failure);
@@ -196,7 +197,7 @@ describe('createMergedFeed', () => {
 
   it('throws again on a later load while every source is still failing', async () => {
     const failure = new Error('Contentful is down');
-    const feed = createMergedFeed([adapter('contentful', { getPosts: jest.fn().mockRejectedValue(failure) })]);
+    const feed = createMergedFeed([adapter('contentful', { getPosts: vi.fn().mockRejectedValue(failure) })]);
 
     await expect(feed.load(2)).rejects.toBe(failure);
     await expect(feed.load(2)).rejects.toBe(failure);
@@ -206,16 +207,16 @@ describe('createMergedFeed', () => {
 describe('findPostBySlug', () => {
   it('prefers the first adapter in registration order when several have the slug', async () => {
     const contentfulPost = post('c1', 'contentful', '2024-01-01');
-    const contentful = adapter('contentful', { getPostBySlug: jest.fn().mockResolvedValue(contentfulPost) });
-    const notion = adapter('notion', { getPostBySlug: jest.fn().mockResolvedValue(post('n1', 'notion', '2024-01-01')) });
+    const contentful = adapter('contentful', { getPostBySlug: vi.fn().mockResolvedValue(contentfulPost) });
+    const notion = adapter('notion', { getPostBySlug: vi.fn().mockResolvedValue(post('n1', 'notion', '2024-01-01')) });
 
     await expect(findPostBySlug([contentful, notion], 'slug')).resolves.toBe(contentfulPost);
   });
 
   it('returns the post from a later source when an earlier one fails', async () => {
     const notionPost = post('n1', 'notion', '2024-01-01');
-    const contentful = adapter('contentful', { getPostBySlug: jest.fn().mockRejectedValue(new Error('down')) });
-    const notion = adapter('notion', { getPostBySlug: jest.fn().mockResolvedValue(notionPost) });
+    const contentful = adapter('contentful', { getPostBySlug: vi.fn().mockRejectedValue(new Error('down')) });
+    const notion = adapter('notion', { getPostBySlug: vi.fn().mockResolvedValue(notionPost) });
 
     await expect(findPostBySlug([contentful, notion], 'slug')).resolves.toBe(notionPost);
   });
@@ -226,7 +227,7 @@ describe('findPostBySlug', () => {
 
   it('throws when the post was not found and a source failed, since it may exist there', async () => {
     const failure = new Error('Contentful is down');
-    const contentful = adapter('contentful', { getPostBySlug: jest.fn().mockRejectedValue(failure) });
+    const contentful = adapter('contentful', { getPostBySlug: vi.fn().mockRejectedValue(failure) });
 
     await expect(findPostBySlug([contentful, adapter('notion', {})], 'slug')).rejects.toBe(failure);
   });

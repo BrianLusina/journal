@@ -56,7 +56,7 @@ Authors, About and Social content bypasses `api/`: `hooks/api/*` and the feature
 `tsconfig.app.json` is the **single source of truth** for import aliases (`@hooks`, `@cmsService`, `@/…`, and so on).
 
 - Vite reads it through `vite-tsconfig-paths` (`vite.config.mts`).
-- Jest generates its `moduleNameMapper` from it (`jest.config.js`).
+- Vitest reuses `vite.config.mts`, and with it those aliases (`vitest.config.mts`).
 
 Add new aliases there only. Before this was consolidated, three hand-copied lists drifted apart and broke most of the test suite.
 
@@ -243,9 +243,9 @@ Code behind a flag that is off still ships in the bundle, because the value can 
 
 ## Testing
 
-- **Runner:** Jest 26 with jsdom and React Testing Library 16; specs sit next to their code as `*.spec.ts(x)`.
+- **Runner:** Vitest with jsdom and React Testing Library 16; specs sit next to their code as `*.spec.ts(x)`.
 - **React 18 root:** Testing Library renders on React 18's concurrent root, as the app does. Hooks are tested with its `renderHook`, and `user-event` 14 calls are awaited (`const user = userEvent.setup(); await user.click(...)`). `scripts/ts/setupTests.ts` makes the legacy-root `ReactDOM.render` and `ReactDOM.hydrate` throw, so a test or library that still renders through them (and so runs the tree as React 17) fails.
-- **Command:** run with `bun run test` (Jest). **Not** `bun test`, which runs Bun's own runner without `jest.config.js` and fails.
+- **Command:** run with `bun run test` (Vitest). **Not** `bun test`, which runs Bun's own runner without `vitest.config.mts` and fails. Mocks reset before each test (`mockReset`).
 - **Coverage gate:** `bun run test:coverage` enforces 85% lines and statements.
 - **What to test where:**
   - Multi-source behaviour goes in `aggregator.spec.ts`, with fake adapters.
@@ -253,7 +253,7 @@ Code behind a flag that is off still ships in the bundle, because the value can 
   - Hooks are tested against a mocked aggregator.
   - Pages and features are tested against mocked hooks.
 - **CI:** GitHub Actions runs tests with coverage, ESLint and stylelint, and a production build on every push. All use bun with the committed text lockfile `bun.lock`. Dependabot updates it through the `bun` ecosystem.
-- **Type-checking:** `vite build` and Jest only transpile, so neither catches type errors. The Tests workflow runs `bun run typecheck` (`tsc -p tsconfig.app.json --noEmit`, all of `src/` including specs and stories) and fails on any error; `scripts/repo-policy.spec.ts` keeps that step in place. `tsconfig.app.json` is not `strict` yet, so `tsc` misses what only strict checks catch, such as `undefined` passed where a value is required, or story args set through `Template.bind({})` (typed `any` without `strictBindCallApply`). The Vercel functions in `api/` (not their specs) are type-checked by the Lint workflow (`bun run typecheck:api`), and `scripts/api-functions.spec.ts` checks that the config Vercel compiles each one with emits CommonJS. The Lint workflow also type-checks the Docker image's server (`bun run typecheck:server`, with `server/tsconfig.json`). `server/index.spec.ts` starts that server with Bun (so `bun` must be on the `PATH` for Jest) over a small `dist/` and `api/` of its own.
+- **Type-checking:** `vite build` and Vitest only transpile, so neither catches type errors. The Tests workflow runs `bun run typecheck` (`tsc -p tsconfig.app.json --noEmit`, all of `src/` including specs and stories) and fails on any error; `scripts/repo-policy.spec.ts` keeps that step in place. `tsconfig.app.json` is not `strict` yet, so `tsc` misses what only strict checks catch, such as `undefined` passed where a value is required, or story args set through `Template.bind({})` (typed `any` without `strictBindCallApply`). The Vercel functions in `api/` (not their specs) are type-checked by the Lint workflow (`bun run typecheck:api`), and `scripts/api-functions.spec.ts` checks that the config Vercel compiles each one with emits CommonJS. The Lint workflow also type-checks the Docker image's server (`bun run typecheck:server`, with `server/tsconfig.json`). `server/index.spec.ts` starts that server with Bun (so `bun` must be on the `PATH` for Vitest) over a small `dist/` and `api/` of its own.
 
 ## Known limits and follow-ups
 

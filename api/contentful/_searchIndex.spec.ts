@@ -1,15 +1,16 @@
+import type { Mock } from 'vitest';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import handler from './search-index';
 import { isContentfulConfigured, queryContentful } from './_shared';
 
-jest.mock('./_shared', () => ({
+vi.mock('./_shared', () => ({
   GET_SEARCH_INDEX: 'GET_SEARCH_INDEX',
-  isContentfulConfigured: jest.fn(),
-  queryContentful: jest.fn(),
+  isContentfulConfigured: vi.fn(),
+  queryContentful: vi.fn(),
 }));
 
 const response = () => {
-  const res = { status: jest.fn(), json: jest.fn(), setHeader: jest.fn() };
+  const res = { status: vi.fn(), json: vi.fn(), setHeader: vi.fn() };
   res.status.mockReturnValue(res);
   res.json.mockReturnValue(res);
   return res;
@@ -22,12 +23,12 @@ const posts = (from: number, count: number) =>
 
 describe('Contentful search index route', () => {
   beforeEach(() => {
-    (isContentfulConfigured as jest.Mock).mockReturnValue(true);
-    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    (isContentfulConfigured as Mock).mockReturnValue(true);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
   it('reads every dated post, a page of 100 at a time, past the first page', async () => {
-    (queryContentful as jest.Mock)
+    (queryContentful as Mock)
       .mockResolvedValueOnce({ blogPostCollection: { total: 230, items: posts(0, 100) } })
       .mockResolvedValueOnce({ blogPostCollection: { total: 230, items: posts(100, 100) } })
       .mockResolvedValueOnce({ blogPostCollection: { total: 230, items: posts(200, 30) } });
@@ -51,7 +52,7 @@ describe('Contentful search index route', () => {
   });
 
   it('answers 502 without caching, rather than a partial index, when a page comes back empty before the total', async () => {
-    (queryContentful as jest.Mock)
+    (queryContentful as Mock)
       .mockResolvedValueOnce({ blogPostCollection: { total: 150, items: posts(0, 100) } })
       .mockResolvedValueOnce({ blogPostCollection: { total: 150, items: [] } });
     const res = response();
@@ -64,7 +65,7 @@ describe('Contentful search index route', () => {
   });
 
   it('answers 502 without caching when Contentful fails', async () => {
-    (queryContentful as jest.Mock).mockRejectedValue(new Error('Unable to query Contentful: 503'));
+    (queryContentful as Mock).mockRejectedValue(new Error('Unable to query Contentful: 503'));
     const res = response();
 
     await handler(request(), res as unknown as VercelResponse);
@@ -74,7 +75,7 @@ describe('Contentful search index route', () => {
   });
 
   it('answers 500 when Contentful is not configured', async () => {
-    (isContentfulConfigured as jest.Mock).mockReturnValue(false);
+    (isContentfulConfigured as Mock).mockReturnValue(false);
     const res = response();
 
     await handler(request(), res as unknown as VercelResponse);

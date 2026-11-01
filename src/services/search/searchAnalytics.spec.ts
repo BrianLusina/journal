@@ -1,7 +1,8 @@
+import type { Mock } from 'vitest';
 import analytics from '@/services/analytics';
 import { logSearch, logSearchSelection, mayBePersonal, normalizeSearchTerm, resetSearchLog } from './searchAnalytics';
 
-jest.mock('@/services/analytics', () => ({ __esModule: true, default: { logEvent: jest.fn() } }));
+vi.mock('@/services/analytics', () => ({ __esModule: true, default: { logEvent: vi.fn() } }));
 
 describe('search analytics', () => {
   beforeEach(() => resetSearchLog());
@@ -31,7 +32,7 @@ describe('search analytics', () => {
     logSearch('vue', 0, 'page');
     logSearch('react', 3, 'page');
 
-    expect((analytics.logEvent as jest.Mock).mock.calls.map(([, params]) => params.search_term)).toEqual([
+    expect((analytics.logEvent as Mock).mock.calls.map(([, params]) => params.search_term)).toEqual([
       'react',
       'vue',
       'react',

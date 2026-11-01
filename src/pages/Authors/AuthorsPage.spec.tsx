@@ -1,10 +1,11 @@
+import type { Mock } from 'vitest';
 import { render, screen } from '@testUtils/rtlUtils';
 import * as Monitoring from '@/services/monitoring';
 import useFetchAuthors from '@/hooks/api/useFetchAuthors';
 import AuthorsPage from './AuthorsPage';
 
-jest.mock('@/services/monitoring', () => ({ captureException: jest.fn(), captureScope: jest.fn(), Severity: { Error: 'error' } }));
-jest.mock('@/hooks/api/useFetchAuthors');
+vi.mock('@/services/monitoring', () => ({ captureException: vi.fn(), captureScope: vi.fn(), Severity: { Error: 'error' } }));
+vi.mock('@/hooks/api/useFetchAuthors');
 
 const author = {
   name: 'Ada Lovelace',
@@ -18,7 +19,7 @@ const author = {
 
 describe('AuthorsPage', () => {
   it('lists authors with their article counts and contact links', () => {
-    (useFetchAuthors as jest.Mock).mockReturnValue([false, undefined, { personCollection: { items: [author] } }]);
+    (useFetchAuthors as Mock).mockReturnValue([false, undefined, { personCollection: { items: [author] } }]);
 
     render(<AuthorsPage />);
 
@@ -30,7 +31,7 @@ describe('AuthorsPage', () => {
   });
 
   it('shows the page loader while loading', () => {
-    (useFetchAuthors as jest.Mock).mockReturnValue([true, undefined, undefined]);
+    (useFetchAuthors as Mock).mockReturnValue([true, undefined, undefined]);
 
     render(<AuthorsPage />);
 
@@ -38,7 +39,7 @@ describe('AuthorsPage', () => {
   });
 
   it('reports and shows an error', () => {
-    (useFetchAuthors as jest.Mock).mockReturnValue([false, new Error('down'), undefined]);
+    (useFetchAuthors as Mock).mockReturnValue([false, new Error('down'), undefined]);
 
     render(<AuthorsPage />);
 

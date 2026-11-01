@@ -4,7 +4,7 @@ import ts from 'typescript';
 
 const apiDir = path.resolve(__dirname, '..', 'api');
 
-// Every TypeScript file Vercel compiles for the functions: specs are only run by Jest.
+// Every TypeScript file Vercel compiles for the functions: specs are only run by Vitest.
 const functionSources = readdirSync(apiDir, { recursive: true, encoding: 'utf8' })
   .filter(file => file.endsWith('.ts') && !file.endsWith('.spec.ts'))
   .map(file => path.join(apiDir, file));

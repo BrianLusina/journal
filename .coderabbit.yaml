@@ -150,7 +150,7 @@ reviews:
         - Architecture changes must be reflected in docs/ARCHITECTURE.md.
 
     # Configuration and tooling
-    - path: "{vite.config.mts,tsconfig*.json,jest.config.js,eslint.config.js,tailwind.config.ts,postcss.config.js,vercel.json,components.json}"
+    - path: "{vite.config.mts,tsconfig*.json,vitest.config.mts,eslint.config.js,tailwind.config.ts,postcss.config.js,vercel.json,components.json}"
       instructions: |
         - Treat config changes as high impact: confirm they work for dev, test, build and Vercel, and that path aliases stay defined only in tsconfig.app.json.
         - Flag loosened compiler or lint strictness, disabled rules and widened proxy or CORS settings without a reason.

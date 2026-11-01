@@ -1,11 +1,12 @@
+import type { Mock } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import * as Monitoring from '@monitoring';
 import { usePosts } from '@hooks';
 import ArticlesByTagPage from './ArticlesByTagPage';
 
-jest.mock('@monitoring', () => ({ captureException: jest.fn(), captureScope: jest.fn(), Severity: { Error: 'error' } }));
-jest.mock('@hooks', () => ({ usePosts: jest.fn() }));
+vi.mock('@monitoring', () => ({ captureException: vi.fn(), captureScope: vi.fn(), Severity: { Error: 'error' } }));
+vi.mock('@hooks', () => ({ usePosts: vi.fn() }));
 
 const renderAt = (path: string) =>
   render(
@@ -30,7 +31,7 @@ const article = (id: string, source: CMSSource, thumbnail?: UnifiedAsset): Unifi
 
 describe('ArticlesByTagPage', () => {
   it('lists posts from every source for the tag in the URL and titles the page with it', () => {
-    (usePosts as jest.Mock).mockReturnValue({
+    (usePosts as Mock).mockReturnValue({
       loading: false,
       error: null,
       data: { items: [article('a', 'contentful', { url: 'https://images/a.png' }), article('b', 'notion')], hasMore: false },
@@ -45,7 +46,7 @@ describe('ArticlesByTagPage', () => {
   });
 
   it('shows the page loader while loading', () => {
-    (usePosts as jest.Mock).mockReturnValue({ loading: true, error: null, data: null });
+    (usePosts as Mock).mockReturnValue({ loading: true, error: null, data: null });
 
     renderAt('/article/tag/travel');
 
@@ -53,7 +54,7 @@ describe('ArticlesByTagPage', () => {
   });
 
   it('reports and shows an error', () => {
-    (usePosts as jest.Mock).mockReturnValue({ loading: false, error: new Error('down'), data: null });
+    (usePosts as Mock).mockReturnValue({ loading: false, error: new Error('down'), data: null });
 
     renderAt('/article/tag/travel');
 

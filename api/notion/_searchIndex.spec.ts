@@ -1,16 +1,17 @@
+import type { Mock } from 'vitest';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import handler from './search-index';
 import { listedFilters } from '../../shared/notion';
 import { getDataSourceId, isNotionConfigured, notion } from './_shared';
 
-jest.mock('./_shared', () => ({
-  getDataSourceId: jest.fn(),
-  isNotionConfigured: jest.fn(),
-  notion: { dataSources: { query: jest.fn() } },
+vi.mock('./_shared', () => ({
+  getDataSourceId: vi.fn(),
+  isNotionConfigured: vi.fn(),
+  notion: { dataSources: { query: vi.fn() } },
 }));
 
 const response = () => {
-  const res = { status: jest.fn(), json: jest.fn(), setHeader: jest.fn() };
+  const res = { status: vi.fn(), json: vi.fn(), setHeader: vi.fn() };
   res.status.mockReturnValue(res);
   res.json.mockReturnValue(res);
   return res;
@@ -22,13 +23,13 @@ const pages = (from: number, count: number) => Array.from({ length: count }, (_,
 
 describe('Notion search index route', () => {
   beforeEach(() => {
-    (getDataSourceId as jest.Mock).mockResolvedValue('ds-1');
-    (isNotionConfigured as jest.Mock).mockReturnValue(true);
-    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    (getDataSourceId as Mock).mockResolvedValue('ds-1');
+    (isNotionConfigured as Mock).mockReturnValue(true);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
   it('follows the cursor until Notion has no more, listing only published posts with a slug', async () => {
-    (notion.dataSources.query as jest.Mock)
+    (notion.dataSources.query as Mock)
       .mockResolvedValueOnce({ results: pages(0, 100), has_more: true, next_cursor: 'c2' })
       .mockResolvedValueOnce({ results: pages(100, 5), has_more: false, next_cursor: null });
     const res = response();
@@ -48,7 +49,7 @@ describe('Notion search index route', () => {
   });
 
   it('answers 502 without caching, rather than a partial index, when Notion says it has more but gives no cursor', async () => {
-    (notion.dataSources.query as jest.Mock).mockResolvedValueOnce({ results: pages(0, 1), has_more: true, next_cursor: null });
+    (notion.dataSources.query as Mock).mockResolvedValueOnce({ results: pages(0, 1), has_more: true, next_cursor: null });
     const res = response();
 
     await handler(request(), res as unknown as VercelResponse);
@@ -59,7 +60,7 @@ describe('Notion search index route', () => {
   });
 
   it('answers 502 without caching when Notion fails', async () => {
-    (notion.dataSources.query as jest.Mock).mockRejectedValue(new Error('rate limited'));
+    (notion.dataSources.query as Mock).mockRejectedValue(new Error('rate limited'));
     const res = response();
 
     await handler(request(), res as unknown as VercelResponse);
@@ -69,7 +70,7 @@ describe('Notion search index route', () => {
   });
 
   it('answers 500 when Notion is not configured', async () => {
-    (isNotionConfigured as jest.Mock).mockReturnValue(false);
+    (isNotionConfigured as Mock).mockReturnValue(false);
     const res = response();
 
     await handler(request(), res as unknown as VercelResponse);

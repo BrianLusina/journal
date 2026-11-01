@@ -1,10 +1,11 @@
+import type { Mock } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { loadSearchEngine } from '@/services/search';
 import SearchLauncher from './SearchLauncher';
 
-jest.mock('@/services/search', () => ({ loadSearchEngine: jest.fn() }));
+vi.mock('@/services/search', () => ({ loadSearchEngine: vi.fn() }));
 
 const renderLauncher = () =>
   render(
@@ -16,7 +17,7 @@ const renderLauncher = () =>
 
 describe('SearchLauncher', () => {
   beforeEach(() => {
-    (loadSearchEngine as jest.Mock).mockResolvedValue({ search: () => [] });
+    (loadSearchEngine as Mock).mockResolvedValue({ search: () => [] });
   });
 
   it('opens search from the button, and gives focus back to it on close', async () => {

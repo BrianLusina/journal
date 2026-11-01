@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import SubscribeForm from './SubscribeForm';
@@ -13,13 +14,13 @@ const subscribe = async (email: string) => {
 
 describe('SubscribeForm', () => {
   it('confirms the subscription once the function answers 2xx', async () => {
-    global.fetch = jest.fn().mockResolvedValue(answer(200));
+    global.fetch = vi.fn().mockResolvedValue(answer(200));
 
     await subscribe('ada@example.com');
 
     expect(await screen.findByText(/thanks for subscribing/i)).toBeInTheDocument();
     expect(global.fetch).toHaveBeenCalledWith('/api/subscribe', expect.objectContaining({ method: 'POST' }));
-    expect(JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body)).toEqual({
+    expect(JSON.parse((global.fetch as Mock).mock.calls[0][1].body)).toEqual({
       email: 'ada@example.com',
       website: '',
     });
@@ -27,7 +28,7 @@ describe('SubscribeForm', () => {
   });
 
   it('shows an error and keeps the address when the function fails', async () => {
-    global.fetch = jest.fn().mockResolvedValue(answer(502));
+    global.fetch = vi.fn().mockResolvedValue(answer(502));
 
     await subscribe('ada@example.com');
 
@@ -38,7 +39,7 @@ describe('SubscribeForm', () => {
 
   it('disables the button while the subscription is sent', async () => {
     let finish: (value: unknown) => void = () => {};
-    global.fetch = jest.fn().mockReturnValue(new Promise(resolve => { finish = resolve; }));
+    global.fetch = vi.fn().mockReturnValue(new Promise(resolve => { finish = resolve; }));
 
     await subscribe('ada@example.com');
 
@@ -48,7 +49,7 @@ describe('SubscribeForm', () => {
   });
 
   it('links the validation error to the field and sends nothing', async () => {
-    global.fetch = jest.fn();
+    global.fetch = vi.fn();
 
     await subscribe('not-an-email');
 

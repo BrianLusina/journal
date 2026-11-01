@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import faker from 'faker';
 import { render, screen, act } from '@testing-library/react';
 import MockApp from '@testUtils/MockApp';
@@ -5,25 +6,25 @@ import * as Monitoring from '@monitoring';
 import MiniPosts from './MiniPosts';
 import { usePosts } from '@hooks';
 
-jest.mock('@monitoring', () => {
+vi.mock('@monitoring', () => {
   return {
-    captureException: jest.fn(),
-    captureScope: jest.fn(),
+    captureException: vi.fn(),
+    captureScope: vi.fn(),
     Severity: {
       Error: 'error',
     },
   };
 });
 
-jest.mock('@/hooks/cms/usePosts');
+vi.mock('@/hooks/cms/usePosts');
 
 describe('MiniPosts', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render loading state initially', async () => {
-    (usePosts as jest.Mock).mockReturnValue({
+    (usePosts as Mock).mockReturnValue({
       data: null,
       loading: true,
       error: null,
@@ -72,7 +73,7 @@ describe('MiniPosts', () => {
       },
     ];
 
-    (usePosts as jest.Mock).mockReturnValue({
+    (usePosts as Mock).mockReturnValue({
       data: {
         items,
         hasMore: false,
@@ -96,7 +97,7 @@ describe('MiniPosts', () => {
   it('should display error if query fails to fetch content', async () => {
     const mockError = new Error(faker.lorem.words());
     
-    (usePosts as jest.Mock).mockReturnValue({
+    (usePosts as Mock).mockReturnValue({
       data: null,
       loading: false,
       error: mockError,

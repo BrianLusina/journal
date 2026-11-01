@@ -30,8 +30,8 @@ describe('AuthorBadge', () => {
   it('falls back to the default avatar', () => {
     render(<AuthorBadge author={author({ avatarUrl: undefined })} />);
 
-    // Jest's file transform resolves image imports to their file name.
-    expect(screen.getByRole('img', { name: 'Ada Lovelace' })).toHaveAttribute('src', 'avatar.jpg');
+    // Vite resolves image imports to their URL.
+    expect(screen.getByRole('img', { name: 'Ada Lovelace' })).toHaveAttribute('src', '/src/assets/images/avatar.jpg');
   });
 
   it('renders nothing for an author without a name', () => {
