@@ -33,18 +33,10 @@ describe('AboutPage', () => {
     expect(screen.getByText('Journal is a collection of thoughts.')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Our Story' })).not.toBeInTheDocument();
     expect(screen.queryByText(fallbackStory)).not.toBeInTheDocument();
-  });
-
-  it('does not show the hard-coded mission and values sections', () => {
-    (useQuery as jest.Mock).mockReturnValue({
-      loading: false,
-      data: { aboutCollection: { items: [{ title: 'Who we are', content: 'Journal is a collection of thoughts.' }] } },
-    });
-
-    render(<AboutPage />);
-
-    expect(screen.queryByRole('heading', { name: 'Our Mission' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Our Values' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /our mission/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /our values/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Cultivate mindful/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Sustainability' })).not.toBeInTheDocument();
   });
 
   it('shows the newsletter signup while the newsletter feature is on', () => {
