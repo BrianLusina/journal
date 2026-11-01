@@ -1,25 +1,25 @@
 // const axiosMock = jest.genMockFromModule('axios');
 
 // // this is the key to fix the axios.create() undefined error!
-// axiosMock.create = vi.fn(() => axiosMock);
+// axiosMock.create = jest.fn(() => axiosMock);
 // axiosMock.interceptors = {
 //   response: {
-//     use: vi.fn(),
+//     use: jest.fn(),
 //   },
 //   request: {
-//     use: vi.fn(),
+//     use: jest.fn(),
 //   },
 // };
-// axiosMock.get = vi.fn();
-// axiosMock.post = vi.fn();
-// axiosMock.put = vi.fn();
-// axiosMock.delete = vi.fn();
+// axiosMock.get = jest.fn();
+// axiosMock.post = jest.fn();
+// axiosMock.put = jest.fn();
+// axiosMock.delete = jest.fn();
 // axiosMock.default = {
-//   get: vi.fn(),
-//   post: vi.fn(),
-//   put: vi.fn(),
-//   delete: vi.fn(),
-//   patch: vi.fn(),
+//   get: jest.fn(),
+//   post: jest.fn(),
+//   put: jest.fn(),
+//   delete: jest.fn(),
+//   patch: jest.fn(),
 // };
 
 // export default axiosMock;

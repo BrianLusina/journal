@@ -22,7 +22,8 @@ function Bomb({ shouldThrow = false }: { shouldThrow: boolean }): null {
 }
 
 describe('ErrorBoundary', () => {
-  beforeAll(() => {
+  // Per test: mockReset puts a spy back to the real console.error before each one.
+  beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
