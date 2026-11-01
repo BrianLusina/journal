@@ -51,7 +51,7 @@ const RelatedArticles: FunctionComponent<RelatedArticlesProps> = ({ category }) 
                   DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss,
                   DATE_FORMAT_MMMM_D_YYYY,
                 )}
-                thumbnail={relatedArticle.thumbnail ? relatedArticle.thumbnail.url : ''}
+                thumbnail={relatedArticle.thumbnail?.url}
               />
             </div>
           ))}

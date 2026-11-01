@@ -61,7 +61,7 @@ const cards = (found: SearchDocument[]) => (
         title={post.title}
         category={post.category || ''}
         date={post.publishDate}
-        thumbnail={post.thumbnailUrl || ''}
+        thumbnail={post.thumbnailUrl}
       />
     ))}
   </div>
