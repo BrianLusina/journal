@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components';
 import { postForm } from '@/lib/postForm';
-import { subscribeSchema, type SubscribeValues } from '../../../api/_forms/schemas';
+import { subscribeSchema, type SubscribeValues } from '@shared/forms';
 
 /** The newsletter signup. It validates with the same schema as api/subscribe. */
 const SubscribeForm = () => {

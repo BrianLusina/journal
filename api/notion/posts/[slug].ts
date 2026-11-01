@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { NotionToMarkdown } from 'notion-to-md';
 import { methodNotAllowed, POSTS_CACHE_CONTROL } from '../../_routes';
-import { NOTION_PROPERTY, publishedFilters } from '../_schema';
+import { NOTION_PROPERTY, publishedFilters } from '../../../shared/notion';
 import { getDataSourceId, isNotionConfigured, notion } from '../_shared';
 
 const markdown = new NotionToMarkdown({ notionClient: notion });

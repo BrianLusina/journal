@@ -14,6 +14,5 @@ const Template: StoryFn<typeof Header> = (args) => <Header {...args} />;
 
 export const DefaultHeader = Template.bind({});
 DefaultHeader.args = {
-  title: 'Header',
   children: <a href={link}>{name}</a>,
 };

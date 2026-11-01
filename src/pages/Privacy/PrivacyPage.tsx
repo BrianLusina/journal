@@ -1,14 +1,14 @@
 // TODO: add dynamic fetching of privacy policy content from backend API, implement versioning for different policy updates, and integrate with user account settings for personalized privacy controls
 const PrivacyPage = () => {
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       {/* Hero Section */}
       <div className="mb-12 space-y-4">
         <h1 className="text-4xl md:text-5xl font-bold leading-tight animate-slide-down">
           Privacy Policy
         </h1>
         <p className="text-muted-foreground animate-slide-up stagger-1">
-          Last updated: March 20, 2025
+          Last updated: October 31, 2026
         </p>
       </div>
 
@@ -44,6 +44,14 @@ const PrivacyPage = () => {
             When you visit our website, we may automatically collect certain information about your
             device, including information about your web browser, IP address, time zone, and some of
             the cookies installed on your device.
+          </p>
+
+          <h3 className="text-xl font-semibold mb-3 mt-6">Search Terms</h3>
+          <p className="text-muted-foreground">
+            When you search the site, the terms you search for are sent to Firebase Analytics (Google
+            Analytics) to help us improve search. They are linked to a pseudonymous identifier for
+            your browser rather than to your name, and terms that look like an email address or a
+            long number are not sent.
           </p>
         </section>
 
@@ -130,7 +138,7 @@ const PrivacyPage = () => {
           </p>
         </section>
       </div>
-    </main>
+    </div>
   );
 };
 

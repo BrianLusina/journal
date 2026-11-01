@@ -1,0 +1,17 @@
+{
+  // The contract between api/ and src/: constants and zod schemas that both import. Vercel compiles
+  // every file a function imports with the nearest tsconfig.json, and Node loads the result as
+  // CommonJS, so this mirrors api/tsconfig.json. Keep the files here free of Node and DOM APIs.
+  "compilerOptions": {
+    "target": "es2020",
+    "lib": ["es2020"],
+    "types": [],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["**/*.spec.ts"]
+}

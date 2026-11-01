@@ -6,6 +6,7 @@ import { GET_ABOUT_PAGES } from '@contentfulClient';
 import { captureException, captureScope, Severity } from '@monitoring';
 import MarkdownComponents from '@/components/ui/markdown';
 import SubscribeForm from '@/features/NewsLetter/SubscribeForm';
+import Feature from '@/components/Feature';
 import config from '@config';
 
 const AboutPage = () => {
@@ -28,7 +29,7 @@ const AboutPage = () => {
   const content = about?.content;
 
   return (
-    <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       {/* Hero Section */}
       <div className="mb-16 text-center space-y-6">
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight animate-slide-down">
@@ -134,15 +135,17 @@ const AboutPage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="text-center py-12 px-4 rounded-2xl bg-card">
-        <h2 className="text-3xl font-bold mb-4">Join Our Community</h2>
-        <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-          Subscribe to receive our latest articles, insights, and inspiration directly in your
-          inbox.
-        </p>
-        <SubscribeForm />
-      </section>
-    </main>
+      <Feature name="newsletter">
+        <section className="text-center py-12 px-4 rounded-2xl bg-card">
+          <h2 className="text-3xl font-bold mb-4">Join Our Community</h2>
+          <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Subscribe to receive our latest articles, insights, and inspiration directly in your
+            inbox.
+          </p>
+          <SubscribeForm />
+        </section>
+      </Feature>
+    </div>
   );
 };
 

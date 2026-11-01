@@ -27,7 +27,7 @@ const ArticlesByTagPage: FunctionComponent = () => {
   const posts = data ? data.items : [];
 
   return (
-    <main>
+    <div>
       {/* Hero Section */}
       <div className="mb-16 text-center space-y-6">
         <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed animate-slide-up stagger-1">
@@ -58,7 +58,7 @@ const ArticlesByTagPage: FunctionComponent = () => {
         ))}
       </div>
       {/* <Pagination onClick={handleSeeMore} /> */}
-    </main>
+    </div>
   );
 };
 

@@ -1,6 +1,8 @@
 import faker from 'faker';
 import { render, act, screen } from '@testUtils/rtlUtils';
 import * as Monitoring from '@monitoring';
+import { FEATURE_DEFAULTS } from '@/config/features';
+import FeaturesProvider from '@/providers/features';
 import ArticlePage from './ArticlePage';
 import { usePost } from '@hooks';
 import { MemoryRouter } from 'react-router-dom';
@@ -21,6 +23,19 @@ jest.mock('remark-gfm', () => () => {});
 jest.mock('@/hooks/cms/usePost');
 jest.mock('@/hooks/cms/usePosts', () => ({ usePosts: () => ({ data: null, loading: true, error: null }) }));
 jest.mock('@/features/AuthorBadge', () => ({ __esModule: true, default: ({ author }: { author: UnifiedAuthor }) => <span>author {author.id}</span> }));
+
+const post: UnifiedPost = {
+  id: 'n1',
+  source: 'notion',
+  title: 'Walking the Alps',
+  subtitle: 'A slow route',
+  category: 'Travel',
+  slug: 'walking-the-alps',
+  body: 'Body text',
+  publishDate: '2024-02-01',
+  tags: ['Hiking'],
+  authors: [{ id: 'a1', source: 'notion', name: 'Ada' }],
+};
 
 describe('ArticlePage', () => {
   afterEach(() => {
@@ -65,22 +80,7 @@ describe('ArticlePage', () => {
   });
 
   it('renders the article with its tags and authors', async () => {
-    (usePost as jest.Mock).mockReturnValue({
-      data: {
-        id: 'n1',
-        source: 'notion',
-        title: 'Walking the Alps',
-        subtitle: 'A slow route',
-        category: 'Travel',
-        slug: 'walking-the-alps',
-        body: 'Body text',
-        publishDate: '2024-02-01',
-        tags: ['Hiking'],
-        authors: [{ id: 'a1', source: 'notion', name: 'Ada' }],
-      },
-      loading: false,
-      error: null,
-    });
+    (usePost as jest.Mock).mockReturnValue({ data: post, loading: false, error: null });
 
     await act(async () => {
       render(<ArticlePage />);
@@ -90,6 +90,23 @@ describe('ArticlePage', () => {
     expect(screen.getByText('February 1, 2024', { exact: false })).toBeInTheDocument();
     expect(screen.getByText('#Hiking').closest('a')).toHaveAttribute('href', '/article/tag/Hiking');
     expect(screen.getByText('author a1')).toBeInTheDocument();
+  });
+
+  it.each([
+    [true, 'shows'],
+    [false, 'hides'],
+  ])('with the newsletter feature %p, %s the newsletter call to action', async (newsletter) => {
+    (usePost as jest.Mock).mockReturnValue({ data: post, loading: false, error: null });
+
+    await act(async () => {
+      render(
+        <FeaturesProvider value={{ ...FEATURE_DEFAULTS, newsletter }}>
+          <ArticlePage />
+        </FeaturesProvider>,
+      );
+    });
+
+    expect(screen.queryByRole('heading', { name: 'Enjoyed this article?' }) !== null).toBe(newsletter);
   });
 
   it('redirects to the 404 page when no source has the post', async () => {
