@@ -29,6 +29,15 @@ describe('AuthorsPage', () => {
     expect(document.querySelector('a[href="mailto:ada@example.com"]')).toBeInTheDocument();
   });
 
+  it('invites contributions on technology rather than lifestyle topics', () => {
+    (useFetchAuthors as jest.Mock).mockReturnValue([false, undefined, { personCollection: { items: [author] } }]);
+
+    render(<AuthorsPage />);
+
+    const contribute = screen.getByRole('heading', { name: 'Want to Contribute?' }).closest('section');
+    expect(contribute?.textContent).not.toMatch(/wellness|travel|creativity|personal growth/i);
+  });
+
   it('shows the page loader while loading', () => {
     (useFetchAuthors as jest.Mock).mockReturnValue([true, undefined, undefined]);
 

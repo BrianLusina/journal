@@ -9,7 +9,6 @@ export const FEATURE_DEFAULTS = {
   search: false,
   notion: true,
   legal: false,
-  explore: false,
 } as const satisfies Record<string, boolean>;
 
 export type FeatureName = keyof typeof FEATURE_DEFAULTS;

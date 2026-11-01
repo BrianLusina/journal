@@ -36,8 +36,7 @@ const AboutPage = () => {
           About {config.title}
         </h1>
         <p className="text-lg text-muted-foreground leading-relaxed animate-slide-up stagger-1">
-          A space for exploring ideas, finding inspiration, and discovering new ways of seeing the
-          world.
+          Writing on software engineering, architecture and technology.
         </p>
       </div>
 
@@ -60,10 +59,8 @@ const AboutPage = () => {
               connection over viral content. {config.title} is our answer to that need.
             </p>
             <p>
-              We explore topics that matter: wellness practices that actually work, travel experiences
-              that transform us, creative pursuits that bring joy, and personal growth strategies that
-              lead to lasting change. Our approach is grounded in curiosity, backed by research, and
-              enriched by lived experience.
+              We write about software engineering, architecture and technology: how systems are
+              designed, built and run, and the tradeoffs behind those decisions.
             </p>
           </>
         )}

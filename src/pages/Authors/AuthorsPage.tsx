@@ -78,7 +78,7 @@ const AuthorsPage = () => {
         <h2 className="text-3xl font-bold mb-4">Want to Contribute?</h2>
         <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
           We're always looking for thoughtful voices to join our community. If you have insights to
-          share on wellness, travel, creativity, or personal growth, we'd love to hear from you.
+          share on software engineering, architecture or technology, we'd love to hear from you.
         </p>
         <Link
           to={CONTACT_PAGE_ROUTE}

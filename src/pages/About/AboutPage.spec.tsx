@@ -35,6 +35,18 @@ describe('AboutPage', () => {
     expect(screen.queryByText(fallbackStory)).not.toBeInTheDocument();
   });
 
+  it('keeps the hero and built-in story on technology rather than lifestyle topics', () => {
+    (useQuery as jest.Mock).mockReturnValue({ loading: true });
+
+    render(<AboutPage />);
+
+    const hero = screen.getByRole('heading', { level: 1 }).parentElement;
+    const story = screen.getByRole('heading', { name: 'Our Story' }).closest('section');
+    const offTopic = /wellness|travel|lifestyle|personal growth|finding inspiration/i;
+    expect(hero?.textContent).not.toMatch(offTopic);
+    expect(story?.textContent).not.toMatch(offTopic);
+  });
+
   it('shows the newsletter signup while the newsletter feature is on', () => {
     (useQuery as jest.Mock).mockReturnValue({ loading: false, data: { aboutCollection: { items: [] } } });
 
