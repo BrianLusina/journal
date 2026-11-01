@@ -64,7 +64,7 @@ reviews:
 
     - path: "src/components/**"
       instructions: |
-        - Each component lives in its own directory with a colocated `*.spec.tsx` test and a `*.stories.tsx` story, and is exported through the directory's `index.ts`.
+        - Each component lives in its own directory with a colocated `*.spec.tsx` or `*.test.tsx` test and a `*.stories.tsx` story, and is exported through the directory's `index.ts`.
         - Components are presentational and typed with an explicit props interface. Variants use class-variance-authority, and classes are merged with `cn`/clsx.
         - Styling uses Tailwind utilities and design tokens; flag inline styles and hard-coded colors.
         - Stories cover the main states (default, loading, empty, error) so Storybook accessibility checks have something to run on.
