@@ -48,6 +48,9 @@ jobs:
         VITE_CONTENTFUL_CMS_ENVIRONMENT: ${{ secrets.CONTENTFUL_CMS_ENVIRONMENT }}
         VITE_CONTENTFUL_CMS_PREVIEW: ${{ secrets.CONTENTFUL_CMS_PREVIEW }}
 
+    - name: Build Storybook
+      run: bun run storybook:build
+
     - name: Check bundle size budget
       run: bun run check:bundle-size
 

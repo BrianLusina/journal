@@ -1,6 +1,7 @@
 import type { Preview } from '@storybook/react';
 // Relative imports: vite-tsconfig-paths only resolves aliases for files under src/, which tsconfig.app.json includes.
 import MockAppWithRouter from '../src/test/MockAppWithRouter';
+import ThemeProvider from '../src/providers/theme/ThemeProvider';
 import '../src/styles/css/index.css';
 
 const preview: Preview = {
@@ -18,6 +19,12 @@ const preview: Preview = {
       <MockAppWithRouter>
         <Story />
       </MockAppWithRouter>
+    ),
+    // The app's theme provider, so the Navbar's dark-mode toggle switches the theme as it does in the app.
+    Story => (
+      <ThemeProvider>
+        <Story />
+      </ThemeProvider>
     ),
   ],
 };
