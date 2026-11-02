@@ -67,7 +67,7 @@ const SearchContent: FunctionComponent = () => {
                 title={post.title}
                 category={post.category || ''}
                 date={humanizeDateTime(post.publishDate, DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY)}
-                thumbnail={post.thumbnailUrl || ''}
+                thumbnail={post.thumbnailUrl}
                 onClick={() => {
                   logSearch(query, results.length, 'page');
                   logSearchSelection(post.slug, 'page');
