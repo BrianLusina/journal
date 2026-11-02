@@ -55,3 +55,6 @@ jobs:
       with:
         name: build
         path: dist/
+
+    - name: Build Storybook
+      run: bun run storybook:build
