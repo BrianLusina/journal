@@ -11,7 +11,7 @@ import { DATE_TIME_FORMAT_YYYY_MM_DD_hh_mm_ss, DATE_FORMAT_MMMM_D_YYYY } from '.
 describe('TimeUtils', () => {
   describe('getTime24Hours', () => {
     it('should return 22:01 when it is 1min passed 10 pm', () => {
-      jest
+      vi
         .spyOn(global.Date, 'now')
         .mockImplementationOnce(() => new Date('2019-11-18T22:01:00').valueOf());
 
@@ -21,7 +21,7 @@ describe('TimeUtils', () => {
     });
 
     it('should return 10:01 when it is 1min passed 10 am', () => {
-      jest
+      vi
         .spyOn(global.Date, 'now')
         .mockImplementationOnce(() => new Date('2019-11-18T10:01:00').valueOf());
 
@@ -33,7 +33,7 @@ describe('TimeUtils', () => {
 
   describe('getTime12hours', () => {
     it('should return 9:45am when it is 45 minutes passed 9am', () => {
-      jest
+      vi
         .spyOn(global.Date, 'now')
         .mockImplementationOnce(() => new Date('2019-11-18T09:45:00').valueOf());
 
@@ -43,7 +43,7 @@ describe('TimeUtils', () => {
     });
 
     it('should return 9:30pm when it is 30 minutes passed 9', () => {
-      jest
+      vi
         .spyOn(global.Date, 'now')
         .mockImplementationOnce(() => new Date('2019-11-18T21:30:00').valueOf());
 
@@ -95,7 +95,7 @@ describe('TimeUtils', () => {
     it('should return in 3 months from 2021-12-31 12:00:00', () => {
       // mock the date so that fromNow returns 3 months
       // if this is not done, this test will fail for future runs
-      jest.spyOn(Date, 'now').mockImplementation(() => new Date('2021-09-31 12:00:00').valueOf());
+      vi.spyOn(Date, 'now').mockImplementation(() => new Date('2021-09-31 12:00:00').valueOf());
 
       const input = '2021-12-31 12:00:00';
       const expected = 'in 3 months';

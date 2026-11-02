@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import ContentfulAdapter from './ContentfulAdapter';
 
 const blogPost = (overrides: Record<string, unknown> = {}) => ({
@@ -19,11 +20,11 @@ const blogPost = (overrides: Record<string, unknown> = {}) => ({
 });
 
 const mockFetch = (status: number, body: unknown) => {
-  global.fetch = jest.fn().mockResolvedValue({
+  global.fetch = vi.fn().mockResolvedValue({
     ok: status >= 200 && status < 300,
     status,
     json: () => Promise.resolve(body),
-  }) as jest.Mock;
+  }) as Mock;
 };
 
 describe('ContentfulAdapter', () => {

@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
@@ -7,8 +8,8 @@ import { logSearch, logSearchSelection } from '@/services/search/searchAnalytics
 import type { SearchDocument } from '@/services/search/SearchDocument';
 import SearchDialog from './SearchDialog';
 
-jest.mock('@/services/search', () => ({ loadSearchEngine: jest.fn() }));
-jest.mock('@/services/search/searchAnalytics', () => ({ logSearch: jest.fn(), logSearchSelection: jest.fn() }));
+vi.mock('@/services/search', () => ({ loadSearchEngine: vi.fn() }));
+vi.mock('@/services/search/searchAnalytics', () => ({ logSearch: vi.fn(), logSearchSelection: vi.fn() }));
 
 const doc = (id: string, title: string, fields: Partial<SearchDocument> = {}): SearchDocument => ({
   key: `contentful:${id}`,
@@ -28,7 +29,7 @@ const Location = () => {
 };
 
 /** Renders the dialog open, and lets the index finish loading. */
-const renderDialog = async (onOpenChange = jest.fn()) => {
+const renderDialog = async (onOpenChange = vi.fn()) => {
   render(
     <MemoryRouter>
       <SearchDialog open onOpenChange={onOpenChange} />
@@ -42,7 +43,7 @@ const renderDialog = async (onOpenChange = jest.fn()) => {
 
 describe('SearchDialog', () => {
   beforeEach(() => {
-    (loadSearchEngine as jest.Mock).mockResolvedValue(
+    (loadSearchEngine as Mock).mockResolvedValue(
       createSearchEngine([
         doc('c1', 'React Hooks', { category: 'Tech' }),
         doc('c2', 'React Native', { description: 'Apps' }),
@@ -73,7 +74,7 @@ describe('SearchDialog', () => {
 
   it('moves through the results with the arrow keys and opens the active one with Enter', async () => {
     const user = userEvent.setup();
-    const onOpenChange = jest.fn();
+    const onOpenChange = vi.fn();
     await renderDialog(onOpenChange);
     const input = screen.getByRole('combobox');
 
@@ -116,7 +117,7 @@ describe('SearchDialog', () => {
     const user = userEvent.setup();
     const ui = (open: boolean) => (
       <MemoryRouter>
-        <SearchDialog open={open} onOpenChange={jest.fn()} />
+        <SearchDialog open={open} onOpenChange={vi.fn()} />
       </MemoryRouter>
     );
     const { rerender } = render(ui(true));
@@ -126,7 +127,7 @@ describe('SearchDialog', () => {
     expect(screen.getByRole('option', { name: /See all results/ })).toHaveAttribute('aria-selected', 'true');
 
     rerender(ui(false));
-    (loadSearchEngine as jest.Mock).mockResolvedValue(createSearchEngine([doc('c1', 'React Hooks')]));
+    (loadSearchEngine as Mock).mockResolvedValue(createSearchEngine([doc('c1', 'React Hooks')]));
     rerender(ui(true));
 
     await waitFor(() => expect(screen.getAllByRole('option')).toHaveLength(2));
@@ -155,7 +156,7 @@ describe('SearchDialog', () => {
 
   it('asks to close on Escape', async () => {
     const user = userEvent.setup();
-    const onOpenChange = jest.fn();
+    const onOpenChange = vi.fn();
     await renderDialog(onOpenChange);
 
     await user.keyboard('{Escape}');
@@ -164,7 +165,7 @@ describe('SearchDialog', () => {
   });
 
   it('offers to try again when the index fails to load', async () => {
-    (loadSearchEngine as jest.Mock).mockRejectedValueOnce(new Error('offline'));
+    (loadSearchEngine as Mock).mockRejectedValueOnce(new Error('offline'));
     const user = userEvent.setup();
     await renderDialog();
 

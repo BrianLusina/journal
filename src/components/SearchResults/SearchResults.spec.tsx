@@ -24,19 +24,19 @@ const list = (results: SearchDocument[]) => (
 
 describe('SearchResults', () => {
   it('asks for a longer query', () => {
-    render(<SearchResults query=" r " status="ready" results={[]} onRetry={jest.fn()}>{list}</SearchResults>);
+    render(<SearchResults query=" r " status="ready" results={[]} onRetry={vi.fn()}>{list}</SearchResults>);
 
     expect(screen.getByRole('status')).toHaveTextContent('Type at least 2 characters to search posts.');
   });
 
   it('says it is loading', () => {
-    render(<SearchResults query="react" status="loading" results={[]} onRetry={jest.fn()}>{list}</SearchResults>);
+    render(<SearchResults query="react" status="loading" results={[]} onRetry={vi.fn()}>{list}</SearchResults>);
 
     expect(screen.getByRole('status')).toHaveTextContent('Loading search…');
   });
 
   it('offers a retry when search failed to load', async () => {
-    const onRetry = jest.fn();
+    const onRetry = vi.fn();
     render(<SearchResults query="" status="error" results={[]} onRetry={onRetry}>{list}</SearchResults>);
 
     expect(screen.getByRole('alert')).toHaveTextContent("Search couldn't load.");
@@ -45,13 +45,13 @@ describe('SearchResults', () => {
   });
 
   it('says when nothing matches', () => {
-    render(<SearchResults query="zebra " status="ready" results={[]} onRetry={jest.fn()}>{list}</SearchResults>);
+    render(<SearchResults query="zebra " status="ready" results={[]} onRetry={vi.fn()}>{list}</SearchResults>);
 
     expect(screen.getByRole('status')).toHaveTextContent('No posts match “zebra”.');
   });
 
   it('renders the results and announces how many there are', () => {
-    render(<SearchResults query="react" status="ready" results={[result]} onRetry={jest.fn()}>{list}</SearchResults>);
+    render(<SearchResults query="react" status="ready" results={[result]} onRetry={vi.fn()}>{list}</SearchResults>);
 
     expect(screen.getByRole('status')).toHaveTextContent('1 post found');
     expect(screen.getByRole('listitem')).toHaveTextContent('React Hooks');

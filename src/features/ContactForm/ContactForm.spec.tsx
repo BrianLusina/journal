@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ContactForm from './ContactForm';
@@ -16,13 +17,13 @@ const fillAndSend = async () => {
 
 describe('ContactForm', () => {
   it('confirms the message once the function answers 2xx, and clears the form', async () => {
-    global.fetch = jest.fn().mockResolvedValue(answer(200));
+    global.fetch = vi.fn().mockResolvedValue(answer(200));
 
     await fillAndSend();
 
     expect(await screen.findByText(/your message has been sent/i)).toBeInTheDocument();
     expect(global.fetch).toHaveBeenCalledWith('/api/contact', expect.objectContaining({ method: 'POST' }));
-    expect(JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body)).toEqual({
+    expect(JSON.parse((global.fetch as Mock).mock.calls[0][1].body)).toEqual({
       name: 'Ada',
       email: 'ada@example.com',
       subject: 'Hello',
@@ -34,7 +35,7 @@ describe('ContactForm', () => {
   });
 
   it('shows an error and keeps what the reader wrote when the function fails', async () => {
-    global.fetch = jest.fn().mockResolvedValue(answer(502));
+    global.fetch = vi.fn().mockResolvedValue(answer(502));
 
     await fillAndSend();
 
@@ -48,7 +49,7 @@ describe('ContactForm', () => {
 
   it('disables the button while the message is sent', async () => {
     let finish: (value: unknown) => void = () => {};
-    global.fetch = jest.fn().mockReturnValue(new Promise(resolve => { finish = resolve; }));
+    global.fetch = vi.fn().mockReturnValue(new Promise(resolve => { finish = resolve; }));
 
     await fillAndSend();
 
@@ -58,7 +59,7 @@ describe('ContactForm', () => {
   });
 
   it('links each validation error to its field and sends nothing', async () => {
-    global.fetch = jest.fn();
+    global.fetch = vi.fn();
     const user = userEvent.setup();
     render(<ContactForm />);
 

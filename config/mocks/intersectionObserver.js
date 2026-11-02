@@ -1,5 +1,5 @@
-const observe = jest.fn();
+const observe = vi.fn();
 
-window.IntersectionObserver = jest.fn(function () {
+window.IntersectionObserver = vi.fn(function () {
   this.observe = observe;
 });

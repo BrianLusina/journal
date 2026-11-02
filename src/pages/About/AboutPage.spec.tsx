@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { useQuery } from '@apollo/client';
 import { render, screen } from '@testUtils/rtlUtils';
 import * as Monitoring from '@monitoring';
@@ -5,9 +6,9 @@ import { FEATURE_DEFAULTS } from '@/config/features';
 import FeaturesProvider from '@/providers/features';
 import AboutPage from './AboutPage';
 
-jest.mock('@apollo/client', () => ({ ...(jest.requireActual('@apollo/client') as object), useQuery: jest.fn() }));
-jest.mock('@monitoring', () => ({ captureException: jest.fn(), captureScope: jest.fn(), Severity: { Error: 'error' } }));
-jest.mock('remark-gfm', () => () => {});
+vi.mock('@apollo/client', async () => ({ ...(await vi.importActual<object>('@apollo/client')), useQuery: vi.fn() }));
+vi.mock('@monitoring', () => ({ captureException: vi.fn(), captureScope: vi.fn(), Severity: { Error: 'error' } }));
+vi.mock('remark-gfm', () => ({ default: () => {} }));
 
 const fallbackStory = /began with a simple question/;
 
@@ -19,10 +20,10 @@ const expectFallbackStory = () => {
 };
 
 describe('AboutPage', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => vi.clearAllMocks());
 
   it('renders the about copy from Contentful', () => {
-    (useQuery as jest.Mock).mockReturnValue({
+    (useQuery as Mock).mockReturnValue({
       loading: false,
       data: { aboutCollection: { items: [{ title: 'Who we are', content: 'Journal is a collection of thoughts.' }] } },
     });
@@ -40,7 +41,7 @@ describe('AboutPage', () => {
   });
 
   it('shows the newsletter signup while the newsletter feature is on', () => {
-    (useQuery as jest.Mock).mockReturnValue({ loading: false, data: { aboutCollection: { items: [] } } });
+    (useQuery as Mock).mockReturnValue({ loading: false, data: { aboutCollection: { items: [] } } });
 
     render(
       <FeaturesProvider value={{ ...FEATURE_DEFAULTS, newsletter: true }}>
@@ -53,7 +54,7 @@ describe('AboutPage', () => {
   });
 
   it('hides the newsletter signup while the newsletter feature is off', () => {
-    (useQuery as jest.Mock).mockReturnValue({ loading: false, data: { aboutCollection: { items: [] } } });
+    (useQuery as Mock).mockReturnValue({ loading: false, data: { aboutCollection: { items: [] } } });
 
     render(
       <FeaturesProvider value={{ ...FEATURE_DEFAULTS, newsletter: false }}>
@@ -66,7 +67,7 @@ describe('AboutPage', () => {
   });
 
   it('falls back to the built-in copy when Contentful has no about entry', () => {
-    (useQuery as jest.Mock).mockReturnValue({ loading: false, data: { aboutCollection: { items: [] } } });
+    (useQuery as Mock).mockReturnValue({ loading: false, data: { aboutCollection: { items: [] } } });
 
     render(<AboutPage />);
 
@@ -74,7 +75,7 @@ describe('AboutPage', () => {
   });
 
   it('keeps the built-in heading and copy together when the entry has a title but no content', () => {
-    (useQuery as jest.Mock).mockReturnValue({
+    (useQuery as Mock).mockReturnValue({
       loading: false,
       data: { aboutCollection: { items: [{ title: 'Who we are', content: '' }] } },
     });
@@ -86,7 +87,7 @@ describe('AboutPage', () => {
   });
 
   it('shows the built-in copy while the about entry loads', () => {
-    (useQuery as jest.Mock).mockReturnValue({ loading: true });
+    (useQuery as Mock).mockReturnValue({ loading: true });
 
     render(<AboutPage />);
 
@@ -95,7 +96,7 @@ describe('AboutPage', () => {
 
   it('reports a failed query and still shows the built-in copy', () => {
     const error = new Error('down');
-    (useQuery as jest.Mock).mockReturnValue({ loading: false, error });
+    (useQuery as Mock).mockReturnValue({ loading: false, error });
 
     render(<AboutPage />);
 

@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import faker from 'faker';
 import { render, act, screen } from '@testUtils/rtlUtils';
 import * as Monitoring from '@monitoring';
@@ -7,10 +8,10 @@ import ArticlePage from './ArticlePage';
 import { usePost } from '@hooks';
 import { MemoryRouter } from 'react-router-dom';
 
-jest.mock('@monitoring', () => {
+vi.mock('@monitoring', () => {
   return {
-    captureException: jest.fn(),
-    captureScope: jest.fn(),
+    captureException: vi.fn(),
+    captureScope: vi.fn(),
     Severity: {
       Error: 'error',
     },
@@ -18,11 +19,11 @@ jest.mock('@monitoring', () => {
 });
 
  
-jest.mock('remark-gfm', () => () => {});
+vi.mock('remark-gfm', () => ({ default: () => {} }));
 
-jest.mock('@/hooks/cms/usePost');
-jest.mock('@/hooks/cms/usePosts', () => ({ usePosts: () => ({ data: null, loading: true, error: null }) }));
-jest.mock('@/features/AuthorBadge', () => ({ __esModule: true, default: ({ author }: { author: UnifiedAuthor }) => <span>author {author.id}</span> }));
+vi.mock('@/hooks/cms/usePost');
+vi.mock('@/hooks/cms/usePosts', () => ({ usePosts: () => ({ data: null, loading: true, error: null }) }));
+vi.mock('@/features/AuthorBadge', () => ({ __esModule: true, default: ({ author }: { author: UnifiedAuthor }) => <span>author {author.id}</span> }));
 
 const post: UnifiedPost = {
   id: 'n1',
@@ -39,11 +40,11 @@ const post: UnifiedPost = {
 
 describe('ArticlePage', () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render loading state', async () => {
-    (usePost as jest.Mock).mockReturnValue({
+    (usePost as Mock).mockReturnValue({
       data: null,
       loading: true,
       error: null,
@@ -60,7 +61,7 @@ describe('ArticlePage', () => {
   it('should display error if query fails to fetch article', async () => {
     const mockError = new Error(faker.lorem.words());
     
-    (usePost as jest.Mock).mockReturnValue({
+    (usePost as Mock).mockReturnValue({
       data: null,
       loading: false,
       error: mockError,
@@ -80,7 +81,7 @@ describe('ArticlePage', () => {
   });
 
   it('renders the article with its tags and authors', async () => {
-    (usePost as jest.Mock).mockReturnValue({ data: post, loading: false, error: null });
+    (usePost as Mock).mockReturnValue({ data: post, loading: false, error: null });
 
     await act(async () => {
       render(<ArticlePage />);
@@ -96,7 +97,7 @@ describe('ArticlePage', () => {
     [true, 'shows'],
     [false, 'hides'],
   ])('with the newsletter feature %p, %s the newsletter call to action', async (newsletter) => {
-    (usePost as jest.Mock).mockReturnValue({ data: post, loading: false, error: null });
+    (usePost as Mock).mockReturnValue({ data: post, loading: false, error: null });
 
     await act(async () => {
       render(
@@ -110,7 +111,7 @@ describe('ArticlePage', () => {
   });
 
   it('redirects to the 404 page when no source has the post', async () => {
-    (usePost as jest.Mock).mockReturnValue({ data: null, loading: false, error: null });
+    (usePost as Mock).mockReturnValue({ data: null, loading: false, error: null });
 
     await act(async () => {
       render(<ArticlePage />);

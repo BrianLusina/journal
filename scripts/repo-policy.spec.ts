@@ -113,7 +113,7 @@ describe('Docker image', () => {
 });
 
 describe('type-check policy', () => {
-  it('type-checks src/ in the Tests workflow, since neither vite build nor Jest does', () => {
+  it('type-checks src/ in the Tests workflow, since neither vite build nor Vitest does', () => {
     expect(JSON.parse(read('package.json')).scripts.typecheck).toBe(
       'tsc -p tsconfig.app.json --noEmit',
     );

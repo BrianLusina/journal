@@ -16,7 +16,7 @@ Part of the belief that OSS is the future and also fosters a community of develo
 
 ### Prerequisites
 
-1. [Node.js](https://nodejs.org/) at the version in [.nvmrc](./.nvmrc) (22.x). Jest and the Vite tooling run on Node.
+1. [Node.js](https://nodejs.org/) at the version in [.nvmrc](./.nvmrc) (22.x). Vitest and the Vite tooling run on Node.
 2. [Bun](https://bun.sh), the package manager and script runner. The lockfile is the text `bun.lock`.
 
 ### Package manager
@@ -45,14 +45,15 @@ vercel dev       # the api/ functions on http://localhost:3000, needed for Conte
 
 ## Running tests
 
-Tests use [Jest](https://jestjs.io/) and [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/), with specs next to the code they test (`*.spec.ts(x)`).
+Tests use [Vitest](https://vitest.dev/) and [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/), with specs next to the code they test (`*.spec.ts(x)`).
 
 ```bash
-bun run test            # Jest
-bun run test:coverage   # Jest with the 85% coverage gate CI enforces
+bun run test            # Vitest, the whole suite once
+bun run test:watch      # Vitest in watch mode
+bun run test:coverage   # Vitest with the 85% coverage gate CI enforces
 ```
 
-Use `bun run test`, not `bun test`. `bun test` starts Bun's own test runner, which ignores `jest.config.js` and fails.
+Use `bun run test`, not `bun test`. `bun test` starts Bun's own test runner, which ignores `vitest.config.mts` and fails.
 
 Linting and building:
 

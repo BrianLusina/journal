@@ -1,18 +1,19 @@
+import type { Mock } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { captureException } from '@monitoring';
 import { createMergedFeed } from '@cmsService';
 import { usePosts } from './usePosts';
 
-jest.mock('@monitoring', () => ({ captureException: jest.fn() }));
-jest.mock('@cmsService', () => ({ cmsAdapters: ['adapters'], createMergedFeed: jest.fn() }));
+vi.mock('@monitoring', () => ({ captureException: vi.fn() }));
+vi.mock('@cmsService', () => ({ cmsAdapters: ['adapters'], createMergedFeed: vi.fn() }));
 
 const post = (id: string): UnifiedPost => ({ id, source: 'notion', title: id, slug: id, publishDate: '2024-02-01', tags: [], authors: [] });
 
 describe('usePosts', () => {
-  const load = jest.fn();
+  const load = vi.fn();
 
   beforeEach(() => {
-    (createMergedFeed as jest.Mock).mockReturnValue({ load });
+    (createMergedFeed as Mock).mockReturnValue({ load });
     load.mockImplementation(async (count: number) => ({
       items: Array.from({ length: count }, (_, index) => post(`p${index}`)),
       hasMore: true,

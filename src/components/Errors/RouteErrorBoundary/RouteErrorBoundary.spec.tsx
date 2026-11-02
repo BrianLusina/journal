@@ -3,10 +3,10 @@ import { captureAndLogError } from '@monitoring';
 import RouteErrorBoundary from './RouteErrorBoundary';
 
 // Every route waits for RouteErrorBoundary, so it must not pull the Sentry SDK into the first bundle.
-jest.mock('@sentry/react', () => {
+vi.mock('@sentry/react', () => {
   throw new Error('RouteErrorBoundary loaded the Sentry SDK');
 });
-jest.mock('@monitoring', () => ({ captureAndLogError: jest.fn() }));
+vi.mock('@monitoring', () => ({ captureAndLogError: vi.fn() }));
 
 function Bomb(): null {
   throw new Error('boom');
@@ -24,7 +24,7 @@ describe('RouteErrorBoundary', () => {
   });
 
   it('reports a crashed route tagged with its location and shows the error message', () => {
-    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
     render(
       <RouteErrorBoundary location="/blog">

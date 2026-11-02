@@ -3,12 +3,12 @@ import { FEATURE_DEFAULTS } from '@/config/features';
 import FeaturesProvider from '@/providers/features';
 import HomePage from './HomePage';
 
-jest.mock('@components', () => ({
+vi.mock('@components', () => ({
   HeroSection: () => <section>hero</section>,
   IntroSection: () => <section>intro</section>,
 }));
-jest.mock('@features', () => ({ FeaturedArticles: () => <section>featured articles</section> }));
-jest.mock('@/features/NewsLetter', () => ({ __esModule: true, default: () => <section>newsletter</section> }));
+vi.mock('@features', () => ({ FeaturedArticles: () => <section>featured articles</section> }));
+vi.mock('@/features/NewsLetter', () => ({ __esModule: true, default: () => <section>newsletter</section> }));
 
 describe('HomePage', () => {
   it.each([

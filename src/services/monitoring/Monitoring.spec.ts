@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import type { ErrorInfo } from 'react';
 
 // The factory counts how often it runs, so tests can tell whether the Sentry SDK was loaded.
@@ -5,46 +6,43 @@ const mockSentryLoads = { count: 0 };
 const sentryFactory = () => {
   mockSentryLoads.count += 1;
   return {
-    initializeSentry: jest.fn(),
-    captureAndLogSentryError: jest.fn(),
-    captureSentryException: jest.fn(),
-    captureSentryScope: jest.fn(),
-    addSentryBreadcrumb: jest.fn(),
+    initializeSentry: vi.fn(),
+    captureAndLogSentryError: vi.fn(),
+    captureSentryException: vi.fn(),
+    captureSentryScope: vi.fn(),
+    addSentryBreadcrumb: vi.fn(),
   };
 };
 
 type Monitoring = typeof import('./Monitoring');
 type SentryService = Record<
   'initializeSentry' | 'captureAndLogSentryError' | 'captureSentryException' | 'captureSentryScope' | 'addSentryBreadcrumb',
-  jest.Mock
+  Mock
 >;
 
 /** Lets the SDK's dynamic import resolve and the queued reports run. */
 const flush = () => new Promise(resolve => setTimeout(resolve, 0));
 
 /** Loads Monitoring against the given config in a fresh module registry. */
-const loadMonitoring = (isProduction: boolean): Monitoring => {
-  jest.doMock('@config', () => ({ __esModule: true, default: { env: { isProduction } } }));
-  // A fresh registry needs synchronous requires to load a fresh copy of each module.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  return require('./Monitoring');
+const loadMonitoring = (isProduction: boolean): Promise<Monitoring> => {
+  vi.doMock('@config', () => ({ __esModule: true, default: { env: { isProduction } } }));
+  return import('./Monitoring');
 };
 
 /** The Sentry mock from the current registry, the one the code under test imported. */
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const sentry = (): SentryService => require('./sentry');
+const sentry = async (): Promise<SentryService> => (await import('./sentry')) as unknown as SentryService;
 
 /** Collects the callbacks handed to requestIdleCallback, so a test decides when the browser is idle. */
 let idleCallbacks: (() => void)[];
 const becomeIdle = () => idleCallbacks.splice(0).forEach(callback => callback());
 
 beforeEach(() => {
-  jest.resetModules();
+  vi.resetModules();
   // Registered per test because a test may replace it with a failing import.
-  jest.doMock('./sentry', sentryFactory);
+  vi.doMock('./sentry', sentryFactory);
   mockSentryLoads.count = 0;
   idleCallbacks = [];
-  window.requestIdleCallback = jest.fn(callback => {
+  window.requestIdleCallback = vi.fn(callback => {
     idleCallbacks.push(callback as () => void);
     return idleCallbacks.length;
   });
@@ -55,18 +53,18 @@ beforeEach(() => {
 afterEach(async () => {
   becomeIdle();
   await flush();
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
 });
 
 describe('Monitoring', () => {
-  it('does not load the Sentry SDK when the module is imported', () => {
-    loadMonitoring(true);
+  it('does not load the Sentry SDK when the module is imported', async () => {
+    await loadMonitoring(true);
 
     expect(mockSentryLoads.count).toBe(0);
   });
 
   it('loads and initializes Sentry in production once the browser is idle, not before', async () => {
-    const monitoring = loadMonitoring(true);
+    const monitoring = await loadMonitoring(true);
 
     monitoring.initializeMonitoring();
     await flush();
@@ -76,23 +74,23 @@ describe('Monitoring', () => {
     becomeIdle();
     await flush();
 
-    expect(sentry().initializeSentry).toHaveBeenCalledTimes(1);
+    expect((await sentry()).initializeSentry).toHaveBeenCalledTimes(1);
   });
 
   it('loads Sentry after a timeout where the browser has no requestIdleCallback', async () => {
     // Safari has no requestIdleCallback.
     delete (window as Partial<Window>).requestIdleCallback;
-    const monitoring = loadMonitoring(true);
+    const monitoring = await loadMonitoring(true);
 
     monitoring.initializeMonitoring();
     await flush();
     await flush();
 
-    expect(sentry().initializeSentry).toHaveBeenCalledTimes(1);
+    expect((await sentry()).initializeSentry).toHaveBeenCalledTimes(1);
   });
 
   it('never loads Sentry outside production', async () => {
-    const monitoring = loadMonitoring(false);
+    const monitoring = await loadMonitoring(false);
 
     monitoring.initializeMonitoring();
     monitoring.captureException(new Error('boom'));
@@ -103,12 +101,12 @@ describe('Monitoring', () => {
   });
 
   it('keeps errors reported before Sentry loads and sends them, in order, after it initializes', async () => {
-    const monitoring = loadMonitoring(true);
+    const monitoring = await loadMonitoring(true);
     const first = new Error('first');
     const second = new Error('second');
     const errorInfo = { componentStack: 'in Page' } as ErrorInfo;
     const breadcrumb = { type: 'component', data: { component: 'Posts' } };
-    const service = sentry();
+    const service = await sentry();
     service.captureSentryScope.mockReturnValue('sentry-scope');
 
     monitoring.captureException(first, monitoring.captureScope(breadcrumb), 'Posts failed');
@@ -133,11 +131,11 @@ describe('Monitoring', () => {
   });
 
   it('sends errors straight to Sentry once it has loaded', async () => {
-    const monitoring = loadMonitoring(true);
+    const monitoring = await loadMonitoring(true);
     monitoring.initializeMonitoring();
     becomeIdle();
     await flush();
-    const service = sentry();
+    const service = await sentry();
     service.captureSentryScope.mockReturnValue('sentry-scope');
     const error = new Error('boom');
 
@@ -147,7 +145,7 @@ describe('Monitoring', () => {
   });
 
   it('keeps a breadcrumb added before Sentry loads and adds it once Sentry has initialized', async () => {
-    const monitoring = loadMonitoring(true);
+    const monitoring = await loadMonitoring(true);
     monitoring.initializeMonitoring();
     const breadcrumb = { category: 'search', message: 'Search index loaded', data: { documents: 3 } };
 
@@ -155,18 +153,18 @@ describe('Monitoring', () => {
     becomeIdle();
     await flush();
 
-    expect(sentry().addSentryBreadcrumb).toHaveBeenCalledWith(breadcrumb);
+    expect((await sentry()).addSentryBreadcrumb).toHaveBeenCalledWith(breadcrumb);
   });
 
   it('drops reports and stops listening, instead of failing or queueing forever, when the Sentry SDK cannot load', async () => {
-    jest.doMock('./sentry', () => {
+    vi.doMock('./sentry', () => {
       throw new Error('chunk failed to load');
     });
-    const unhandled = jest.fn();
+    const unhandled = vi.fn();
     process.on('unhandledRejection', unhandled);
-    const addEventListener = jest.spyOn(window, 'addEventListener');
-    const removeEventListener = jest.spyOn(window, 'removeEventListener');
-    const monitoring = loadMonitoring(true);
+    const addEventListener = vi.spyOn(window, 'addEventListener');
+    const removeEventListener = vi.spyOn(window, 'removeEventListener');
+    const monitoring = await loadMonitoring(true);
 
     monitoring.initializeMonitoring();
     becomeIdle();
@@ -180,8 +178,8 @@ describe('Monitoring', () => {
     expect(removeEventListener.mock.calls).toEqual(addEventListener.mock.calls);
   });
 
-  it('caps the wait for an idle moment, so a busy page still loads Sentry', () => {
-    loadMonitoring(true).initializeMonitoring();
+  it('caps the wait for an idle moment, so a busy page still loads Sentry', async () => {
+    (await loadMonitoring(true)).initializeMonitoring();
 
     expect(window.requestIdleCallback).toHaveBeenCalledWith(expect.any(Function), { timeout: 3000 });
   });
@@ -194,8 +192,8 @@ describe('Monitoring', () => {
       window.dispatchEvent(Object.assign(new Event('unhandledrejection'), { reason }));
 
     it('sends an uncaught error and an unhandled rejection, once each, after Sentry initializes', async () => {
-      const monitoring = loadMonitoring(true);
-      const service = sentry();
+      const monitoring = await loadMonitoring(true);
+      const service = await sentry();
       const thrown = new Error('thrown at startup');
       const rejected = new Error('rejected at startup');
 
@@ -218,8 +216,8 @@ describe('Monitoring', () => {
     });
 
     it('stops listening once Sentry has initialized, so its own handlers report without duplicates', async () => {
-      const monitoring = loadMonitoring(true);
-      const service = sentry();
+      const monitoring = await loadMonitoring(true);
+      const service = await sentry();
 
       monitoring.initializeMonitoring();
       becomeIdle();
@@ -232,8 +230,8 @@ describe('Monitoring', () => {
     });
 
     it('wraps values that are not errors', async () => {
-      const monitoring = loadMonitoring(true);
-      const service = sentry();
+      const monitoring = await loadMonitoring(true);
+      const service = await sentry();
 
       monitoring.initializeMonitoring();
       uncaught(undefined, 'Script error.');
@@ -246,9 +244,9 @@ describe('Monitoring', () => {
       expect(errors.every(error => error instanceof Error)).toBe(true);
     });
 
-    it('does not listen outside production', () => {
-      const addEventListener = jest.spyOn(window, 'addEventListener');
-      const monitoring = loadMonitoring(false);
+    it('does not listen outside production', async () => {
+      const addEventListener = vi.spyOn(window, 'addEventListener');
+      const monitoring = await loadMonitoring(false);
 
       monitoring.initializeMonitoring();
       // Without an error object, so jsdom does not rethrow it into the test when no listener exists.
@@ -259,8 +257,8 @@ describe('Monitoring', () => {
     });
   });
 
-  it('describes a scope without loading Sentry', () => {
-    const monitoring = loadMonitoring(true);
+  it('describes a scope without loading Sentry', async () => {
+    const monitoring = await loadMonitoring(true);
 
     const scope = monitoring.captureScope({ type: 'component' }, monitoring.Severity.Warning);
 

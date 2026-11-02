@@ -2,11 +2,11 @@ import { render } from '@testing-library/react';
 import * as Monitoring from '@monitoring';
 import ErrorBoundary from './ErrorBoundary';
 
-jest.mock('@monitoring', () => {
+vi.mock('@monitoring', () => {
   return {
-    captureAndLogError: jest.fn(),
-    captureException: jest.fn(),
-    captureScope: jest.fn(),
+    captureAndLogError: vi.fn(),
+    captureException: vi.fn(),
+    captureScope: vi.fn(),
     Severity: {
       Error: 'error',
     },
@@ -22,9 +22,9 @@ function Bomb({ shouldThrow = false }: { shouldThrow: boolean }): null {
 }
 
 describe('ErrorBoundary', () => {
-  beforeAll(() => {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+  // Per test: mockReset puts a spy back to the real console.error before each one.
+  beforeEach(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterAll(() => {
@@ -34,7 +34,7 @@ describe('ErrorBoundary', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('calls captureAndLogError and renders there was an error', () => {

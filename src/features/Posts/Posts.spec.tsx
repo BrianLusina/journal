@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import faker from 'faker';
 import { render, screen, act, fireEvent } from '@testing-library/react';
 import MockApp from '@testUtils/MockApp';
@@ -5,25 +6,25 @@ import * as Monitoring from '@monitoring';
 import Posts from './Posts';
 import { usePosts } from '@hooks';
 
-jest.mock('@monitoring', () => {
+vi.mock('@monitoring', () => {
   return {
-    captureException: jest.fn(),
-    captureScope: jest.fn(),
+    captureException: vi.fn(),
+    captureScope: vi.fn(),
     Severity: {
       Error: 'error',
     },
   };
 });
 
-jest.mock('@/hooks/cms/usePosts');
+vi.mock('@/hooks/cms/usePosts');
 
 describe('Posts', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render loading state', async () => {
-    (usePosts as jest.Mock).mockReturnValue({
+    (usePosts as Mock).mockReturnValue({
       data: null,
       loading: true,
       error: null,
@@ -74,7 +75,7 @@ describe('Posts', () => {
       },
     ];
 
-    (usePosts as jest.Mock).mockReturnValue({
+    (usePosts as Mock).mockReturnValue({
       data: {
         items,
         hasMore: true,
@@ -103,7 +104,7 @@ describe('Posts', () => {
   it('should display error if query fails to fetch content', async () => {
     const mockError = new Error(faker.lorem.words());
     
-    (usePosts as jest.Mock).mockReturnValue({
+    (usePosts as Mock).mockReturnValue({
       data: null,
       loading: false,
       error: mockError,
@@ -160,7 +161,7 @@ describe('Posts', () => {
     };
 
     let renderCount = 0;
-    (usePosts as jest.Mock).mockImplementation(({ limit }) => {
+    (usePosts as Mock).mockImplementation(({ limit }) => {
       renderCount++;
       // First render (limit: 10)
       if (limit === 10) {
