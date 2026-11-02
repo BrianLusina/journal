@@ -1,4 +1,4 @@
-import { render, screen } from '@testUtils/rtlUtils';
+import { fireEvent, render, screen } from '@testUtils/rtlUtils';
 import ArticleCard from './ArticleCard';
 
 const props = {
@@ -29,6 +29,28 @@ describe('ArticleCard', () => {
     expect(placeholder).toHaveClass('tag-travel');
     expect(placeholder).toHaveAttribute('aria-hidden', 'true');
     expect(placeholder.parentElement).toHaveClass('aspect-[4/3]');
+  });
+
+  it('replaces a thumbnail that fails to load with the placeholder', () => {
+    const { container } = render(<ArticleCard {...props} thumbnail="https://example.com/expired.jpg" />);
+
+    fireEvent.error(screen.getByRole('img', { name: props.title }));
+
+    expect(container.querySelector('img')).toBeNull();
+    expect(screen.getByTestId('article-card-placeholder')).toHaveClass('tag-travel');
+  });
+
+  it('shows the image again when a failed thumbnail is replaced with a new one', () => {
+    const { rerender } = render(<ArticleCard {...props} thumbnail="https://example.com/expired.jpg" />);
+    fireEvent.error(screen.getByRole('img', { name: props.title }));
+
+    rerender(<ArticleCard {...props} thumbnail="https://example.com/refreshed.jpg" />);
+
+    expect(screen.getByRole('img', { name: props.title })).toHaveAttribute(
+      'src',
+      'https://example.com/refreshed.jpg',
+    );
+    expect(screen.queryByTestId('article-card-placeholder')).not.toBeInTheDocument();
   });
 
   it('keeps the title, date, category and link without a thumbnail', () => {

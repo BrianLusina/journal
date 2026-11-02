@@ -1,4 +1,4 @@
-import { FunctionComponent } from 'react';
+import { FunctionComponent, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight } from "lucide-react";
 import { getCategoryClass } from '@/lib/utils';
@@ -15,6 +15,9 @@ interface ArticleCardProps {
 }
 
 const ArticleCard: FunctionComponent<ArticleCardProps> = ({ id, slug, title, category, date, thumbnail: image, size = "small", onClick }: ArticleCardProps) => {
+  // Remember which URL failed, so a new thumbnail (e.g. a refreshed Notion signed URL) is tried again.
+  const [failedSrc, setFailedSrc] = useState<string>();
+  const failed = failedSrc === image;
 
   return (
     <Link
@@ -26,10 +29,11 @@ const ArticleCard: FunctionComponent<ArticleCardProps> = ({ id, slug, title, cat
     >
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-muted rounded-[2.5rem]">
-        {image ? (
+        {image && !failed ? (
           <img
             src={image}
             alt={title}
+            onError={() => setFailedSrc(image)}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
         ) : (
