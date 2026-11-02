@@ -33,6 +33,10 @@ describe('AboutPage', () => {
     expect(screen.getByText('Journal is a collection of thoughts.')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Our Story' })).not.toBeInTheDocument();
     expect(screen.queryByText(fallbackStory)).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /our mission/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /our values/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Cultivate mindful/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Sustainability' })).not.toBeInTheDocument();
   });
 
   it('shows the newsletter signup while the newsletter feature is on', () => {
