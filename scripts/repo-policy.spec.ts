@@ -33,12 +33,20 @@ describe('package manager policy', () => {
 describe('toolchain left over from Create React App', () => {
   const workflows = readdirSync(path.join(root, '.github/workflows')).filter(file => /\.ya?ml$/.test(file));
 
-  it.each(workflows)('%s does not use yarn, Node 16 or actions/cache@v2', file => {
+  it.each(workflows)('%s does not use yarn, Node 16, actions/cache@v2, actions/checkout v1/v2 or CodeQL v1/v2', file => {
     const workflow = read(`.github/workflows/${file}`);
 
     expect(workflow).not.toMatch(/\byarn\b/);
     expect(workflow).not.toMatch(/node-version:\s*['"]?16\b/);
     expect(workflow).not.toMatch(/actions\/cache@v2\b/);
+    expect(workflow).not.toMatch(/actions\/checkout@v[12]\b/);
+    expect(workflow).not.toMatch(/github\/codeql-action\/\w+@v[12]\b/);
+  });
+
+  it.each(workflows)('%s does not use CodeQL actions older than v4', file => {
+    const workflow = read(`.github/workflows/${file}`);
+
+    expect(workflow).not.toMatch(/github\/codeql-action\/[\w-]+@v[123]\b/);
   });
 
   it.each(workflows)('%s uses the Vite variable names and output directory', file => {
@@ -73,6 +81,10 @@ describe('toolchain left over from Create React App', () => {
     'config/webpack.config.js',
     'scripts/start.js',
     '.eslintrc.js',
+    '.eslintignore',
+    'public/scripts',
+    'public/styles',
+    'config/jest/babelTransform.js',
   ])('does not bring back %s', file => {
     expect(existsSync(path.join(root, file))).toBe(false);
   });

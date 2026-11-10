@@ -1,4 +1,5 @@
-import { FunctionComponent, LazyExoticComponent, lazy } from 'react';
+import { FunctionComponent, LazyExoticComponent } from 'react';
+import { lazy } from '@/lib/chunkReload';
 import {
   ABOUT_PAGE_ROUTE,
   ABOUT_US_PAGE_ROUTE,

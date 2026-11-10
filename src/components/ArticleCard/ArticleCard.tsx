@@ -1,4 +1,4 @@
-import { FunctionComponent } from 'react';
+import { FunctionComponent, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight } from "lucide-react";
 import { getCategoryClass } from '@/lib/utils';
@@ -9,12 +9,15 @@ interface ArticleCardProps {
   title: string;
   category: string;
   date: string;
-  thumbnail: string;
+  thumbnail?: string;
   size?: "small" | "large";
   onClick?: () => void;
 }
 
 const ArticleCard: FunctionComponent<ArticleCardProps> = ({ id, slug, title, category, date, thumbnail: image, size = "small", onClick }: ArticleCardProps) => {
+  // Remember which URL failed, so a new thumbnail (e.g. a refreshed Notion signed URL) is tried again.
+  const [failedSrc, setFailedSrc] = useState<string>();
+  const failed = failedSrc === image;
 
   return (
     <Link
@@ -26,11 +29,20 @@ const ArticleCard: FunctionComponent<ArticleCardProps> = ({ id, slug, title, cat
     >
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-muted rounded-[2.5rem]">
-        <img
-          src={image}
-          alt={title}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-        />
+        {image && !failed ? (
+          <img
+            src={image}
+            alt={title}
+            onError={() => setFailedSrc(image)}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          />
+        ) : (
+          <div
+            data-testid="article-card-placeholder"
+            aria-hidden="true"
+            className={`w-full h-full ${getCategoryClass(category)} bg-gradient-to-br from-white/40 to-black/20 transition-transform duration-500 group-hover:scale-110`}
+          />
+        )}
         
         {/* Overlay gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
