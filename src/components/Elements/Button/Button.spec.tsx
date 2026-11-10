@@ -5,7 +5,7 @@ import Button from './Button';
 describe('Button', () => {
   it('should be able to mount', () => {
     const text = faker.lorem.word();
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     render(<Button onClick={onClick}>{text}</Button>);
 
     const textElement = screen.getByText(text);
@@ -20,7 +20,7 @@ describe('Button', () => {
 
   it('should be disabled and not handle click events', () => {
     const text = faker.lorem.word();
-    const onClick = jest.fn();
+    const onClick = vi.fn();
     const disabled = true;
     render(
       <Button onClick={onClick} disabled={disabled}>

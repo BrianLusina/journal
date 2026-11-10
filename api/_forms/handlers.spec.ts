@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import contactHandler from '../contact';
 import subscribeHandler from '../subscribe';
@@ -5,7 +6,7 @@ import subscribeHandler from '../subscribe';
 type Handler = (request: VercelRequest, response: VercelResponse) => Promise<unknown>;
 
 const formResponse = () => {
-  const res = { status: jest.fn(), json: jest.fn(), setHeader: jest.fn() };
+  const res = { status: vi.fn(), json: vi.fn(), setHeader: vi.fn() };
   res.status.mockReturnValue(res);
   res.json.mockReturnValue(res);
   return res;
@@ -30,7 +31,7 @@ const resendAnswer = (status: number, body: object) => ({
   text: () => Promise.resolve(JSON.stringify(body)),
 });
 
-const fetchMock = () => global.fetch as jest.Mock;
+const fetchMock = () => global.fetch as Mock;
 
 const contactEnv = {
   RESEND_API_KEY: 're_test',
@@ -46,9 +47,9 @@ const originalEnv = process.env;
 
 beforeEach(() => {
   process.env = { ...originalEnv, ...contactEnv, ...subscribeEnv };
-  global.fetch = jest.fn().mockResolvedValue(resendAnswer(200, { id: 'resend-1' }));
-  // Node has AbortSignal.timeout; Jest's jsdom does not.
-  AbortSignal.timeout = jest.fn(() => new AbortController().signal);
+  global.fetch = vi.fn().mockResolvedValue(resendAnswer(200, { id: 'resend-1' }));
+  // A stub, so the handlers get a signal without starting a real timer.
+  AbortSignal.timeout = vi.fn(() => new AbortController().signal);
 });
 
 afterAll(() => {
@@ -87,7 +88,7 @@ describe.each([
   });
 
   it('answers 200 to a filled honeypot without sending anything', async () => {
-    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     const res = await send(handler, formRequest({ ...validBody, website: 'https://spam.example' }));
 
@@ -111,7 +112,7 @@ describe.each([
 
   it.each(Object.keys(env))('answers 503, and logs the variable, when %s is not set', async name => {
     delete process.env[name];
-    const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     const res = await send(handler, formRequest(validBody));
 
@@ -126,7 +127,7 @@ describe.each([
     ['cannot be reached', () => Promise.reject(new Error('network down'))],
   ])('answers 502, without passing on what Resend said, when Resend %s', async (__, resend) => {
     fetchMock().mockImplementation(resend);
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
 
     const res = await send(handler, formRequest(validBody));
 
@@ -148,7 +149,7 @@ describe('POST /api/contact', () => {
     expect(init.headers).toEqual({ Authorization: 'Bearer re_test', 'Content-Type': 'application/json' });
     // A stalled Resend ends in a 502 rather than holding the function until the platform stops it.
     expect(AbortSignal.timeout).toHaveBeenCalledWith(10000);
-    expect(init.signal).toBe((AbortSignal.timeout as jest.Mock).mock.results[0].value);
+    expect(init.signal).toBe((AbortSignal.timeout as Mock).mock.results[0].value);
     expect(JSON.parse(init.body)).toEqual({
       from: 'Journal <forms@example.com>',
       to: 'owner@example.com',

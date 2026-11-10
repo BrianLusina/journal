@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import type CMSAdapter from '@/services/cms/CMSAdapter';
 import { loadSearchIndex } from './searchIndex';
 
@@ -12,10 +13,10 @@ const post = (id: string, source: CMSSource, fields: Partial<UnifiedPost> = {}):
   ...fields,
 });
 
-const adapter = (source: CMSSource, getSearchIndex: jest.Mock): CMSAdapter => ({
+const adapter = (source: CMSSource, getSearchIndex: Mock): CMSAdapter => ({
   source,
-  getPosts: jest.fn(),
-  getPostBySlug: jest.fn(),
+  getPosts: vi.fn(),
+  getPostBySlug: vi.fn(),
   getSearchIndex,
 });
 
@@ -23,7 +24,7 @@ describe('loadSearchIndex', () => {
   it('turns the posts of every source into search documents', async () => {
     const contentful = adapter(
       'contentful',
-      jest.fn().mockResolvedValue([
+      vi.fn().mockResolvedValue([
         post('c1', 'contentful', {
           subtitle: 'Sub',
           description: 'Desc',
@@ -34,7 +35,7 @@ describe('loadSearchIndex', () => {
         }),
       ]),
     );
-    const notion = adapter('notion', jest.fn().mockResolvedValue([post('n1', 'notion')]));
+    const notion = adapter('notion', vi.fn().mockResolvedValue([post('n1', 'notion')]));
 
     const { documents, errors } = await loadSearchIndex([contentful, notion]);
 
@@ -59,8 +60,8 @@ describe('loadSearchIndex', () => {
   });
 
   it('keeps one document per post when a source returns a post twice', async () => {
-    const contentful = adapter('contentful', jest.fn().mockResolvedValue([post('c1', 'contentful'), post('c1', 'contentful')]));
-    const notion = adapter('notion', jest.fn().mockResolvedValue([post('c1', 'notion')]));
+    const contentful = adapter('contentful', vi.fn().mockResolvedValue([post('c1', 'contentful'), post('c1', 'contentful')]));
+    const notion = adapter('notion', vi.fn().mockResolvedValue([post('c1', 'notion')]));
 
     const { documents } = await loadSearchIndex([contentful, notion]);
 
@@ -69,8 +70,8 @@ describe('loadSearchIndex', () => {
 
   it('keeps the other sources and returns the error when one source fails', async () => {
     const failure = new Error('Unable to fetch the Notion search index: 502');
-    const contentful = adapter('contentful', jest.fn().mockResolvedValue([post('c1', 'contentful')]));
-    const notion = adapter('notion', jest.fn().mockRejectedValue(failure));
+    const contentful = adapter('contentful', vi.fn().mockResolvedValue([post('c1', 'contentful')]));
+    const notion = adapter('notion', vi.fn().mockRejectedValue(failure));
 
     const { documents, errors } = await loadSearchIndex([contentful, notion]);
 
@@ -80,14 +81,14 @@ describe('loadSearchIndex', () => {
 
   it('rejects when every source fails', async () => {
     const failure = new Error('down');
-    const contentful = adapter('contentful', jest.fn().mockRejectedValue(failure));
-    const notion = adapter('notion', jest.fn().mockRejectedValue(new Error('also down')));
+    const contentful = adapter('contentful', vi.fn().mockRejectedValue(failure));
+    const notion = adapter('notion', vi.fn().mockRejectedValue(new Error('also down')));
 
     await expect(loadSearchIndex([contentful, notion])).rejects.toBe(failure);
   });
 
   it('asks only the sources it is given', async () => {
-    const contentful = adapter('contentful', jest.fn().mockResolvedValue([]));
+    const contentful = adapter('contentful', vi.fn().mockResolvedValue([]));
 
     await loadSearchIndex([contentful]);
 

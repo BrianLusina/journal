@@ -1,14 +1,15 @@
+import type { Mock } from 'vitest';
 import { render, screen } from '@testUtils/rtlUtils';
 import * as Monitoring from '@/services/monitoring';
 import { usePosts } from '@/hooks/cms/usePosts';
 import RelatedArticles from './RelatedArticles';
 
-jest.mock('@/services/monitoring', () => ({ captureException: jest.fn(), captureScope: jest.fn(), Severity: { Error: 'error' } }));
-jest.mock('@/hooks/cms/usePosts');
+vi.mock('@/services/monitoring', () => ({ captureException: vi.fn(), captureScope: vi.fn(), Severity: { Error: 'error' } }));
+vi.mock('@/hooks/cms/usePosts');
 
 describe('RelatedArticles', () => {
   it('asks for three posts in the same category', () => {
-    (usePosts as jest.Mock).mockReturnValue({ data: null, loading: true, error: null });
+    (usePosts as Mock).mockReturnValue({ data: null, loading: true, error: null });
 
     const { container } = render(<RelatedArticles category="Travel" />);
 
@@ -17,7 +18,7 @@ describe('RelatedArticles', () => {
   });
 
   it('renders nothing when there are no related posts', () => {
-    (usePosts as jest.Mock).mockReturnValue({ data: { items: [], hasMore: false }, loading: false, error: null });
+    (usePosts as Mock).mockReturnValue({ data: { items: [], hasMore: false }, loading: false, error: null });
 
     const { container } = render(<RelatedArticles category="Travel" />);
 
@@ -25,7 +26,7 @@ describe('RelatedArticles', () => {
   });
 
   it('renders related posts', () => {
-    (usePosts as jest.Mock).mockReturnValue({
+    (usePosts as Mock).mockReturnValue({
       data: {
         items: [{ id: 'n1', source: 'notion', title: 'Alps', slug: 'alps', publishDate: '2024-02-01', tags: [], authors: [] }],
         hasMore: false,
@@ -41,7 +42,7 @@ describe('RelatedArticles', () => {
   });
 
   it('reports an error', () => {
-    (usePosts as jest.Mock).mockReturnValue({ data: null, loading: false, error: new Error('down') });
+    (usePosts as Mock).mockReturnValue({ data: null, loading: false, error: new Error('down') });
 
     render(<RelatedArticles category="Travel" />);
 

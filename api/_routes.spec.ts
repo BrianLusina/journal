@@ -43,7 +43,7 @@ describe('getParam', () => {
 
 describe('methodNotAllowed', () => {
   it('answers 405 and names the allowed method', () => {
-    const res = { status: jest.fn(), json: jest.fn(), setHeader: jest.fn() };
+    const res = { status: vi.fn(), json: vi.fn(), setHeader: vi.fn() };
     res.status.mockReturnValue(res);
     res.json.mockReturnValue(res);
 

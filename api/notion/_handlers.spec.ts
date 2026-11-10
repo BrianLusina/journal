@@ -1,22 +1,23 @@
+import type { Mock } from 'vitest';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import postsHandler from './posts';
 import postHandler from './posts/[slug]';
 import { getDataSourceId, isNotionConfigured, notion } from './_shared';
 
-jest.mock('./_shared', () => ({
-  getDataSourceId: jest.fn(),
-  isNotionConfigured: jest.fn(),
-  notion: { dataSources: { query: jest.fn(), retrieve: jest.fn() } },
+vi.mock('./_shared', () => ({
+  getDataSourceId: vi.fn(),
+  isNotionConfigured: vi.fn(),
+  notion: { dataSources: { query: vi.fn(), retrieve: vi.fn() } },
 }));
-jest.mock('notion-to-md', () => ({
-  NotionToMarkdown: jest.fn().mockImplementation(() => ({
-    pageToMarkdown: jest.fn().mockResolvedValue([]),
+vi.mock('notion-to-md', () => ({
+  NotionToMarkdown: vi.fn().mockImplementation(() => ({
+    pageToMarkdown: vi.fn().mockResolvedValue([]),
     toMarkdownString: () => ({ parent: '# Body' }),
   })),
 }));
 
 const response = () => {
-  const res = { status: jest.fn(), json: jest.fn(), setHeader: jest.fn() };
+  const res = { status: vi.fn(), json: vi.fn(), setHeader: vi.fn() };
   res.status.mockReturnValue(res);
   res.json.mockReturnValue(res);
   return res;
@@ -26,13 +27,13 @@ const request = (query: Record<string, string>) => ({ method: 'GET', query }) as
 
 describe('Notion API routes', () => {
   beforeEach(() => {
-    (getDataSourceId as jest.Mock).mockResolvedValue('ds-1');
-    (isNotionConfigured as jest.Mock).mockReturnValue(true);
-    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    (getDataSourceId as Mock).mockResolvedValue('ds-1');
+    (isNotionConfigured as Mock).mockReturnValue(true);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
   it('lists one page of posts from the resolved data source', async () => {
-    (notion.dataSources.query as jest.Mock).mockResolvedValue({ results: [{ id: 'p1' }], has_more: false, next_cursor: null });
+    (notion.dataSources.query as Mock).mockResolvedValue({ results: [{ id: 'p1' }], has_more: false, next_cursor: null });
     const res = response();
 
     await postsHandler(request({ limit: '10' }), res as unknown as VercelResponse);
@@ -46,7 +47,7 @@ describe('Notion API routes', () => {
   });
 
   it('continues from the given cursor and returns the next one while Notion has more', async () => {
-    (notion.dataSources.query as jest.Mock).mockResolvedValue({ results: [{ id: 'p2' }], has_more: true, next_cursor: 'cursor-3' });
+    (notion.dataSources.query as Mock).mockResolvedValue({ results: [{ id: 'p2' }], has_more: true, next_cursor: 'cursor-3' });
     const res = response();
 
     await postsHandler(request({ limit: '1', cursor: 'cursor-2' }), res as unknown as VercelResponse);
@@ -63,7 +64,7 @@ describe('Notion API routes', () => {
       [{ property: 'Categories', multi_select: { contains: 'engineering strategy 101' } }],
     ],
   ])('lists only published posts that have a slug, newest first, %s', async (_, query, extraFilters) => {
-    (notion.dataSources.query as jest.Mock).mockResolvedValue({ results: [], has_more: false, next_cursor: null });
+    (notion.dataSources.query as Mock).mockResolvedValue({ results: [], has_more: false, next_cursor: null });
 
     await postsHandler(request(query), response() as unknown as VercelResponse);
 
@@ -91,19 +92,19 @@ describe('Notion API routes', () => {
   });
 
   it('lists posts carrying the tag by its exact name', async () => {
-    (notion.dataSources.retrieve as jest.Mock).mockResolvedValue(tagsSchema('Decision', 'Framework'));
-    (notion.dataSources.query as jest.Mock).mockResolvedValue({ results: [{ id: 'p1' }], has_more: false, next_cursor: null });
+    (notion.dataSources.retrieve as Mock).mockResolvedValue(tagsSchema('Decision', 'Framework'));
+    (notion.dataSources.query as Mock).mockResolvedValue({ results: [{ id: 'p1' }], has_more: false, next_cursor: null });
     const res = response();
 
     await postsHandler(request({ tag: 'Framework' }), res as unknown as VercelResponse);
 
-    const { filter } = (notion.dataSources.query as jest.Mock).mock.calls[0][0];
+    const { filter } = (notion.dataSources.query as Mock).mock.calls[0][0];
     expect(filter.and).toContainEqual({ property: 'Tags', multi_select: { contains: 'Framework' } });
     expect(res.json).toHaveBeenCalledWith({ results: [{ id: 'p1' }], nextCursor: null });
   });
 
   it('answers with no posts, without querying, when the tag is not a Tags option', async () => {
-    (notion.dataSources.retrieve as jest.Mock).mockResolvedValue(tagsSchema('Framework'));
+    (notion.dataSources.retrieve as Mock).mockResolvedValue(tagsSchema('Framework'));
     const res = response();
 
     await postsHandler(request({ tag: 'framework' }), res as unknown as VercelResponse);
@@ -115,7 +116,7 @@ describe('Notion API routes', () => {
   });
 
   it('finds a post by slug in the resolved data source', async () => {
-    (notion.dataSources.query as jest.Mock).mockResolvedValue({ results: [{ id: 'p1' }] });
+    (notion.dataSources.query as Mock).mockResolvedValue({ results: [{ id: 'p1' }] });
     const res = response();
 
     await postHandler(request({ slug: 'hello' }), res as unknown as VercelResponse);
@@ -140,7 +141,7 @@ describe('Notion API routes', () => {
     ['list', postsHandler, {}],
     ['slug', postHandler, { slug: 'hello' }],
   ])('answers 502 from the %s route when the data source cannot be resolved', async (_, handler, query) => {
-    (getDataSourceId as jest.Mock).mockRejectedValue(new Error('Notion unavailable'));
+    (getDataSourceId as Mock).mockRejectedValue(new Error('Notion unavailable'));
     const res = response();
 
     await handler(request(query), res as unknown as VercelResponse);
@@ -150,7 +151,7 @@ describe('Notion API routes', () => {
   });
 
   it('logs why the slug route could not fetch the post', async () => {
-    (notion.dataSources.query as jest.Mock).mockRejectedValue(new Error('Notion unavailable'));
+    (notion.dataSources.query as Mock).mockRejectedValue(new Error('Notion unavailable'));
     const res = response();
 
     await postHandler(request({ slug: 'hello' }), res as unknown as VercelResponse);
@@ -170,7 +171,7 @@ describe('Notion API routes', () => {
 
   // Every source is asked for every slug, so an unconfigured source must not fail the lookup.
   it('answers 404 from the slug route when Notion is not configured', async () => {
-    (isNotionConfigured as jest.Mock).mockReturnValue(false);
+    (isNotionConfigured as Mock).mockReturnValue(false);
     const res = response();
 
     await postHandler(request({ slug: 'hello' }), res as unknown as VercelResponse);

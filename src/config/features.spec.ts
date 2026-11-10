@@ -1,10 +1,11 @@
+import type { MockInstance } from 'vitest';
 import { FEATURE_DEFAULTS, parseFeatures } from './features';
 
 describe('parseFeatures', () => {
-  let warn: jest.SpyInstance;
+  let warn: MockInstance;
 
   beforeEach(() => {
-    warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -55,25 +56,23 @@ describe('parseFeatures', () => {
   );
 
   /** The flags features.ts exports, loaded afresh. */
-  const loadFeatures = (): typeof import('./features').default => {
-    // jest.isolateModules hands back the module this file already imported, so reload it instead.
-    jest.resetModules();
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    return require('./features').default;
+  const loadFeatures = async (): Promise<typeof import('./features').default> => {
+    vi.resetModules();
+    return (await import('./features')).default;
   };
 
-  it('reads VITE_FEATURES from the runtime configuration index.html sets', () => {
+  it('reads VITE_FEATURES from the runtime configuration index.html sets', async () => {
     window.__ENV__ = { VITE_FEATURES: 'search=on' };
 
-    expect(loadFeatures().search).toBe(true);
+    expect((await loadFeatures()).search).toBe(true);
   });
 
-  it('falls back to the VITE_FEATURES value inlined at build time', () => {
+  it('falls back to the VITE_FEATURES value inlined at build time', async () => {
     const buildTimeValue = process.env.VITE_FEATURES;
     process.env.VITE_FEATURES = 'search=on';
     window.__ENV__ = {};
     try {
-      expect(loadFeatures().search).toBe(true);
+      expect((await loadFeatures()).search).toBe(true);
     } finally {
       if (buildTimeValue === undefined) {
         delete process.env.VITE_FEATURES;

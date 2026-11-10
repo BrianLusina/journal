@@ -32,7 +32,7 @@ jobs:
         CI: true
 
     # Ref: https://github.com/codecov/codecov-action
-    # The 85% coverage threshold is enforced by Jest above; the upload only feeds the Codecov
+    # The 85% coverage threshold is enforced by Vitest above; the upload only feeds the Codecov
     # dashboard, so an upload hiccup does not fail the build.
     - name: Upload Test Coverage
       uses: codecov/codecov-action@v5
@@ -42,7 +42,7 @@ jobs:
         fail_ci_if_error: false
         verbose: true
 
-    # vite build and Jest only transpile, so this is the step that fails on a type error in src/.
+    # vite build and Vitest only transpile, so this is the step that fails on a type error in src/.
     # It runs last, and even after a test failure, so a type error never hides the test results.
     - name: Type-check app
       if: ${{ !cancelled() }}

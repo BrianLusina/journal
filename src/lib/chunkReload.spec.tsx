@@ -4,13 +4,13 @@ import ErrorBoundary from '@/components/Errors/ErrorBoundary';
 import type * as ChunkReload from './chunkReload';
 
 const originalLocation = window.location;
-const reload = jest.fn();
+const reload = vi.fn();
 // jsdom's location can't be spied on, so these tests replace it.
 const testWindow = window as { location?: Location };
 
 /** A fresh copy of the module, as after a page load: it remembers a reload in progress. */
 const loadModule = async () => {
-  jest.resetModules();
+  vi.resetModules();
   return import('./chunkReload');
 };
 
@@ -30,7 +30,7 @@ beforeEach(async () => {
 
 afterEach(() => {
   testWindow.location = originalLocation;
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
 });
 
 describe('reloadOnce', () => {
@@ -77,7 +77,7 @@ describe('reloadOnce', () => {
     ['reading', 'getItem'],
     ['writing', 'setItem'],
   ] as const)('does not reload when sessionStorage throws on %s', (_, method) => {
-    jest.spyOn(window.sessionStorage, method).mockImplementation(() => {
+    vi.spyOn(window.sessionStorage, method).mockImplementation(() => {
       throw new Error('SecurityError');
     });
 
@@ -91,7 +91,7 @@ describe('lazy', () => {
   const chunkError = new TypeError('Failed to fetch dynamically imported module');
 
   const renderLazy = (factory: () => Promise<{ default: typeof Page }>) => {
-    const onError = jest.fn();
+    const onError = vi.fn();
     const LazyPage = chunkReload.lazy(factory);
     render(
       <ErrorBoundary onError={onError}>
@@ -121,7 +121,7 @@ describe('lazy', () => {
   });
 
   it('passes the error to the error boundary when it already reloaded within the window', async () => {
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
     window.sessionStorage.setItem(chunkReload.RELOAD_STORAGE_KEY, String(Date.now()));
 
     const onError = renderLazy(() => Promise.reject(chunkError));

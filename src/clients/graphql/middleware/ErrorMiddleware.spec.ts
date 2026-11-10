@@ -1,11 +1,12 @@
+import type { Mock } from 'vitest';
 import { ApolloLink, execute, gql, Observable } from '@apollo/client';
 import { captureException, captureScope } from '@monitoring';
 import errorMiddleware from './ErrorMiddleware';
 
 // Reporting goes through the monitoring service, which loads the Sentry SDK after the first paint.
-jest.mock('@monitoring', () => ({
-  captureException: jest.fn(),
-  captureScope: jest.fn(),
+vi.mock('@monitoring', () => ({
+  captureException: vi.fn(),
+  captureScope: vi.fn(),
   Severity: { Error: 'error' },
 }));
 
@@ -25,7 +26,7 @@ const run = (terminating: ApolloLink) =>
 
 describe('errorMiddleware', () => {
   beforeEach(() => {
-    (captureScope as jest.Mock).mockReturnValue('scope');
+    (captureScope as Mock).mockReturnValue('scope');
   });
 
   it('reports each GraphQL error to Sentry with its scope', async () => {

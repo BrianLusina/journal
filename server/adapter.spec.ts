@@ -111,7 +111,7 @@ describe('Vercel adapter', () => {
     });
 
     it('answers 400 to malformed JSON without calling the handler', async () => {
-      const handler = jest.fn();
+      const handler = vi.fn();
 
       const result = await invoke(
         handler,
@@ -185,7 +185,7 @@ describe('Vercel adapter', () => {
     });
 
     it('answers 500 when the handler throws', async () => {
-      jest.spyOn(console, 'error').mockImplementation(() => undefined);
+      vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
       const result = await respond(() => Promise.reject(new Error('boom')));
 

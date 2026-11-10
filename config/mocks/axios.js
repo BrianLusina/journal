@@ -24,15 +24,15 @@
 
 // export default axiosMock;
 
-jest.mock('axios', () => {
+vi.mock('axios', () => {
   return {
-    default: jest.fn(),
-    get: jest.fn(),
-    post: jest.fn(),
-    put: jest.fn(),
-    delete: jest.fn(),
-    patch: jest.fn(),
-    request: jest.fn(),
+    default: vi.fn(),
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
+    patch: vi.fn(),
+    request: vi.fn(),
     create: () => {
       return {
         baseURL: 'https://test.eventsafrique.com',
@@ -44,45 +44,45 @@ jest.mock('axios', () => {
         },
         interceptors: {
           response: {
-            use: jest.fn(),
+            use: vi.fn(),
           },
           request: {
-            use: jest.fn(),
+            use: vi.fn(),
           },
         },
-        post: jest.fn(),
-        get: jest.fn(),
-        patch: jest.fn(),
-        put: jest.fn(),
-        delete: jest.fn(),
-        request: jest.fn(),
+        post: vi.fn(),
+        get: vi.fn(),
+        patch: vi.fn(),
+        put: vi.fn(),
+        delete: vi.fn(),
+        request: vi.fn(),
       };
     },
     post: {
       mockImplementationOnce: (callback) => {
-        jest.fn(callback);
+        vi.fn(callback);
       },
     },
     get: {
       mockImplementationOnce: (callback) => {
-        jest.fn(callback);
+        vi.fn(callback);
       },
     },
     put: {
       mockImplementationOnce: (callback) => {
-        jest.fn(callback);
+        vi.fn(callback);
       },
     },
     delete: {
       mockImplementationOnce: (callback) => {
-        jest.fn(callback);
+        vi.fn(callback);
       },
     },
     patch: {
       mockImplementationOnce: (callback) => {
-        jest.fn(callback);
+        vi.fn(callback);
       },
     },
-    request: jest.fn(),
+    request: vi.fn(),
   };
 });

@@ -1,3 +1,4 @@
+import type { Mock } from 'vitest';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Helmet } from 'react-helmet';
@@ -10,8 +11,8 @@ import { logSearchSelection } from '@/services/search/searchAnalytics';
 import type { SearchDocument } from '@/services/search/SearchDocument';
 import SearchPage from './SearchPage';
 
-jest.mock('@/services/search', () => ({ loadSearchEngine: jest.fn() }));
-jest.mock('@/services/search/searchAnalytics', () => ({ logSearch: jest.fn(), logSearchSelection: jest.fn() }));
+vi.mock('@/services/search', () => ({ loadSearchEngine: vi.fn() }));
+vi.mock('@/services/search/searchAnalytics', () => ({ logSearch: vi.fn(), logSearchSelection: vi.fn() }));
 
 const doc = (id: string, title: string): SearchDocument => ({
   key: `contentful:${id}`,
@@ -57,7 +58,7 @@ const renderPage = async (url: string, search = true) => {
 
 describe('SearchPage', () => {
   beforeEach(() => {
-    (loadSearchEngine as jest.Mock).mockResolvedValue(
+    (loadSearchEngine as Mock).mockResolvedValue(
       createSearchEngine([doc('c1', 'React Hooks'), doc('c2', 'Kyoto in Autumn')]),
     );
   });
@@ -97,7 +98,7 @@ describe('SearchPage', () => {
   });
 
   it('is not found while the search feature is off', async () => {
-    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
     await renderPage('/search?q=react', false);
 
     expect(screen.getByText('Oops! Page not found')).toBeInTheDocument();

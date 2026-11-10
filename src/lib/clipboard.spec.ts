@@ -1,7 +1,7 @@
 import { toast } from 'sonner';
 import { copyCurrentUrl } from './clipboard';
 
-jest.mock('sonner', () => ({ toast: { success: jest.fn(), error: jest.fn() } }));
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 const setClipboard = (clipboard: unknown) => {
   Object.defineProperty(navigator, 'clipboard', { configurable: true, value: clipboard });
@@ -9,7 +9,7 @@ const setClipboard = (clipboard: unknown) => {
 
 describe('copyCurrentUrl', () => {
   it('copies the current URL and confirms', async () => {
-    const writeText = jest.fn().mockResolvedValue(undefined);
+    const writeText = vi.fn().mockResolvedValue(undefined);
     setClipboard({ writeText });
 
     await copyCurrentUrl();
@@ -20,7 +20,7 @@ describe('copyCurrentUrl', () => {
   });
 
   it('tells the reader when the browser refuses the write', async () => {
-    setClipboard({ writeText: jest.fn().mockRejectedValue(new Error('denied')) });
+    setClipboard({ writeText: vi.fn().mockRejectedValue(new Error('denied')) });
 
     await copyCurrentUrl();
 

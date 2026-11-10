@@ -1,17 +1,18 @@
+import type { Mock } from 'vitest';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import postsHandler from './posts';
 import postHandler from './posts/[slug]';
 import { getTagId, isContentfulConfigured, queryContentful } from './_shared';
 
-jest.mock('./_shared', () => ({
+vi.mock('./_shared', () => ({
   GET_BLOG_POSTS: 'GET_BLOG_POSTS',
-  getTagId: jest.fn(),
-  isContentfulConfigured: jest.fn(),
-  queryContentful: jest.fn(),
+  getTagId: vi.fn(),
+  isContentfulConfigured: vi.fn(),
+  queryContentful: vi.fn(),
 }));
 
 const response = () => {
-  const res = { status: jest.fn(), json: jest.fn(), setHeader: jest.fn() };
+  const res = { status: vi.fn(), json: vi.fn(), setHeader: vi.fn() };
   res.status.mockReturnValue(res);
   res.json.mockReturnValue(res);
   return res;
@@ -20,12 +21,12 @@ const response = () => {
 const request = (query: Record<string, string>, method = 'GET') => ({ method, query }) as unknown as VercelRequest;
 
 const respondWith = (items: unknown[], total = items.length) =>
-  (queryContentful as jest.Mock).mockResolvedValue({ blogPostCollection: { total, items } });
+  (queryContentful as Mock).mockResolvedValue({ blogPostCollection: { total, items } });
 
 describe('Contentful API routes', () => {
   beforeEach(() => {
-    (isContentfulConfigured as jest.Mock).mockReturnValue(true);
-    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    (isContentfulConfigured as Mock).mockReturnValue(true);
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
   describe('posts', () => {
@@ -69,7 +70,7 @@ describe('Contentful API routes', () => {
     });
 
     it('reads posts carrying the tag by name in the legacy field or by its ID in the Contentful tags', async () => {
-      (getTagId as jest.Mock).mockResolvedValue('datastructures');
+      (getTagId as Mock).mockResolvedValue('datastructures');
       respondWith([]);
 
       await postsHandler(request({ tag: 'Data Structures' }), response() as unknown as VercelResponse);
@@ -90,7 +91,7 @@ describe('Contentful API routes', () => {
     });
 
     it('reads the legacy field only, and caches the answer, when no Contentful tag has the name', async () => {
-      (getTagId as jest.Mock).mockResolvedValue(undefined);
+      (getTagId as Mock).mockResolvedValue(undefined);
       respondWith([]);
       const res = response();
 
@@ -104,7 +105,7 @@ describe('Contentful API routes', () => {
     });
 
     it('reads the legacy field only, logs, and keeps the answer out of the edge cache, when the tag list cannot be fetched', async () => {
-      (getTagId as jest.Mock).mockRejectedValue(new Error('Unable to fetch Contentful tags: 503'));
+      (getTagId as Mock).mockRejectedValue(new Error('Unable to fetch Contentful tags: 503'));
       respondWith([{ sys: { id: 'p1' } }]);
       const res = response();
 
@@ -120,7 +121,7 @@ describe('Contentful API routes', () => {
     });
 
     it('answers 502 when Contentful cannot be queried', async () => {
-      (queryContentful as jest.Mock).mockRejectedValue(new Error('Unable to query Contentful: 429'));
+      (queryContentful as Mock).mockRejectedValue(new Error('Unable to query Contentful: 429'));
       const res = response();
 
       await postsHandler(request({}), res as unknown as VercelResponse);
@@ -162,7 +163,7 @@ describe('Contentful API routes', () => {
     });
 
     it('answers 502 when Contentful cannot be queried', async () => {
-      (queryContentful as jest.Mock).mockRejectedValue(new Error('Unable to query Contentful: 429'));
+      (queryContentful as Mock).mockRejectedValue(new Error('Unable to query Contentful: 429'));
       const res = response();
 
       await postHandler(request({ slug: 'hello' }), res as unknown as VercelResponse);
@@ -186,7 +187,7 @@ describe('Contentful API routes', () => {
   });
 
   it('answers 500 from the list route when Contentful is not configured', async () => {
-    (isContentfulConfigured as jest.Mock).mockReturnValue(false);
+    (isContentfulConfigured as Mock).mockReturnValue(false);
     const res = response();
 
     await postsHandler(request({}), res as unknown as VercelResponse);
@@ -197,7 +198,7 @@ describe('Contentful API routes', () => {
 
   // Every source is asked for every slug, so an unconfigured source must not fail the lookup.
   it('answers 404 from the slug route when Contentful is not configured', async () => {
-    (isContentfulConfigured as jest.Mock).mockReturnValue(false);
+    (isContentfulConfigured as Mock).mockReturnValue(false);
     const res = response();
 
     await postHandler(request({ slug: 'hello' }), res as unknown as VercelResponse);
