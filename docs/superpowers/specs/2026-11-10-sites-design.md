@@ -1,6 +1,6 @@
 # Personal sites on one monorepo: design
 
-Status: draft for review · Date: 2026-11-10 · Tracking: #924 · Decision record: BrianLusina/brianlusina.github.io#980
+Status: ready for approval · Date: 2026-11-10 (owner decisions folded in 2026-11-12) · Tracking: #924 · Decision record: BrianLusina/brianlusina.github.io#980
 
 ## 1. Intent
 
@@ -36,6 +36,14 @@ The old two are copies of an outdated scaffold, and every improvement would have
 - A secret in a browser bundle (the folio GitHub token incident, BrianLusina/portfolio#902).
 - One site's outage, or one content source's outage, taking down another site or a whole page.
 - Old tooling ported from the retired repos.
+
+**How the blog adopts shared pieces (decided):** while the code is extracted (#926, #927), the blog keeps its exact current look. `packages/ui` starts from the blog's own components, so nothing visible changes and the parity suite stays green. After the cutover (#930), the blog adopts the shared pieces as deliberate, separately approved changes, each with its screenshot baselines updated on purpose:
+- the shared header and footer with cross-site links;
+- the theme cookie on `.brianlusina.com`, migrating from next-themes' `localStorage.theme`;
+- the consent banner;
+- the contact form's captcha.
+
+Until then the blog keeps its own header, footer and theme storage.
 
 ## 3. Constraints
 
@@ -121,7 +129,7 @@ Profile, Experience and Site settings make Sanity required for `apps/sites`. Mit
   - optional: `featured` (bool), `order` (int, overrides the newest-first sort), `links` (`live`, `docs`), `cover` (repo-relative path), `draft` (bool).
 
   The Markdown body is the write-up (suggested sections: Problem, Approach, Architecture, Outcome).
-- **Fetching:** one GitHub GraphQL query lists the owner's repos with topics, visibility, last push, and the contents of `HEAD:.portfolio.md`. That covers all 60 repos in one request, server-side, cached. The token is fine-grained and read-only (Metadata + Contents), limited to the repos that need it, and never reaches the browser.
+- **Fetching:** one GitHub GraphQL query lists the owner's repos with topics, visibility, last push, and the contents of `HEAD:.portfolio.md`. That covers all 60 repos in one request, server-side, cached. All repos are owned by the `BrianLusina` user account (confirmed), so one fine-grained, read-only token (Metadata + Contents) covers them all. It's limited to the repos that need it and never reaches the browser.
 - **Rendering off GitHub:**
   - rewrite relative links and images to absolute URLs;
   - sanitise raw HTML;
@@ -132,28 +140,29 @@ Profile, Experience and Site settings make Sanity required for `apps/sites`. Mit
   2. fails when `lastReviewed` is older than 6 months, the freshness proxy, since "is the write-up still true?" can't be automated;
   3. on pushes to the default branch that touch `.portfolio.md`, calls the sites' revalidate endpoint (secret in the caller repo).
 
-### 6.3 Images (proposed: Cloudinary, awaiting confirmation)
+### 6.3 Images (decided: Cloudinary)
 Sources differ. Sanity's image CDN and Contentful's Images API give stable URLs. Notion file URLs expire after about 1 hour. Private GitHub images need auth. Public GitHub raw URLs are stable but unoptimised.
 - `packages/media` exposes a source-agnostic `ImageRef` (`id`, `alt`, `width`, `height`, plus an internal locator) used by every unified model, and a `url(ref, { width, format })` helper.
 - **Ingest:** images from Notion and private GitHub repos are uploaded to Cloudinary on fetch/revalidation, under a stable id derived from the source (Notion file/block id; repo + path + content hash), so they are uploaded once.
 - **Delivery:** all images go through Cloudinary transformations (`f_auto`, `q_auto`, width). Sanity and Contentful images can stay on their own CDNs (builder's choice, behind the same helper).
 - Free plan: 25 credits per rolling 30 days (about 1 credit ≈ 1 GB bandwidth, 1 GB storage or 1,000 transformations). Watch usage, and find out what happens when the allowance runs out before relying on it.
 
-### 6.4 Analytics and consent (proposed: GA4, awaiting confirmation)
-Requirements: traffic per site, journeys across sites, custom events, free.
-- **GA4** (the blog already sends to it via Firebase) meets all three. One property with cookies on `.brianlusina.com` follows a visitor across subdomains. Custom events are free. `apps/sites` uses `gtag.js` directly (lighter than the Firebase SDK) with the same measurement ID, and `site` is sent as an event parameter.
+### 6.4 Analytics and consent (decided: Vercel Web Analytics + GA4)
+Requirements: traffic per site, journeys across sites, custom events, free. No single free tool covers all of them, so two run side by side, each with one job:
+- **Vercel Web Analytics stays (decided) for traffic per site.** It's cookieless, so it counts every visit, including visitors who decline the consent banner. It's on both Vercel projects (blog, sites). On Hobby: 50,000 events a month, with collection paused if that's exceeded; no custom events.
+- **GA4 for cross-site journeys and custom events.** The blog already sends to it via Firebase. One property with cookies on `.brianlusina.com` follows a visitor across subdomains, and custom events are free. `apps/sites` uses `gtag.js` directly (lighter than the Firebase SDK) with the same measurement ID, and `site` is sent as an event parameter. It runs only after consent. *(Brian confirmed keeping Vercel Web Analytics; keeping GA4 for these two jobs is inferred from the requirements, since Hobby can't provide them.)*
 - **Custom events (v1):** `resume_download`, `contact_submit` (success/failure), `outbound_click` (to the blog, GitHub, a project's live URL), `project_filter`, plus the blog's existing `search` / `select_content`.
 - **Consent:** a cross-site journey needs a cookie, so EU/UK visitors need a consent banner, whichever tool is used. The blog sets GA4 cookies today **without** one; this fixes that. One consent component in `packages/ui`; GA4 Consent Mode v2, with analytics storage denied until accepted. The privacy page lists every tracker.
 - **Not in v1:** Microsoft Clarity (heatmaps and recordings answer "how do people use the page", not traffic). Since 31 Oct 2025 it stays inactive for EEA/UK/CH visitors without a consent signal (Consent API v2). It could be added later through the same consent component.
-- **Vercel Web Analytics** is removed: on Hobby it has no custom events, and it would duplicate GA4. Web Vitals come from Sentry.
-- `packages/analytics` wraps the provider. Nothing is sent outside production, and search terms are sanitised as the blog does today.
+- Web Vitals come from Sentry (Vercel Speed Insights isn't added).
+- `packages/analytics` wraps both providers behind one API (`pageview` goes to both, custom events to GA4 only). Nothing is sent outside production, and search terms are sanitised as the blog does today.
 
 ### 6.5 Share images (Open Graph)
 None of the CMSes generate share images; they only store images. `apps/sites` exposes `/og/<type>/<slug>.png`, rendered from a JSX template with **Satori** and cached like pages. Templates per type (home, project, post) use the shared tokens. Projects and the home page use them in their meta tags.
 
 **Blog posts:** the blog is a client-rendered SPA and serves the same `<head>` for every route, so link previews of posts stay generic until the blog renders per-route meta. That's a separate decision (an edge function injecting meta for crawlers, or the blog's later Astro move), out of scope here. The OG endpoint is built so the blog can reuse it.
 
-### 6.6 Feature flags (proposed: env + Edge Config, awaiting confirmation)
+### 6.6 Feature flags (decided: env + Edge Config, with fallbacks)
 The blog's flags (`VITE_FEATURES`) are read once at page load. That's deliberate: known before the first render, no extra request, nothing that can be down. Keep that contract.
 - `packages/flags`: one typed flag registry (name, default, description, which sites), with pluggable providers resolved in order **remote → env → default**. A provider that fails or times out falls through, so a flag service outage never breaks a page.
 - **Providers:**
@@ -196,13 +205,22 @@ Drafts are a **mode**, not a model change. Every adapter takes `{ preview: boole
 - **Secrets:** server-only environment variables per Vercel project. Nothing secret uses a `VITE_` or `PUBLIC_` prefix.
 - **Portability:** the Vercel adapter is isolated in `astro.config`; a Node adapter build for Docker is a configuration switch. The site registry and all hostnames come from configuration.
 
-## 9. Decided vs left to the builder
+## 9. Work outside this repo (Brian)
 
-**Decided (by Brian):** monorepo with two apps; Astro for `apps/sites`; the blog's look; Sanity added as a source; Namecheap DNS with explicit domains; unknown subdomains 404/don't resolve; short-lived branches; projects from `.portfolio.md` plus Sanity, opted in by the `portfolio` topic, stack in frontmatter; CI rule per project repo; timeline + generated résumé with PII tests; featured = flagged first, else latest; posts 5 / projects 6 by default; filters before search on folio; shared header, footer, 404, privacy, contact; draft preview in scope; Sentry tagged by site; a11y and performance budgets at the merge gate; no newsletter on home.
+Brian does all work outside this repo. The repo provides what that work needs: the `.portfolio.md` JSON Schema, the reusable workflow, a template file, and docs. Order matters where code reads new fields:
 
-**Proposed, awaiting Brian's confirmation:** GA4 + consent banner (§6.4); Cloudinary as the image layer (§6.3); env + Edge Config flags (§6.6).
+1. **Notion: add the `featured` checkbox to the Journal CMS database *before* any code that filters or sorts on it is deployed.** Notion rejects a whole query that names a missing property, which would break the blog's posts. Contentful's `featured` field and its content-model publish also come before the code. Sanity's schema ships with its adapter (#929).
+2. Sanity project, dataset, and the Profile, Experience and Site settings documents filled in before `apps/sites` pages that read them go to staging.
+3. Social links moved from Contentful into Sanity's Profile. The blog keeps reading Contentful until it adopts the shared footer after cutover.
+4. For each portfolio repo: add the `portfolio` topic, a `.portfolio.md`, the caller workflow, and the revalidate secret. This can start as soon as the schema and reusable workflow are merged; repos appear on the sites as they're done.
+5. Accounts and secrets: Cloudinary, the GitHub fine-grained token, Edge Config store, Turnstile, Sentry DSNs per app, GA4 measurement ID, the PII denylist (CI secret), and Namecheap records at cutover (#930).
+
+## 10. Decided vs left to the builder
+
+**Decided (by Brian):** monorepo with two apps; Astro for `apps/sites`; the blog's look; Sanity added as a source; Namecheap DNS with explicit domains; unknown subdomains 404/don't resolve; short-lived branches; projects from `.portfolio.md` plus Sanity, opted in by the `portfolio` topic, stack in frontmatter; CI rule per project repo; timeline + generated résumé with PII tests; featured = flagged first, else latest; posts 5 / projects 6 by default; filters before search on folio; shared header, footer, 404, privacy, contact; draft preview in scope; Sentry tagged by site; a11y and performance budgets at the merge gate; no newsletter on home; all repos under the `BrianLusina` account; Brian does all out-of-repo work (§9); Vercel Web Analytics stays (§6.4); Cloudinary is the image layer (§6.3); flags are env + Edge Config with fallbacks (§6.6); the blog adopts shared pieces only after cutover (§2).
 
 **Calls made while writing this (check these):**
+- *GA4 alongside Vercel Web Analytics* (§6.4): Vercel's Hobby plan has no custom events and can't follow a visitor across sites, so GA4 stays for those two jobs, behind the consent banner.
 - *Docker/Node build:* it must serve every page and API route with the same behaviour. It does **not** need ISR. Pages are server-rendered with `Cache-Control: s-maxage=…, stale-while-revalidate=…` for whatever CDN sits in front, and preview simply bypasses those headers. On Vercel, ISR is an optimisation, not a feature the design depends on.
 - *What blocks the DNS cutover (#930):*
   - **required:** home and folio (§5.2–§5.3, without the résumé PDF and search), the shared header, footer, 404, privacy and contact, consent + analytics, Sentry tagging, and every §7 gate;
