@@ -3,7 +3,8 @@ import { danger, warn, markdown } from 'danger';
 // Setup
 const { pr } = danger.github;
 const modifiedFiles = danger.git.modified_files;
-const packageChanged = modifiedFiles.includes('package.json');
+// The root and every workspace under apps/ have a package.json; all share the one bun.lock.
+const packageChanged = modifiedFiles.some(file => file === 'package.json' || file.endsWith('/package.json'));
 // A lockfile added by the PR counts as changed too.
 const lockfileChanged = [...modifiedFiles, ...danger.git.created_files].includes('bun.lock');
 

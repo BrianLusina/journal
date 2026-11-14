@@ -32,6 +32,9 @@ Journal is a personal blog and journal website. It displays blog posts from more
 
 ## Commands
 
+The repository is a bun workspace: the blog is in `apps/blog/` and the paths below are relative to it. Run every command from the repository root; the root scripts forward to the app (`bun run --filter blog <script>`). App dependencies go in `apps/blog/package.json` (`bun add --cwd apps/blog <package>`); only repo-wide tooling (lint, hooks, Playwright) goes in the root `package.json`.
+
+
 - **Run dev server**: `bun dev`
 - **Run tests**: `bun run test` (Vitest; `bun test` starts Bun's own runner, which ignores `vitest.config.mts`)
 - **Run linting**: `bun lint`

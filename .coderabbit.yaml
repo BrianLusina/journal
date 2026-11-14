@@ -24,9 +24,9 @@ reviews:
   # Generated, vendored and build output never need review.
   path_filters:
     - "!**/node_modules/**"
-    - "!dist/**"
-    - "!coverage/**"
-    - "!storybook-static/**"
+    - "!**/dist/**"
+    - "!**/coverage/**"
+    - "!**/storybook-static/**"
     - "!.vercel/**"
     - "!.idea/**"
     - "!**/__generated__/**"
@@ -35,7 +35,7 @@ reviews:
 
   path_instructions:
     # Application code
-    - path: "src/**/*.{ts,tsx}"
+    - path: "apps/blog/src/**/*.{ts,tsx}"
       instructions: |
         React 18 and TypeScript:
         - Function components and hooks only. Hooks follow the rules of hooks, and every effect lists its real dependencies.
@@ -62,48 +62,48 @@ reviews:
         - REST calls go through TanStack Query and GraphQL through Apollo Client, with loading, error and empty states handled.
         - Content comes from the CMS adapter layer (src/services/cms), not directly from a vendor SDK in components.
 
-    - path: "src/components/**"
+    - path: "apps/blog/src/components/**"
       instructions: |
         - Each component lives in its own directory with a colocated `*.spec.tsx` or `*.test.tsx` test and a `*.stories.tsx` story, and is exported through the directory's `index.ts`.
         - Components are presentational and typed with an explicit props interface. Variants use class-variance-authority, and classes are merged with `cn`/clsx.
         - Styling uses Tailwind utilities and design tokens; flag inline styles and hard-coded colors.
         - Stories cover the main states (default, loading, empty, error) so Storybook accessibility checks have something to run on.
 
-    - path: "src/components/ui/**"
+    - path: "apps/blog/src/components/ui/**"
       instructions: |
         - These are shadcn/ui and Radix based primitives. Keep them generic and free of business logic or data fetching.
         - Preserve Radix accessibility behavior (focus management, aria attributes, keyboard handling) when customizing.
 
-    - path: "src/pages/**"
+    - path: "apps/blog/src/pages/**"
       instructions: |
         - Each page has its own directory with a colocated `*.spec.tsx` test and `index.ts`, and is lazy-loaded from src/routes.
         - Pages set a document title and meta description, render one `h1`, and handle loading, error and not-found states.
 
-    - path: "src/features/**"
+    - path: "apps/blog/src/features/**"
       instructions: |
         - Feature modules compose components with data and behavior. They must not import from other features' internals.
         - Forms use React Hook Form with a Zod schema, show field errors accessibly, and disable submit while pending.
 
-    - path: "src/hooks/**"
+    - path: "apps/blog/src/hooks/**"
       instructions: |
         - Custom hooks are named `useX`, have a stable return shape, and are covered with renderHook tests.
         - Hooks that subscribe or fetch clean up on unmount.
 
-    - path: "src/services/**"
+    - path: "apps/blog/src/services/**"
       instructions: |
         - Keep vendor SDKs (Contentful, Notion, Firebase, Sentry) behind adapters so components stay vendor-agnostic.
         - Map external payloads to the app's own types at the boundary, and handle failures explicitly without swallowing errors.
 
-    - path: "src/routes/**"
+    - path: "apps/blog/src/routes/**"
       instructions: |
         - Routes are lazy-loaded and every route has an error boundary and a fallback. Check that new routes are reachable and that unknown paths reach NotFound.
 
-    - path: "src/config/**"
+    - path: "apps/blog/src/config/**"
       instructions: |
         - Environment access goes through src/config (env.ts and runtimeEnv.ts) only. Flag direct `import.meta.env` or `process.env` use elsewhere.
         - Feature flags are declared in features.ts with a test in features.spec.ts.
 
-    - path: "src/styles/**"
+    - path: "apps/blog/src/styles/**"
       instructions: |
         - Prefer Tailwind utilities and CSS variables for tokens. Keep global CSS minimal and compatible with the stylelint rules.
 
@@ -123,7 +123,7 @@ reviews:
         - Stories use CSF3 with typed `Meta` and `StoryObj`, and cover meaningful states. Flag stories that fetch from the real network or rely on secrets.
 
     # Serverless functions and the production server
-    - path: "api/**"
+    - path: "apps/blog/api/**"
       instructions: |
         Vercel functions:
         - Validate every request (method, query, body) with Zod before use, and return consistent JSON errors with correct HTTP status codes.
@@ -133,12 +133,12 @@ reviews:
         - Handlers stay thin and shared logic lives in the `_shared`/`_forms` modules. Every handler has a colocated `*.spec.ts`, and route changes are reflected in `_routes.ts`.
         - Keep the response contract in sync with the client adapters in src/services/cms and with docs/api.
 
-    - path: "server/**"
+    - path: "apps/blog/server/**"
       instructions: |
         - This is the production server that serves the SPA and the API from the container. Check security headers, static file path traversal, caching, graceful shutdown and the `PORT` handling.
         - Tests are required for router and adapter changes.
 
-    - path: "scripts/**"
+    - path: "apps/blog/scripts/**"
       instructions: |
         - Repo policy and build scripts must be deterministic, fail with a non-zero exit code on violations, and have a colocated `*.spec.ts` where they enforce policy.
 
@@ -150,13 +150,13 @@ reviews:
         - Architecture changes must be reflected in docs/ARCHITECTURE.md.
 
     # Configuration and tooling
-    - path: "{vite.config.mts,tsconfig*.json,vitest.config.mts,eslint.config.js,tailwind.config.ts,postcss.config.js,vercel.json,components.json}"
+    - path: "{eslint.config.js,apps/blog/{vite.config.mts,tsconfig*.json,vitest.config.mts,tailwind.config.ts,postcss.config.js,vercel.json,components.json}}"
       instructions: |
         - Treat config changes as high impact: confirm they work for dev, test, build and Vercel, and that path aliases stay defined only in tsconfig.app.json.
         - Flag loosened compiler or lint strictness, disabled rules and widened proxy or CORS settings without a reason.
         - vercel.json rewrites must keep `/api/*` out of the SPA fallback.
 
-    - path: "{package.json,bun.lock,.nvmrc}"
+    - path: "{package.json,apps/*/package.json,bun.lock,.nvmrc}"
       instructions: |
         - Use bun. Flag new dependencies that are unmaintained, duplicate an existing one, or are large for the client bundle (the bundle budget is enforced by scripts/bundle-budget.js).
         - Build-time tools belong in devDependencies. Pin versions consistently with the rest of the file.
@@ -171,7 +171,7 @@ reviews:
         - Pin third-party actions to a version or SHA, use least-privilege `permissions`, and never echo secrets.
         - CI must run lint, typecheck (app, api and server), tests and build.
 
-    - path: "{.env.sample,.storybook/**}"
+    - path: "apps/blog/{.env.sample,.storybook/**}"
       instructions: |
         - `.env.sample` lists every variable with placeholder values only. Real values never belong in the repo.
         - Storybook config must not depend on secrets and should keep the accessibility addon enabled.
