@@ -151,3 +151,16 @@ describe('test runner isolation', () => {
     expect(read('playwright.config.ts')).toContain("testDir: 'e2e'");
   });
 });
+
+describe('end-to-end workflows', () => {
+  it('install the bun version package.json pins in the Playwright container', () => {
+    const pinned = JSON.parse(read('package.json')).packageManager.replace(/^bun@/, '');
+
+    for (const file of ['.github/workflows/e2e.yml', '.github/workflows/e2e-update-baselines.yml']) {
+      const workflow = read(file);
+      // setup-bun extracts a zip with `unzip`, which the Playwright image isn't guaranteed to have.
+      expect(workflow).not.toContain('oven-sh/setup-bun');
+      expect(workflow).toContain(`npm install -g bun@${pinned}`);
+    }
+  });
+});

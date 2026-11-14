@@ -51,7 +51,11 @@ export const test = base.extend<Options & Fixtures>({
         const error = { text: message.text(), sourceUrl: message.location().url, pathname: pathname() };
         if (isRelevantConsoleError(error, baseURL!)) consoleErrors.push(`${error.pathname}: ${error.text}`);
       });
+      // Uncaught exceptions and unhandled rejections arrive here, not on 'console'.
+      page.on('pageerror', error => consoleErrors.push(`${pathname()}: uncaught ${error.name}: ${error.message}`));
       page.on('requestfailed', request => {
+        // A request the page cancels (navigation, AbortController) is not a failure.
+        if (request.failure()?.errorText === 'net::ERR_ABORTED') return;
         if (isFirstPartyFailure(request.url(), baseURL!)) {
           requestErrors.push(`${request.url()}: ${request.failure()?.errorText}`);
         }

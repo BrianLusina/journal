@@ -19,6 +19,8 @@ export default defineConfig({
   },
   projects: [
     { name: 'lib', testDir: 'e2e/lib' },
-    { name: 'blog', testDir: 'e2e/blog', use: { ...devices['Desktop Chrome'] } },
+    // Checks the deployment is reachable before anything else runs against it.
+    { name: 'setup', testDir: 'e2e/setup', testMatch: /.*\.setup\.ts/ },
+    { name: 'blog', testDir: 'e2e/blog', dependencies: ['setup'], use: { ...devices['Desktop Chrome'] } },
   ],
 });
