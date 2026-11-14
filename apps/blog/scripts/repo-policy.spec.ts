@@ -68,6 +68,7 @@ describe('toolchain left over from Create React App', () => {
     // npm ci needs a package-lock.json, which bun does not write.
     expect(dockerfile).not.toMatch(/package-lock|bun\.lockb|\bnpm\b|\byarn\b/);
     expect(dockerfile).toMatch(/^COPY package\.json bun\.lock /m);
+    expect(dockerfile).toMatch(/^COPY apps\/blog\/package\.json apps\/blog\/$/m);
     expect(dockerfile).toMatch(/^RUN bun install --frozen-lockfile/m);
     expect(dockerfile).toMatch(/^RUN bun run build$/m);
   });
@@ -110,7 +111,9 @@ describe('Docker image', () => {
   });
 
   it('bundles the server and the api/ functions, and runs the server as a non-root user', () => {
-    expect(dockerfile).toMatch(/^RUN bun server\/build\.ts$/m);
+    expect(dockerfile).toMatch(/^RUN bun apps\/blog\/server\/build\.ts$/m);
+    expect(dockerfile).toMatch(/^COPY --from=builder \/usr\/src\/app\/apps\/blog\/dist \.\/dist$/m);
+    expect(dockerfile).toMatch(/^COPY --from=builder \/usr\/src\/app\/apps\/blog\/dist-server \.\/$/m);
     expect(dockerfile).toMatch(/^USER bun$/m);
     expect(dockerfile).toMatch(/^EXPOSE 8080$/m);
     expect(dockerfile).toMatch(/^HEALTHCHECK .*\/healthz/m);
