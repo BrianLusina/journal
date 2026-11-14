@@ -31,5 +31,7 @@ export function bypassHeadersFor(
 ): Record<string, string> {
   if (!secret || !isSameOrigin(requestUrl, baseURL)) return {};
 
-  return { 'x-vercel-protection-bypass': secret, 'x-vercel-set-bypass-cookie': 'true' };
+  // No x-vercel-set-bypass-cookie: it makes Vercel redirect (307) to set a cookie, and every
+  // same-origin request carries this header anyway.
+  return { 'x-vercel-protection-bypass': secret };
 }
