@@ -3,12 +3,8 @@
     "color-contrast",
     "listitem"
   ],
-  "/about": [
-    "color-contrast"
-  ],
-  "/about-us": [
-    "color-contrast"
-  ],
+  "/about": [],
+  "/about-us": [],
   "/article": [],
   "/article/vomuFcNE5DD9sDzRrZ9if/perspective": [],
   "/articles": [],
