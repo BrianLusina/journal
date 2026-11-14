@@ -76,8 +76,8 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      # Commit on top of the commit the baselines were recorded from. If the branch moved since,
-      # the plain push below is rejected instead of attaching old baselines to newer code.
+      # Commit on top of the commit the baselines were recorded from; the push below is
+      # conditional on the branch still pointing at it.
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
@@ -94,7 +94,9 @@ jobs:
           git add e2e/baseline e2e/blog/__screenshots__
           git diff --cached --quiet && echo "Baselines unchanged" && exit 0
           git commit -m "test(e2e): update baselines from $URL"
-          git push origin "HEAD:refs/heads/${{ github.head_ref }}"
+          # Push only if the branch still points at the recorded commit (fails if it moved, was
+          # reset or was deleted). The new commit sits on that commit, so this is a fast-forward.
+          git push --force-with-lease="refs/heads/${{ github.head_ref }}:${{ github.event.pull_request.head.sha }}" origin "HEAD:refs/heads/${{ github.head_ref }}"
       - name: Remove the label
         if: always()
         env:

@@ -1,6 +1,6 @@
 import { test, expect } from '../fixtures';
 import { isRecording, readBaseline, writeBaseline } from '../lib/baseline';
-import { collectArticlePaths, missingPaths, type InventoryEntry } from '../lib/inventory';
+import { collectArticlePaths, missingPaths, readArticleEntry, type InventoryEntry } from '../lib/inventory';
 
 const BASELINE = 'blog-articles';
 
@@ -9,12 +9,8 @@ test('@record record the article inventory', async ({ page }) => {
   test.setTimeout(300_000);
 
   const entries: InventoryEntry[] = [];
-  for (const path of await collectArticlePaths(page)) {
-    await page.goto(path, { waitUntil: 'networkidle' });
-    // A listed article that redirects (to /404) must fail the recording, not become a baseline entry.
-    expect(new URL(page.url()).pathname, `${path} redirected while recording`).toBe(path);
-    entries.push({ path, h1: (await page.locator('h1').first().innerText()).trim() });
-  }
+  // readArticleEntry throws on a redirect, so nothing is written unless every article opens.
+  for (const path of await collectArticlePaths(page)) entries.push(await readArticleEntry(page, path));
 
   writeBaseline(BASELINE, entries.sort((a, b) => a.path.localeCompare(b.path)));
 });

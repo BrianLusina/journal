@@ -39,3 +39,16 @@ export async function collectArticlePaths(page: Page, maxRounds = 20): Promise<s
 
   return [...new Set(hrefs.filter(href => ARTICLE_PATH.test(href)))].sort();
 }
+
+/**
+ * Opens `path` (relative to the page's current site) and returns its first heading. Throws when
+ * the article redirects (to /404, say), so a broken article fails the recording instead of being
+ * written into the baseline under its old path.
+ */
+export async function readArticleEntry(page: Page, path: string): Promise<InventoryEntry> {
+  await page.goto(new URL(path, page.url()).href, { waitUntil: 'networkidle' });
+  const landed = new URL(page.url()).pathname;
+  if (landed !== path) throw new Error(`${path} redirected to ${landed} while recording`);
+
+  return { path, h1: (await page.locator('h1').first().innerText()).trim() };
+}

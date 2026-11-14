@@ -153,6 +153,16 @@ describe('test runner isolation', () => {
 });
 
 describe('end-to-end workflows', () => {
+  it('publishes baselines only if the branch still points at the recorded commit', () => {
+    const workflow = read('.github/workflows/e2e-update-baselines.yml');
+
+    // A plain push would also succeed after the branch was deleted or reset to an ancestor, and
+    // bring old commits back; the lease makes the push conditional on the recorded commit.
+    expect(workflow).toContain(
+      'git push --force-with-lease="refs/heads/${{ github.head_ref }}:${{ github.event.pull_request.head.sha }}" origin "HEAD:refs/heads/${{ github.head_ref }}"',
+    );
+  });
+
   it('install the bun version package.json pins in the Playwright container', () => {
     const pinned = JSON.parse(read('package.json')).packageManager.replace(/^bun@/, '');
 
