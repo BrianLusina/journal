@@ -223,7 +223,7 @@ Brian does all work outside this repo. The repo provides what that work needs: t
 - *GA4 alongside Vercel Web Analytics* (§6.4): Vercel's Hobby plan has no custom events and can't follow a visitor across sites, so GA4 stays for those two jobs, behind the consent banner.
 - *Docker/Node build:* it must serve every page and API route with the same behaviour. It does **not** need ISR. Pages are server-rendered with `Cache-Control: s-maxage=…, stale-while-revalidate=…` for whatever CDN sits in front, and preview simply bypasses those headers. On Vercel, ISR is an optimisation, not a feature the design depends on.
 - *What blocks the DNS cutover (#930):*
-  - **required:** home and folio (§5.2–§5.3, without the résumé PDF and search), the shared header, footer, 404, privacy and contact, consent + analytics, Sentry tagging, and every §7 gate;
+  - **required:** home and folio (§5.2–§5.3, without the résumé PDF, search and share images), the shared header, footer, 404, privacy and contact, consent + analytics, Sentry tagging, and every §7 gate;
   - **may follow:** the résumé PDF, share images and draft preview.
 - *Old URLs:* take a URL inventory of today's `folio.brianlusina.com` and 301 its routes (`/projects/oss`, `/projects/work`, `/projects/*/:slug`) to their new equivalents. `brianlusina.com` today uses hash anchors only, so it needs no redirects.
 

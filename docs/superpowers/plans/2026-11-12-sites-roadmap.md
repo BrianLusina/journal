@@ -17,8 +17,8 @@ The spec spans several subsystems, and later ones depend on file paths that only
 | P9 | Projects: `UnifiedProject`, `.portfolio.md` schema + template + reusable workflow, GitHub adapter, Sanity project adapter, revalidate endpoint | #936 (do early: unblocks Brian), #937, #938 | P3, P6, P7 | To write |
 | P10 | Home: hero, experience timeline, featured projects, featured posts (`featured` in sources) | #939 | P8, P9 | To write |
 | P11 | Folio: project list with filters, detail pages, old-URL redirects | #940 | P8, P9 | To write |
-| P12 | Cutover gates: Lighthouse budgets, bundle/secret/placeholder guard, scheduled smoke for all domains, Sentry site tags, uptime monitor | #941 | P10, P11 | To write |
-| P13 | After cutover: résumé PDF + PII guard, share images, draft preview | #942, #943, #944 | P10, P11 | To write |
+| P12 | Cutover gates: Lighthouse budgets, bundle/secret/placeholder guard, PII guard for page HTML and API responses, scheduled smoke for all domains, Sentry site tags, uptime monitor | #941 | P10, P11 | To write |
+| P13 | After cutover: résumé PDF + its PII check, share images, draft preview | #942, #943, #944 | P10, P11 | To write |
 | — | DNS cutover and archiving (runbook, mostly manual) | #930 | P12 | Runbook in #930 |
 | — | Blog adopts shared pieces (each a separately approved change) | later issues | #930 | Not planned yet |
 

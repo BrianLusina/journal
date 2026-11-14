@@ -11,6 +11,8 @@ test('@record record the article inventory', async ({ page }) => {
   const entries: InventoryEntry[] = [];
   for (const path of await collectArticlePaths(page)) {
     await page.goto(path, { waitUntil: 'networkidle' });
+    // A listed article that redirects (to /404) must fail the recording, not become a baseline entry.
+    expect(new URL(page.url()).pathname, `${path} redirected while recording`).toBe(path);
     entries.push({ path, h1: (await page.locator('h1').first().innerText()).trim() });
   }
 

@@ -15,7 +15,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     launchOptions: { executablePath: process.env.PW_CHROMIUM_PATH || undefined },
     // Lets the request fixture work behind an outbound proxy; unset in CI, where it changes nothing.
-    proxy: process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY } : undefined,
+    proxy: process.env.HTTPS_PROXY ? { server: process.env.HTTPS_PROXY, bypass: 'localhost,127.0.0.1' } : undefined,
   },
   projects: [
     { name: 'lib', testDir: 'e2e/lib' },

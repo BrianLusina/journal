@@ -1,17 +1,22 @@
 import { test, expect } from '../fixtures';
 
-// These check the harness itself: what the automatic page-error check in ../fixtures counts.
+// These check the harness itself: what the pageErrors fixture in ../fixtures records. The checks
+// read the recorded lists directly, so an unrelated error on the page can't make them pass.
+test.use({ allowPageErrors: true });
 
-test('an uncaught exception in the page fails the test', async ({ page }) => {
-  test.fail(true, 'The pageErrors fixture must report the exception thrown below.');
+test('an uncaught exception in the page is recorded', async ({ page, pageErrors }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
+  const thrown = page.waitForEvent('pageerror', error => error.message === 'Thrown on purpose by harness.spec.ts');
+
   await page.evaluate(() => setTimeout(() => {
     throw new Error('Thrown on purpose by harness.spec.ts');
   }));
-  await page.waitForTimeout(200);
+  await thrown;
+
+  expect(pageErrors.consoleErrors).toContain('/: uncaught Error: Thrown on purpose by harness.spec.ts');
 });
 
-test('a request the page cancels is not a failure', async ({ page }) => {
+test('a request the page cancels is not recorded', async ({ page, pageErrors }) => {
   await page.goto('/', { waitUntil: 'networkidle' });
   await page.evaluate(async () => {
     const controller = new AbortController();
@@ -19,5 +24,6 @@ test('a request the page cancels is not a failure', async ({ page }) => {
     controller.abort();
     await request;
   });
-  await expect(page.locator('h1').first()).toBeVisible();
+
+  expect(pageErrors.requestErrors.filter(error => error.includes('/api/notion/posts?limit=1'))).toEqual([]);
 });

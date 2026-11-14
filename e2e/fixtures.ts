@@ -1,5 +1,5 @@
 import { test as base, expect } from '@playwright/test';
-import { bypassHeadersFor, isSameOrigin } from './lib/env';
+import { routeWithBypass } from './lib/bypass';
 import { isExpectedFailure, isFirstPartyFailure, isRelevantConsoleError } from './lib/errors';
 
 type Options = {
@@ -7,9 +7,14 @@ type Options = {
   allowPageErrors: boolean;
 };
 
+export type PageErrors = { consoleErrors: string[]; requestErrors: string[] };
+
 type Fixtures = {
-  /** Fails the test at teardown on any relevant console error or first-party request failure. */
-  pageErrors: void;
+  /**
+   * What the page reported: relevant console errors, uncaught exceptions and first-party request
+   * failures. Unless `allowPageErrors` is set, the test fails at teardown if either list isn't empty.
+   */
+  pageErrors: PageErrors;
 };
 
 const BASE_URL_MISSING =
@@ -25,17 +30,8 @@ export const test = base.extend<Options & Fixtures>({
 
   page: async ({ page, baseURL }, use) => {
     const secret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
-
-    if (secret && baseURL) {
-      // Only the deployment's own requests carry the secret; see bypassHeadersFor.
-      await page.route(
-        url => isSameOrigin(url.href, baseURL),
-        route =>
-          route.continue({
-            headers: { ...route.request().headers(), ...bypassHeadersFor(route.request().url(), baseURL, secret) },
-          }),
-      );
-    }
+    // Only the deployment's own requests carry the secret, and not through redirects; see routeWithBypass.
+    if (secret && baseURL) await routeWithBypass(page, baseURL, secret);
 
     await use(page);
   },
@@ -70,7 +66,7 @@ export const test = base.extend<Options & Fixtures>({
         }
       });
 
-      await use();
+      await use({ consoleErrors, requestErrors });
 
       if (!allowPageErrors) {
         expect(consoleErrors, 'Console errors on the page').toEqual([]);
