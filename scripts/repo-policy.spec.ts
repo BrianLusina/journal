@@ -139,3 +139,15 @@ describe('type-check policy', () => {
     expect(read('.github/workflows/lint.yml')).toMatch(/^\s*run: bun run typecheck:server\s*$/m);
   });
 });
+
+describe('test runner isolation', () => {
+  it('keeps Vitest out of e2e/, which Playwright owns', () => {
+    const include = read('vitest.config.mts').match(/include:\s*\[([^\]]*)\]/)?.[1] ?? '';
+    const globs = [...include.matchAll(/['"]([^'"]+)['"]/g)].map(match => match[1]);
+
+    expect(globs.length).toBeGreaterThan(0);
+    // A glob starting with `**` would also collect the Playwright specs, which Vitest can't run.
+    expect(globs.filter(glob => glob.startsWith('e2e/') || glob.startsWith('**'))).toEqual([]);
+    expect(read('playwright.config.ts')).toContain("testDir: 'e2e'");
+  });
+});

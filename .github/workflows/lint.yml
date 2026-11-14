@@ -34,3 +34,6 @@ jobs:
 
     - name: Type-check the Docker image server
       run: bun run typecheck:server
+
+    - name: Type-check the end-to-end tests
+      run: bun run typecheck:e2e

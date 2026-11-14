@@ -23,4 +23,10 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
+  {
+    // Playwright fixtures call a parameter named `use`, which the React hooks rule mistakes for a hook.
+    files: ["e2e/**/*.ts", "playwright.config.ts"],
+    languageOptions: { globals: globals.node },
+    rules: { "react-hooks/rules-of-hooks": "off" },
+  },
 );
