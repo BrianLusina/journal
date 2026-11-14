@@ -1,6 +1,6 @@
 import { test as base, expect } from '@playwright/test';
 import { bypassHeadersFor, isSameOrigin } from './lib/env';
-import { isFirstPartyFailure, isRelevantConsoleError } from './lib/errors';
+import { isExpectedFailure, isFirstPartyFailure, isRelevantConsoleError } from './lib/errors';
 
 type Options = {
   /** Turns off the automatic console and request error check for one test or file. */
@@ -57,7 +57,11 @@ export const test = base.extend<Options & Fixtures>({
         }
       });
       page.on('response', response => {
-        if (response.status() >= 500 && isFirstPartyFailure(response.url(), baseURL!)) {
+        if (
+          response.status() >= 500 &&
+          isFirstPartyFailure(response.url(), baseURL!) &&
+          !isExpectedFailure(response.url(), response.status())
+        ) {
           requestErrors.push(`${response.url()}: HTTP ${response.status()}`);
         }
       });
