@@ -24,7 +24,7 @@ yarn-error.log
 /node_modules
 .envrc
 # testing
-/coverage
+coverage/
 
 # production
 /build
