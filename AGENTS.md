@@ -36,6 +36,7 @@ Journal is a personal blog and journal website. It displays blog posts from more
 - **Run tests**: `bun run test` (Vitest; `bun test` starts Bun's own runner, which ignores `vitest.config.mts`)
 - **Run linting**: `bun lint`
 - **Type-check**: `bun run typecheck` (`vite build` and Vitest don't type-check; CI does)
+- **End-to-end tests**: `E2E_BASE_URL=<deployment URL> bun run e2e` (Playwright, `e2e/`); `bun run e2e:record` rewrites the JSON baselines; `bun run typecheck:e2e` type-checks them. See "End-to-end" in docs/ARCHITECTURE.md.
 - **Build**: `bun run build`
 - **Preview production build**: `bun run preview`
 - **Storybook**: `bun run storybook`
