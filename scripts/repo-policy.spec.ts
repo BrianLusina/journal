@@ -139,3 +139,38 @@ describe('type-check policy', () => {
     expect(read('.github/workflows/lint.yml')).toMatch(/^\s*run: bun run typecheck:server\s*$/m);
   });
 });
+
+describe('test runner isolation', () => {
+  it('keeps Vitest out of e2e/, which Playwright owns', () => {
+    const include = read('vitest.config.mts').match(/include:\s*\[([^\]]*)\]/)?.[1] ?? '';
+    const globs = [...include.matchAll(/['"]([^'"]+)['"]/g)].map(match => match[1]);
+
+    expect(globs.length).toBeGreaterThan(0);
+    // A glob starting with `**` would also collect the Playwright specs, which Vitest can't run.
+    expect(globs.filter(glob => glob.startsWith('e2e/') || glob.startsWith('**'))).toEqual([]);
+    expect(read('playwright.config.ts')).toContain("testDir: 'e2e'");
+  });
+});
+
+describe('end-to-end workflows', () => {
+  it('publishes baselines only if the branch still points at the recorded commit', () => {
+    const workflow = read('.github/workflows/e2e-update-baselines.yml');
+
+    // A plain push would also succeed after the branch was deleted or reset to an ancestor, and
+    // bring old commits back; the lease makes the push conditional on the recorded commit.
+    expect(workflow).toContain(
+      'git push --force-with-lease="refs/heads/${{ github.head_ref }}:${{ github.event.pull_request.head.sha }}" origin "HEAD:refs/heads/${{ github.head_ref }}"',
+    );
+  });
+
+  it('install the bun version package.json pins in the Playwright container', () => {
+    const pinned = JSON.parse(read('package.json')).packageManager.replace(/^bun@/, '');
+
+    for (const file of ['.github/workflows/e2e.yml', '.github/workflows/e2e-update-baselines.yml']) {
+      const workflow = read(file);
+      // setup-bun extracts a zip with `unzip`, which the Playwright image isn't guaranteed to have.
+      expect(workflow).not.toContain('oven-sh/setup-bun');
+      expect(workflow).toContain(`npm install -g bun@${pinned}`);
+    }
+  });
+});

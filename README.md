@@ -55,6 +55,17 @@ bun run test:coverage   # Vitest with the 85% coverage gate CI enforces
 
 Use `bun run test`, not `bun test`. `bun test` starts Bun's own test runner, which ignores `vitest.config.mts` and fails.
 
+End-to-end tests ([Playwright](https://playwright.dev/), in `e2e/`) check a running deployment, so they need its URL:
+
+```bash
+bunx playwright install chromium   # once per machine; or set PW_CHROMIUM_PATH to an existing Chromium binary
+E2E_BASE_URL=https://blog.brianlusina.com bun run e2e   # the whole suite against production
+E2E_BASE_URL=https://blog.brianlusina.com bun run e2e:record   # rewrite the recorded baselines
+bun run typecheck:e2e
+```
+
+CI runs them on every Vercel deployment; screenshots are only compared there. See "End-to-end" in [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md#testing).
+
 Linting and building:
 
 ```bash
