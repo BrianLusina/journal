@@ -30,6 +30,8 @@ for (const { source, name, rawKey } of SOURCES) {
     const url = new URL(`/api/${source}/posts?limit=1`, baseURL).toString();
     const response = await request.get(url, {
       headers: bypassHeadersFor(url, baseURL, process.env.VERCEL_AUTOMATION_BYPASS_SECRET),
+      // Playwright copies headers onto redirects, so a redirect elsewhere would carry the secret.
+      maxRedirects: 0,
     });
     const text = await response.text();
 

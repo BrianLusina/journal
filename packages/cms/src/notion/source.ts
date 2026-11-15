@@ -84,6 +84,10 @@ export const notionSource: CMSAdapter = {
       if (page.has_more && !page.next_cursor) {
         throw new Error('Notion reported more posts without a cursor');
       }
+      // The same cursor again would read the same page forever.
+      if (page.has_more && page.next_cursor === cursor) {
+        throw new Error('Notion returned a cursor that did not advance');
+      }
       cursor = page.has_more ? page.next_cursor ?? undefined : undefined;
     } while (cursor);
     return mapPages(pages);

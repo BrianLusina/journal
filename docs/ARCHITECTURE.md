@@ -99,7 +99,7 @@ interface CMSAdapter {
 - **`notionSource`** queries the data source and maps the page properties listed under [Notion schema](#notion-schema). Its slug lookup converts the page body to Markdown with `notion-to-md`, so both sources produce Markdown for `ArticlePage`, and the slug route answers `{ post }` with the body in it. Its cursor is Notion's own `next_cursor`, passed through `/api/notion/posts?cursor=…`; each request reads one Notion page (at most 100 posts), so there is no limit on how far the feed can go. A Notion page is **published** when its `Status` is `Published` **and** `Published` (the date) is set (the feed merges on publish date, so an undated post has no place in it). It is listed only when it is published and its `Slug` is not empty (a post without a slug could never be opened), and opened by slug only when it is published.
 - **`createApiAdapter(source)`** is the browser's adapter for either source. It builds the route URLs, answers `null` on a 404, and rejects with "Unable to fetch <Source> posts: <status>" (or post, or search index) on any other error.
 
-`e2e/blog/api.spec.ts` checks each posts route on the deployment: it answers 200 with `UnifiedPost`s, not the CMS's own shape.
+`e2e/blog/api.spec.ts` checks each posts route on the deployment: it answers 200 with a page whose first post is a `UnifiedPost`, not the CMS's own shape. It checks no post shape when a source answers an empty page, and skips a source the deployment hasn't configured (500 `{ error: '<Source> is not configured' }`); a crashed function still fails it. Neither the slug nor the search-index routes are checked on the deployment.
 
 #### Notion schema
 

@@ -120,6 +120,15 @@ describe('notionSource', () => {
       expect(posts.map(post => post.id)).toEqual(['7d3761f9-323d-4a15-a0e3-d000221fc5ac', 'second']);
     });
 
+    it('rejects rather than loop forever when Notion answers with the cursor it was asked for', async () => {
+      (notion.dataSources.query as Mock)
+        .mockResolvedValueOnce({ results: [notionPage()], has_more: true, next_cursor: 'c2' })
+        .mockResolvedValue({ results: [notionPage()], has_more: true, next_cursor: 'c2' });
+
+      await expect(notionSource.getSearchIndex()).rejects.toThrow('did not advance');
+      expect(notion.dataSources.query).toHaveBeenCalledTimes(2);
+    });
+
     it('rejects rather than return a partial index when Notion reports more without a cursor', async () => {
       (notion.dataSources.query as Mock).mockResolvedValue({ results: [notionPage()], has_more: true, next_cursor: null });
 

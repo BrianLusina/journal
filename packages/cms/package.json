@@ -6,6 +6,7 @@
   "main": "index.ts",
   "types": "index.ts",
   "scripts": {
+    "lint": "eslint .",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit"

@@ -16,7 +16,7 @@
     "build:dev": "bun run --filter blog build:dev",
     "check:bundle-size": "bun run --filter blog check:bundle-size",
     "preview": "bun run --filter blog preview",
-    "lint": "bun run --filter blog lint",
+    "lint": "bun run --filter './packages/*' --filter './apps/*' lint",
     "lint:styles": "bun run --filter blog lint:styles",
     "lint:styles:fix": "bun run --filter blog lint:styles:fix",
     "lint:fix": "bun run --filter blog lint:fix",
