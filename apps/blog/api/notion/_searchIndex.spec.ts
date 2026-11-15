@@ -1,7 +1,7 @@
 import type { Mock } from 'vitest';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import handler from './search-index';
-import { listedFilters } from '../../shared/notion';
+import { listedFilters } from '@brianlusina/cms';
 import { getDataSourceId, isNotionConfigured, notion } from './_shared';
 
 vi.mock('./_shared', () => ({

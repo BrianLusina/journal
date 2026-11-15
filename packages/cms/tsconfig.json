@@ -1,0 +1,17 @@
+{
+  // CommonJS with Node resolution, like apps/blog/api/tsconfig.json: Vercel compiles the blog's
+  // functions, and everything they import, that way.
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["es2022"],
+    "types": ["node", "vitest/globals"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "coverage"]
+}

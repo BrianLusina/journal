@@ -6,7 +6,8 @@
   "license": "The MIT License (MIT)",
   "packageManager": "bun@1.3.14",
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
     "vercel:dev": "bun run --filter blog vercel:dev",
@@ -19,13 +20,13 @@
     "lint:styles": "bun run --filter blog lint:styles",
     "lint:styles:fix": "bun run --filter blog lint:styles:fix",
     "lint:fix": "bun run --filter blog lint:fix",
-    "typecheck": "bun run --filter blog typecheck",
+    "typecheck": "bun run --filter './packages/*' --filter './apps/*' typecheck",
     "typecheck:api": "bun run --filter blog typecheck:api",
     "typecheck:server": "bun run --filter blog typecheck:server",
     "format": "bun run --filter blog format",
-    "test": "bun run --filter blog test",
+    "test": "bun run --filter './packages/*' --filter './apps/*' test",
     "test:watch": "bun run --filter blog test:watch",
-    "test:coverage": "bun run --filter blog test:coverage",
+    "test:coverage": "bun run --filter './packages/*' --filter './apps/*' test:coverage",
     "clean": "bun run --filter blog clean",
     "depcheck": "bun run --filter blog depcheck",
     "scan:licenses": "bun run --filter blog scan:licenses",

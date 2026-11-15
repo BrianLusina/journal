@@ -30,6 +30,7 @@
     "storybook:build": "storybook build"
   },
   "dependencies": {
+    "@brianlusina/cms": "workspace:*",
     "@apollo/client": "^3.4.16",
     "@hookform/resolvers": "^3.10.0",
     "@notionhq/client": "^5.22.0",
