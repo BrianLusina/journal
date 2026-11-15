@@ -1,0 +1,186 @@
+[
+  {
+    "path": "/article/124HM9GyfTPpbizSixVu3c/kotlin-adventures",
+    "h1": "My Journey in Kotlin thus far"
+  },
+  {
+    "path": "/article/17a6db71-46f3-40d9-9c92-56276325a0e6/some-slug",
+    "h1": "Navigating Decision-Making in Engineering: A Framework-Centric Approach"
+  },
+  {
+    "path": "/article/1Md4xoSe5DW7JPUvyeCZN3/non-life-actuarial-problems",
+    "h1": "Non Life Insurance Problems in Life"
+  },
+  {
+    "path": "/article/28JAcWDTDAXHPKBmkBPK9D/bottom-up-algorithms",
+    "h1": "Bottom up algorithms"
+  },
+  {
+    "path": "/article/2LyqjI7cWYO1vDs2czYOHQ/abstract-data-types",
+    "h1": "Abstract Data Types"
+  },
+  {
+    "path": "/article/2uQtMNRPEWtoIqYNuYaTbx/algorithm-complexity",
+    "h1": "Complexity of Algorithms"
+  },
+  {
+    "path": "/article/2xD5daktDgV8mFpc6AfnWs/raspberry-pi-hotspot",
+    "h1": "Raspberry Pi Hotspot configuration"
+  },
+  {
+    "path": "/article/2xtDNwLgxyJR4xserpVTxD/abstraction",
+    "h1": "A Practical example of Abstraction"
+  },
+  {
+    "path": "/article/2ZWnGxjo6zOyL7MsZ7XOqa/education-and-academics",
+    "h1": "Of education and academics"
+  },
+  {
+    "path": "/article/35EDomS8SgDPmJCNOiegiJ/memoize-python",
+    "h1": "Concept of Memoize"
+  },
+  {
+    "path": "/article/38O3KscwHBkBZmyUECllN7/abstraction-and-interfaces",
+    "h1": "Abstraction and interfaces"
+  },
+  {
+    "path": "/article/3auHkPxGebJDgwEcwC8Rs2/principles-of-oop",
+    "h1": "The 4 Principles of OOP"
+  },
+  {
+    "path": "/article/3g37XkkbE8JyxQ81y1GJWi/virtualdom",
+    "h1": "The Virtual DOM with React"
+  },
+  {
+    "path": "/article/3H9Fppl1E5eaXacOlAmO1C/binary-tree",
+    "h1": "Perfect Binary Tree"
+  },
+  {
+    "path": "/article/3JvlbcoIK3n5qrHbPOQKbH/live-life",
+    "h1": "Live Life!"
+  },
+  {
+    "path": "/article/3RCAwjSImNrgSSeuCGEAjo/vigenere-cipher",
+    "h1": "Vigenere Cipher"
+  },
+  {
+    "path": "/article/3rpEXXoNOFM3tJCIZOaomO/chaos-engineering",
+    "h1": "Harmony in Chaos Engineering"
+  },
+  {
+    "path": "/article/3tZeAUxjiPUhAu53ifbVVF/exceptions",
+    "h1": "Exception handling and why you should care."
+  },
+  {
+    "path": "/article/3vTMiLfbdzGQNeRSYGSCVf/open-letter-to-my-wife",
+    "h1": "An open letter to my wife"
+  },
+  {
+    "path": "/article/3Y7U5r8m6jbN2p5bFJh6SD/influence-tech-on-career",
+    "h1": "Influence learning tech has had on my life and career"
+  },
+  {
+    "path": "/article/4HnGnRjiL74wTEpzkOepZn/numpy",
+    "h1": "NumPy"
+  },
+  {
+    "path": "/article/4QHFSnyYEklHbo8XZK26bh/risk-process",
+    "h1": "The Risk Process"
+  },
+  {
+    "path": "/article/4TaPfXnISQFfwiR0xm8Guq/sins-of-success",
+    "h1": "The sins of success"
+  },
+  {
+    "path": "/article/5DgXP6mvo0fBOz1BARjXPI/career-development-in-software",
+    "h1": "Tools to a Successful Career in Software Development"
+  },
+  {
+    "path": "/article/5HP08pAAfafcPfdCjWQGgg/how-browsers-work",
+    "h1": "How Browsers Work"
+  },
+  {
+    "path": "/article/5maIKdBqZ4VWUN5MG2gUs1/building-blocks-android",
+    "h1": "Android Building Blocks"
+  },
+  {
+    "path": "/article/61oTZfiHAKOVz7oYdwqfVX/postadd-preadd",
+    "h1": "Difference between Post increment and pre increment of a variable"
+  },
+  {
+    "path": "/article/62sjeptk3QF2lQsEx9kKaW/usability-and-code",
+    "h1": "Usability, Design and Code"
+  },
+  {
+    "path": "/article/68lSM7uxzqwgUG4knuSY8p/chrome-dev-tools",
+    "h1": "What Is Chrome Developer Tools?"
+  },
+  {
+    "path": "/article/6AHRfyQoUinktkeraILMXf/object-oriented-programming",
+    "h1": "Objective of Object Oriented Programming."
+  },
+  {
+    "path": "/article/6bA1ZOH5ql1tDYudKRhDEC/want-to-be-rich",
+    "h1": "5 Attributes of billionaires"
+  },
+  {
+    "path": "/article/6GNWcAcf6zpDA5QJIAqQ1B/big-o-notation",
+    "h1": "Big-O-Notation"
+  },
+  {
+    "path": "/article/6h5naBDguFMUChaP3LsyM3/test-users-usabilty-studies",
+    "h1": "Test Users and Usability"
+  },
+  {
+    "path": "/article/6iFk24pQBdoPh0YtFmYVWQ/id-generator",
+    "h1": "Building A Simple Distributed ID Generation Service"
+  },
+  {
+    "path": "/article/6j4TMfqqBQGX1xYL0zkxYq/binary-tree-heights",
+    "h1": "Binary Trees Heights"
+  },
+  {
+    "path": "/article/6PfuRaaennFhjywJvkcu2C/access-modifiers",
+    "h1": "Accessors and Modifiers"
+  },
+  {
+    "path": "/article/6r3m8WCgI3YSQtEUmVY12p/flask-webframework",
+    "h1": "Flask Web Framework"
+  },
+  {
+    "path": "/article/6VeXnKYC8okIAYEJviqVCt/object-immutability-js",
+    "h1": "Object Immutability In JavaScript"
+  },
+  {
+    "path": "/article/6ywCgJnJzI4fyanyF1Ug3i/git-control",
+    "h1": "Version Control and Git"
+  },
+  {
+    "path": "/article/7KNol0e0NEiE9sbXvXw2P2/ci-with-android",
+    "h1": "Continuous integration and deployment with Android, the right way."
+  },
+  {
+    "path": "/article/fLdqpAw0yisKnVve0YYij/algorithms-analysis",
+    "h1": "Algorithm Analysis"
+  },
+  {
+    "path": "/article/ful0AqQ45kwpIDRch47sA/t-shaped-dev",
+    "h1": "T-Shaped Developers, the new norm"
+  },
+  {
+    "path": "/article/GCQrEJZ8ESRS82jSrnt5o/types-of-problems-in-non-life",
+    "h1": "5 Main types of Non-life insurance problems"
+  },
+  {
+    "path": "/article/hWE8v4QYqCJt6AR0v4XyP/serializable-parcelable",
+    "h1": "Serializable and Parcelable"
+  },
+  {
+    "path": "/article/U29hzeILab7UR2gjg4e1N/front-end-journey",
+    "h1": "The Front End Development Journey."
+  },
+  {
+    "path": "/article/vomuFcNE5DD9sDzRrZ9if/perspective",
+    "h1": "Perspective"
+  }
+]

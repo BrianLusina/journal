@@ -29,6 +29,15 @@ Authors, About and Social content bypasses `api/`: `hooks/api/*` and the feature
 
 ## Source layout
 
+The repository is a bun workspace (`workspaces: ["apps/*"]` in the root `package.json`):
+
+| Path | Responsibility |
+|---|---|
+| `/` (root) | Repo-wide tooling and its config: ESLint, husky, lint-staged, commitlint, Danger, Playwright and `e2e/`, the Dockerfile and `.make/`, CI. Its scripts forward to the app (`bun run --filter blog <script>`), so every command runs from here. One `bun.lock` for the workspace. |
+| `apps/blog/` | The blog: the app, its `api/` functions, the Docker server and the app's config (Vite, Vitest, TypeScript, Tailwind, Storybook, stylelint, `vercel.json`, `.env.sample`). The Vercel project's Root Directory. |
+
+Unless a path starts at the repository root (`e2e/`, `.github/`, `Dockerfile`), the paths in this document are relative to `apps/blog/`.
+
 | Path | Responsibility |
 |---|---|
 | `src/main.tsx` | Entry point. Mounts the provider tree: Apollo (Contentful client), TanStack Query, Helmet, the theme provider (`src/providers/theme`, built on `next-themes`: the single source of the light/dark choice, stored in `localStorage.theme`), tooltips, toasts, the root `ErrorBoundary`, and the router. |
@@ -56,7 +65,7 @@ Authors, About and Social content bypasses `api/`: `hooks/api/*` and the feature
 `tsconfig.app.json` is the **single source of truth** for import aliases (`@hooks`, `@cmsService`, `@/…`, and so on).
 
 - Vite reads it through `vite-tsconfig-paths` (`vite.config.mts`).
-- Jest generates its `moduleNameMapper` from it (`jest.config.js`).
+- Vitest reuses `vite.config.mts`, and with it those aliases (`vitest.config.mts`).
 
 Add new aliases there only. Before this was consolidated, three hand-copied lists drifted apart and broke most of the test suite.
 
@@ -178,6 +187,7 @@ The rate limit is **best-effort**: it counts in the memory of one function insta
 - **Production gating:** Sentry, error capture and Firebase Analytics only run when `import.meta.env.MODE === 'production'`.
 - **Lazy Firebase:** the Firebase SDK is downloaded with `import()` on the first event, and only when `VITE_FIREBASE_PROJECT_ID` is set, so a missing optional config cannot blank the app. Events logged while it loads are sent in order once it has.
 - **Lazy Sentry:** `initializeMonitoring()` downloads the Sentry SDK with `import()` once the browser is idle (`requestIdleCallback`, at most 3 s), after the first paint. Errors reported through `captureException` or `captureAndLogError` before then are queued and sent once Sentry is initialized. Uncaught errors and unhandled rejections are queued too: `initializeMonitoring()` listens for `error` and `unhandledrejection` on `window` until `Sentry.init` has installed Sentry's own global handlers. Code reports through `@monitoring` only; importing `@sentry/*` anywhere else pulls the SDK back into the first bundle. Trade-offs: errors thrown while `main.tsx`'s imports evaluate, before it calls `initializeMonitoring()`, are not caught (as before lazy loading); early uncaught errors reach Sentry through `captureException`, so they are marked handled and come with an extra "Uncaught before monitoring loaded" message event; queued reports are lost if the reader leaves before Sentry loads; and nothing is reported if the Sentry chunk fails to download.
+- **Chunk load errors:** routes, `NotFound` and the search dialog load with `lazy` from `@/lib/chunkReload`, not React's. After a deploy, a tab that is already open asks for chunk hashes that no longer exist, and only a reload fixes that, so when a lazy component's chunk fails, it reloads the page once and waits on Suspense meanwhile. A `sessionStorage` timestamp limits this to one reload a minute; past that, or offline, or with storage blocked, the error reaches the error boundary and Sentry as before. Plain `import()` calls (Sentry, Firebase, the search index) don't reload: their callers handle failure themselves.
 - **Bundle budget:** `bun run check:bundle-size` (`scripts/bundle-budget.js`) fails the Build workflow when the entry chunk plus the chunks `index.html` preloads exceed 185 kB gzipped. Load a new SDK lazily rather than raising the budget.
 
 ## Configuration
@@ -211,7 +221,7 @@ Feature flags turn a feature on or off per environment without a code change. Th
 | Flag | Default | Gates |
 |---|---|---|
 | `newsletter` | off | The newsletter signup: `NewsLetterSection` on the home page, `NewsLetterCTA` after articles, and the "Join Our Community" section on the About page. |
-| `search` | off | Site search (see [Search](#search)): the navbar search button and its shortcuts, and the `/search` page, which is not found while the flag is off. The dialog and the search index load with `lazy()` and `import()` on first use, the dialog inside its own `ErrorBoundary`, so a failed chunk drops the dialog, not the navbar. |
+| `search` | off | Site search (see [Search](#search)): the navbar search button and its shortcuts, and the `/search` page, which is not found while the flag is off. The dialog and the search index load with `lazy()` and `import()` on first use, the dialog inside its own `ErrorBoundary`, so a chunk that fails again after the one reload (see [Error handling and observability](#error-handling-and-observability)) drops the dialog, not the navbar. |
 | `notion` | on | Notion as a post source. While it is off, `NotionAdapter` is not registered, so the site never calls `/api/notion` and Notion posts are neither listed nor found by slug. `api/notion` itself is not gated. |
 
 **Setting flags.** `VITE_FEATURES` holds overrides as a comma-separated list, such as `newsletter=on,search=off`. A value is `on`/`off`, `true`/`false` or `1`/`0` (any case), and a bare name means on. A flag the list doesn't name keeps its default. An unknown name, an unknown value or a malformed entry is skipped, with a `console.warn` in development, so a typo never breaks the app. Flags are read once when the page loads.
@@ -222,7 +232,7 @@ Feature flags turn a feature on or off per environment without a code change. Th
 
 **Reading a flag.** Wrap UI in `<Feature name="search" fallback={...}>` (`src/components/Feature`), which renders its children only while the flag is on, or call `useFeatureFlag('search')` (`src/hooks/features`). Code outside React imports the parsed flags from `src/config/features.ts` (`import features from '@/config/features'`), as `src/services/cms/adapters.ts` does. Names are checked by TypeScript, so a misspelt flag fails `bun run typecheck`.
 
-Code behind a flag that is off still ships in the bundle, because the value can change at runtime in the Docker image. Load anything sizeable behind a flag with `lazy()`, as `SearchLauncher` does for the search dialog, to keep it out of the initial bundle.
+Code behind a flag that is off still ships in the bundle, because the value can change at runtime in the Docker image. Load anything sizeable behind a flag with `lazy()` from `@/lib/chunkReload`, as `SearchLauncher` does for the search dialog, to keep it out of the initial bundle.
 
 **Adding a flag.** Add it to `FEATURE_DEFAULTS` in `src/config/features.ts`, which is the only place flags are declared. A new or unfinished feature defaults to `false`, so an environment without `VITE_FEATURES` hides it. Gate the feature with `<Feature>`, `useFeatureFlag` or `features.<name>`. Test both states: render under `<FeaturesProvider value={{ ...FEATURE_DEFAULTS, <name>: true }}>` (`src/providers/features`), or set `window.__ENV__ = { VITE_FEATURES: '...' }` and reload the module for code outside React (`src/services/cms/adapters.spec.ts`). Add the flag to the table above. `VITE_FEATURES` is already in `CLIENT_ENV_KEYS`, so no server change is needed.
 
@@ -231,11 +241,11 @@ Code behind a flag that is off still ships in the bundle, because the value can 
 ## Deployment topology
 
 - The SPA is static (`dist/`). Posts from both CMSs and the contact and newsletter forms **require** a host that runs the `api/` functions: Vercel, which builds every PR as a preview, or the Docker image.
-- Production deploys through the Vercel GitHub integration. GitHub Actions does only what Vercel doesn't on pushes to `staging` and `production`: semantic-release tags (`release.yml`) and the Docker image (`dockerimage.yml`), pushed to `ghcr.io/<owner>/journal` and tagged with the branch and the commit SHA. The Sentry release and source maps come from Vercel's own build (see `SENTRY_*` above), so they match the deployed bundle.
+- Production deploys through the Vercel GitHub integration, with the project's Root Directory set to `apps/blog`. GitHub Actions does only what Vercel doesn't on pushes to `staging` and `production`: semantic-release tags (`release.yml`) and the Docker image (`dockerimage.yml`), pushed to `ghcr.io/<owner>/journal` and tagged with the branch and the commit SHA. The Sentry release and source maps come from Vercel's own build (see `SENTRY_*` above), so they match the deployed bundle.
 - The **Docker image** runs the whole app, `api/` included, on Bun (`server/index.ts`), for hosts with a container runtime:
   - **Static files:** `dist/`, with `index.html` for any other path (the SPA's routes). Files directly in `/assets/`, which Vite content-hashes, are cached for a year (`scripts/repo-policy.spec.ts` keeps unhashed files out of the top of `public/assets/`); `index.html` (with the configuration set) is `no-cache`. A missing `/assets/*` file is a 404, not `index.html`.
   - **Functions:** `/api/...` runs the matching file in `api/` by Vercel's file-system rules: `api/notion/posts.ts` serves `/api/notion/posts`, `api/notion/posts/[slug].ts` serves `/api/notion/posts/:slug`, `api/a/index.ts` serves `/api/a`, and files and directories starting with `_` (such as `api/_forms/`) are not routes. An unknown `/api` path is a JSON 404, and a function that fails to load or throws a JSON 500. `server/adapter.ts` passes a handler the part of `VercelRequest` and `VercelResponse` the functions use: `req.method`, `req.query` (with the dynamic segments), `req.headers`, `req.body` (parsed when it is JSON), `req.socket.remoteAddress` (the client's address), and `res.status`, `res.setHeader`, `res.json`, `res.send` and `res.end`. A function that needs more must have it added there.
-  - **Build:** `bun server/build.ts` bundles the server and each function, with the packages they import, into `dist-server/`, so the image has no `node_modules`.
+  - **Build:** `bun apps/blog/server/build.ts` (from the root) bundles the server and each function, with the packages they import, into `dist-server/`, so the image has no `node_modules`.
   - **Configuration** comes from the container's environment when it starts: the `VITE_*` variables (set in `index.html`, see [Configuration](#configuration)) and the server-only ones (`CONTENTFUL_CMS_*`, `NOTION_*`, `RESEND_*` and `CONTACT_*`). The image is built without build arguments, so one image runs in every environment. `PORT` changes the port (default 8080). Run it behind a proxy that overwrites `X-Forwarded-For`: the form functions rate-limit by the address in that header when it is set, so a client could otherwise send a new one with each request.
   - **Health:** `/healthz` answers `ok`, and the Dockerfile's `HEALTHCHECK` polls it.
 - A static-only host (GitHub Pages) serves the app without any posts: the aggregator degrades gracefully, but both sources fail, and the forms show their error message. Only the Apollo-queried authors, About and Social content appears.
@@ -243,9 +253,9 @@ Code behind a flag that is off still ships in the bundle, because the value can 
 
 ## Testing
 
-- **Runner:** Jest 26 with jsdom and React Testing Library 16; specs sit next to their code as `*.spec.ts(x)`.
+- **Runner:** Vitest with jsdom and React Testing Library 16; specs sit next to their code as `*.spec.ts(x)`.
 - **React 18 root:** Testing Library renders on React 18's concurrent root, as the app does. Hooks are tested with its `renderHook`, and `user-event` 14 calls are awaited (`const user = userEvent.setup(); await user.click(...)`). `scripts/ts/setupTests.ts` makes the legacy-root `ReactDOM.render` and `ReactDOM.hydrate` throw, so a test or library that still renders through them (and so runs the tree as React 17) fails.
-- **Command:** run with `bun run test` (Jest). **Not** `bun test`, which runs Bun's own runner without `jest.config.js` and fails.
+- **Command:** run with `bun run test` (Vitest). **Not** `bun test`, which runs Bun's own runner without `vitest.config.mts` and fails. Mocks reset before each test (`mockReset`).
 - **Coverage gate:** `bun run test:coverage` enforces 85% lines and statements.
 - **What to test where:**
   - Multi-source behaviour goes in `aggregator.spec.ts`, with fake adapters.
@@ -253,7 +263,15 @@ Code behind a flag that is off still ships in the bundle, because the value can 
   - Hooks are tested against a mocked aggregator.
   - Pages and features are tested against mocked hooks.
 - **CI:** GitHub Actions runs tests with coverage, ESLint and stylelint, and a production build on every push. All use bun with the committed text lockfile `bun.lock`. Dependabot updates it through the `bun` ecosystem.
-- **Type-checking:** `vite build` and Jest only transpile, so neither catches type errors. The Tests workflow runs `bun run typecheck` (`tsc -p tsconfig.app.json --noEmit`, all of `src/` including specs and stories) and fails on any error; `scripts/repo-policy.spec.ts` keeps that step in place. `tsconfig.app.json` is not `strict` yet, so `tsc` misses what only strict checks catch, such as `undefined` passed where a value is required, or story args set through `Template.bind({})` (typed `any` without `strictBindCallApply`). The Vercel functions in `api/` (not their specs) are type-checked by the Lint workflow (`bun run typecheck:api`), and `scripts/api-functions.spec.ts` checks that the config Vercel compiles each one with emits CommonJS. The Lint workflow also type-checks the Docker image's server (`bun run typecheck:server`, with `server/tsconfig.json`). `server/index.spec.ts` starts that server with Bun (so `bun` must be on the `PATH` for Jest) over a small `dist/` and `api/` of its own.
+- **Type-checking:** `vite build` and Vitest only transpile, so neither catches type errors. The Tests workflow runs `bun run typecheck` (`tsc -p tsconfig.app.json --noEmit`, all of `src/` including specs and stories) and fails on any error; `scripts/repo-policy.spec.ts` keeps that step in place. `tsconfig.app.json` is not `strict` yet, so `tsc` misses what only strict checks catch, such as `undefined` passed where a value is required, or story args set through `Template.bind({})` (typed `any` without `strictBindCallApply`). The Vercel functions in `api/` (not their specs) are type-checked by the Lint workflow (`bun run typecheck:api`), and `scripts/api-functions.spec.ts` checks that the config Vercel compiles each one with emits CommonJS. The Lint workflow also type-checks the Docker image's server (`bun run typecheck:server`, with `server/tsconfig.json`). `server/index.spec.ts` starts that server with Bun (so `bun` must be on the `PATH` for Vitest) over a small `dist/` and `api/` of its own.
+- **End-to-end (Playwright):** `e2e/` at the repository root, outside Vitest's `include` globs (`scripts/repo-policy.spec.ts` keeps it that way). It proves blog.brianlusina.com behaves the same on every deployment, the gate for the monorepo work in #924.
+  - **Projects:** `lib` unit-tests the pure helpers in `e2e/lib/` without a browser; `setup` checks that `E2E_BASE_URL` (required) serves the journal and not a login wall; `blog` depends on it and runs `e2e/blog/` in Chromium, so a wrong URL or a missing bypass secret is one clear failure. `e2e/blog/harness.spec.ts` checks the error checks themselves.
+  - **Tags:** `@smoke` (every route, the 404 paths, the search flag, and the article inventory: every recorded article still opens with the same heading and is still listed on `/articles`), `@visual` (home, an article and About, light and dark, 1440 and 390 wide), `@a11y` (no axe rule beyond the recorded ones per route) and `@record` (rewrites the baselines; only with `E2E_RECORD=1`).
+  - **Baselines:** `e2e/baseline/blog-articles.json` and `blog-axe.json` are recorded from a live deployment; screenshots live in `e2e/blog/__screenshots__/` and are only generated and compared in CI's `mcr.microsoft.com/playwright:v1.65.0-noble` container, since fonts render differently per OS (locally they are skipped). To update them, add the **`update-baselines`** label to a PR: `e2e-update-baselines.yml` records them from that PR's Vercel preview and commits them. That commit is pushed with `GITHUB_TOKEN`, which doesn't start the Tests and Lint workflows, so push a later commit before merging.
+  - **What fails a test:** console errors, uncaught exceptions and failed requests from the deployment itself (requests the page cancels don't count). Third-party failures (analytics, image CDNs) are ignored. Expected failures (each CMS answering 404 for a slug it doesn't have) and known production defects (`KNOWN_DEFECTS`, each naming its issue) are listed in `e2e/lib/errors.ts`; `/authors` is marked `test.fail` until #946 is fixed.
+  - **CI:** `e2e.yml` runs the whole suite on every successful Vercel `deployment_status` (previews, staging, production) against the deployment's URL, and `@smoke` against production every 30 minutes. `workflow_dispatch` tests any URL.
+  - **Protected previews:** set the GitHub Actions secret `VERCEL_AUTOMATION_BYPASS_SECRET` (Vercel → Project → Settings → Deployment Protection → Protection Bypass for Automation). The tests send it only to the deployment's own origin, never to third-party hosts.
+  - **Locally:** `E2E_BASE_URL=https://blog.brianlusina.com bun run e2e`, or point it at `vercel dev`. `PW_CHROMIUM_PATH` overrides the browser binary, and `HTTPS_PROXY` is honoured.
 
 ## Known limits and follow-ups
 

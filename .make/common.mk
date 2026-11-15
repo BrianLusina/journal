@@ -49,7 +49,7 @@ help: ## This help dialog describing all commands
 
 .PHONY: create.envfile
 create.envfile: ## Create an environment file
-	if [ ! -f .env ]; then cp .env.sample .env; fi
+	if [ ! -f apps/blog/.env ]; then cp apps/blog/.env.sample apps/blog/.env; fi
 
 .PHONY: setup.env
 setup.env: # Sets up the environment variables for the project

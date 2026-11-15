@@ -1,0 +1,122 @@
+import type { Mock } from 'vitest';
+import faker from 'faker';
+import { render, act, screen } from '@testUtils/rtlUtils';
+import * as Monitoring from '@monitoring';
+import { FEATURE_DEFAULTS } from '@/config/features';
+import FeaturesProvider from '@/providers/features';
+import ArticlePage from './ArticlePage';
+import { usePost } from '@hooks';
+import { MemoryRouter } from 'react-router-dom';
+
+vi.mock('@monitoring', () => {
+  return {
+    captureException: vi.fn(),
+    captureScope: vi.fn(),
+    Severity: {
+      Error: 'error',
+    },
+  };
+});
+
+ 
+vi.mock('remark-gfm', () => ({ default: () => {} }));
+
+vi.mock('@/hooks/cms/usePost');
+vi.mock('@/hooks/cms/usePosts', () => ({ usePosts: () => ({ data: null, loading: true, error: null }) }));
+vi.mock('@/features/AuthorBadge', () => ({ __esModule: true, default: ({ author }: { author: UnifiedAuthor }) => <span>author {author.id}</span> }));
+
+const post: UnifiedPost = {
+  id: 'n1',
+  source: 'notion',
+  title: 'Walking the Alps',
+  subtitle: 'A slow route',
+  category: 'Travel',
+  slug: 'walking-the-alps',
+  body: 'Body text',
+  publishDate: '2024-02-01',
+  tags: ['Hiking'],
+  authors: [{ id: 'a1', source: 'notion', name: 'Ada' }],
+};
+
+describe('ArticlePage', () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should render loading state', async () => {
+    (usePost as Mock).mockReturnValue({
+      data: null,
+      loading: true,
+      error: null,
+    });
+    await act(async () => {
+      render(
+        <ArticlePage />
+      );
+    });
+
+    expect(screen.getByTestId('page-loader')).toBeInTheDocument();
+  });
+
+  it('should display error if query fails to fetch article', async () => {
+    const mockError = new Error(faker.lorem.words());
+    
+    (usePost as Mock).mockReturnValue({
+      data: null,
+      loading: false,
+      error: mockError,
+    });
+
+    await act(async () => {
+      render(
+        <ArticlePage />
+      );
+    });
+
+    const errorMsg = await screen.findByText(/Yikes! Something terrible has happened/i);
+    expect(errorMsg).toBeInTheDocument();
+
+    expect(Monitoring.captureException).toBeCalledTimes(1);
+    expect(Monitoring.captureScope).toBeCalledTimes(1);
+  });
+
+  it('renders the article with its tags and authors', async () => {
+    (usePost as Mock).mockReturnValue({ data: post, loading: false, error: null });
+
+    await act(async () => {
+      render(<ArticlePage />);
+    });
+
+    expect(screen.getByRole('heading', { name: 'Walking the Alps' })).toBeInTheDocument();
+    expect(screen.getByText('February 1, 2024', { exact: false })).toBeInTheDocument();
+    expect(screen.getByText('#Hiking').closest('a')).toHaveAttribute('href', '/article/tag/Hiking');
+    expect(screen.getByText('author a1')).toBeInTheDocument();
+  });
+
+  it.each([
+    [true, 'shows'],
+    [false, 'hides'],
+  ])('with the newsletter feature %p, %s the newsletter call to action', async (newsletter) => {
+    (usePost as Mock).mockReturnValue({ data: post, loading: false, error: null });
+
+    await act(async () => {
+      render(
+        <FeaturesProvider value={{ ...FEATURE_DEFAULTS, newsletter }}>
+          <ArticlePage />
+        </FeaturesProvider>,
+      );
+    });
+
+    expect(screen.queryByRole('heading', { name: 'Enjoyed this article?' }) !== null).toBe(newsletter);
+  });
+
+  it('redirects to the 404 page when no source has the post', async () => {
+    (usePost as Mock).mockReturnValue({ data: null, loading: false, error: null });
+
+    await act(async () => {
+      render(<ArticlePage />);
+    });
+
+    expect(window.location.pathname).toBe('/404');
+  });
+});

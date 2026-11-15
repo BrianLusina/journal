@@ -33,8 +33,6 @@ jobs:
 
     - name: Install dependencies
       run: bun install --frozen-lockfile
-      env:
-        CYPRESS_INSTALL_BINARY: 0
 
     - name: Danger CI Check
       uses: danger/danger-js@9.1.8

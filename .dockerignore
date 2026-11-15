@@ -4,7 +4,7 @@ _site
 *.sublime-project
 *.sublime-workspace
 codekit-config.json
-node_modules/
+**/node_modules/
 _asset_bundler_cache
 .sass-cache
 .jekyll-metadata
@@ -15,14 +15,14 @@ samples/
 .vscode/
 *.log
 # See https://help.github.com/ignore-files/ for more about ignoring files.
-node_modules
+**/node_modules
 .cache/
 # Build directory
 .DS_Store
 yarn-error.log
 
 # dependencies
-/node_modules
+**/node_modules
 
 # testing
 /coverage
@@ -41,6 +41,6 @@ yarn-debug.log*
 yarn-error.log*
 
 # build output, rebuilt inside the image
-dist/
-dist-server/
+**/dist/
+**/dist-server/
 .git
