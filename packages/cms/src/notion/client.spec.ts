@@ -10,12 +10,12 @@ vi.mock('@notionhq/client', async () => {
 
 const loadShared = async (env: Record<string, string | undefined>) => {
   process.env = { ...ORIGINAL_ENV, NOTION_API_KEY: 'secret', ...env };
-  // A fresh module registry, so _shared reads the env at module load.
+  // A fresh module registry, so client.ts reads the env at module load.
   vi.resetModules();
   const { Client } = await import('@notionhq/client');
   // Set per load because the config's mockReset clears implementations between tests.
   (Client as unknown as Mock).mockImplementation(() => ({ databases: { retrieve: mockRetrieve } }));
-  return import('./_shared');
+  return import('./client');
 };
 
 const ORIGINAL_ENV = process.env;
@@ -27,6 +27,8 @@ const notFound = () =>
     message: 'Could not find database',
     headers: {},
     rawBodyText: '',
+    additional_data: undefined,
+    request_id: undefined,
   });
 
 describe('getDataSourceId', () => {

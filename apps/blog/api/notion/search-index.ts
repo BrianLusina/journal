@@ -1,13 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { methodNotAllowed, SEARCH_DOCUMENTS_HEADER, POSTS_CACHE_CONTROL } from '../_routes';
-import { listedFilters, NOTION_PROPERTY } from '@brianlusina/cms';
-import { getDataSourceId, isNotionConfigured, notion } from './_shared';
+import { notionSource, isNotionConfigured } from '@brianlusina/cms/server';
+import { methodNotAllowed, POSTS_CACHE_CONTROL, SEARCH_DOCUMENTS_HEADER } from '../_routes';
 
-/**
- * Every listed post, for the search index. A query returns page properties only, never the body,
- * so the listing query is already as slim as the index needs. It reads one Notion page of up to 100
- * posts per request, until Notion has no more.
- */
+/** Every listed post, for the search index, without bodies. */
 export default async function handler(
   request: VercelRequest,
   response: VercelResponse,
@@ -21,24 +16,7 @@ export default async function handler(
   }
 
   try {
-    const dataSourceId = await getDataSourceId();
-    const results: unknown[] = [];
-    let cursor: string | undefined;
-    do {
-      const page = await notion.dataSources.query({
-        data_source_id: dataSourceId,
-        page_size: 100,
-        start_cursor: cursor,
-        sorts: [{ property: NOTION_PROPERTY.published, direction: 'descending' }],
-        filter: { and: listedFilters },
-      });
-      results.push(...page.results);
-      // An index missing posts must not be cached as if it were whole.
-      if (page.has_more && !page.next_cursor) {
-        throw new Error('Notion reported more posts without a cursor');
-      }
-      cursor = page.has_more ? page.next_cursor ?? undefined : undefined;
-    } while (cursor);
+    const results = await notionSource.getSearchIndex();
 
     response.setHeader('Cache-Control', POSTS_CACHE_CONTROL);
     response.setHeader(SEARCH_DOCUMENTS_HEADER, String(results.length));

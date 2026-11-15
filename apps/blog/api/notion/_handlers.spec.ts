@@ -1,20 +1,15 @@
 import type { Mock } from 'vitest';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { isNotionConfigured, notionSource } from '@brianlusina/cms/server';
 import postsHandler from './posts';
 import postHandler from './posts/[slug]';
-import { getDataSourceId, isNotionConfigured, notion } from './_shared';
 
-vi.mock('./_shared', () => ({
-  getDataSourceId: vi.fn(),
+vi.mock('@brianlusina/cms/server', () => ({
   isNotionConfigured: vi.fn(),
-  notion: { dataSources: { query: vi.fn(), retrieve: vi.fn() } },
+  notionSource: { getPosts: vi.fn(), getPostBySlug: vi.fn() },
 }));
-vi.mock('notion-to-md', () => ({
-  NotionToMarkdown: vi.fn().mockImplementation(() => ({
-    pageToMarkdown: vi.fn().mockResolvedValue([]),
-    toMarkdownString: () => ({ parent: '# Body' }),
-  })),
-}));
+
+const CACHE = 's-maxage=60, stale-while-revalidate=300';
 
 const response = () => {
   const res = { status: vi.fn(), json: vi.fn(), setHeader: vi.fn() };
@@ -23,160 +18,121 @@ const response = () => {
   return res;
 };
 
-const request = (query: Record<string, string>) => ({ method: 'GET', query }) as unknown as VercelRequest;
+const request = (query: Record<string, string>, method = 'GET') => ({ method, query }) as unknown as VercelRequest;
+
+const post = (id: string) => ({ id, source: 'notion', title: id, slug: id, publishDate: '2024-01-01', tags: [], authors: [] });
 
 describe('Notion API routes', () => {
   beforeEach(() => {
-    (getDataSourceId as Mock).mockResolvedValue('ds-1');
     (isNotionConfigured as Mock).mockReturnValue(true);
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
-  it('lists one page of posts from the resolved data source', async () => {
-    (notion.dataSources.query as Mock).mockResolvedValue({ results: [{ id: 'p1' }], has_more: false, next_cursor: null });
-    const res = response();
+  describe('posts', () => {
+    it('answers a page of unified posts with its cursor, cached at the edge', async () => {
+      (notionSource.getPosts as Mock).mockResolvedValue({ items: [post('p1')], nextCursor: 'cursor-3' });
+      const res = response();
 
-    await postsHandler(request({ limit: '10' }), res as unknown as VercelResponse);
+      await postsHandler(request({ limit: '1', cursor: 'cursor-2', category: 'Travel', tag: 'Framework' }), res as unknown as VercelResponse);
 
-    expect(notion.dataSources.query).toHaveBeenCalledTimes(1);
-    expect(notion.dataSources.query).toHaveBeenCalledWith(
-      expect.objectContaining({ data_source_id: 'ds-1', page_size: 10, start_cursor: undefined }),
-    );
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith({ results: [{ id: 'p1' }], nextCursor: null });
+      expect(notionSource.getPosts).toHaveBeenCalledWith({ limit: 1, cursor: 'cursor-2', category: 'Travel', tag: 'Framework' });
+      expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', CACHE);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({ results: [post('p1')], nextCursor: 'cursor-3' });
+    });
+
+    it('passes no cursor, category or tag the request does not have', async () => {
+      (notionSource.getPosts as Mock).mockResolvedValue({ items: [], nextCursor: null });
+
+      await postsHandler(request({}), response() as unknown as VercelResponse);
+
+      expect(notionSource.getPosts).toHaveBeenCalledWith({ limit: 100 });
+    });
+
+    it('answers 502 when Notion cannot be queried', async () => {
+      (notionSource.getPosts as Mock).mockRejectedValue(new Error('Notion unavailable'));
+      const res = response();
+
+      await postsHandler(request({}), res as unknown as VercelResponse);
+
+      expect(res.status).toHaveBeenCalledWith(502);
+      expect(res.setHeader).not.toHaveBeenCalled();
+      expect(console.error).toHaveBeenCalledWith('Unable to fetch Notion posts', expect.any(Error));
+    });
+
+    it('answers 500 when Notion is not configured', async () => {
+      (isNotionConfigured as Mock).mockReturnValue(false);
+      const res = response();
+
+      await postsHandler(request({}), res as unknown as VercelResponse);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(notionSource.getPosts).not.toHaveBeenCalled();
+    });
   });
 
-  it('continues from the given cursor and returns the next one while Notion has more', async () => {
-    (notion.dataSources.query as Mock).mockResolvedValue({ results: [{ id: 'p2' }], has_more: true, next_cursor: 'cursor-3' });
-    const res = response();
+  describe('post by slug', () => {
+    it('answers the unified post with its body, cached at the edge', async () => {
+      const found = { ...post('hello'), body: '# Body' };
+      (notionSource.getPostBySlug as Mock).mockResolvedValue(found);
+      const res = response();
 
-    await postsHandler(request({ limit: '1', cursor: 'cursor-2' }), res as unknown as VercelResponse);
+      await postHandler(request({ slug: 'hello' }), res as unknown as VercelResponse);
 
-    expect(notion.dataSources.query).toHaveBeenCalledWith(expect.objectContaining({ page_size: 1, start_cursor: 'cursor-2' }));
-    expect(res.json).toHaveBeenCalledWith({ results: [{ id: 'p2' }], nextCursor: 'cursor-3' });
-  });
+      expect(notionSource.getPostBySlug).toHaveBeenCalledWith('hello');
+      expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', CACHE);
+      expect(res.json).toHaveBeenCalledWith({ post: found });
+    });
 
-  it.each([
-    ['without a category', {}, []],
-    [
-      'with a category',
-      { category: 'engineering strategy 101' },
-      [{ property: 'Categories', multi_select: { contains: 'engineering strategy 101' } }],
-    ],
-  ])('lists only published posts that have a slug, newest first, %s', async (_, query, extraFilters) => {
-    (notion.dataSources.query as Mock).mockResolvedValue({ results: [], has_more: false, next_cursor: null });
+    it('answers 404 when no published post has the slug', async () => {
+      (notionSource.getPostBySlug as Mock).mockResolvedValue(null);
+      const res = response();
 
-    await postsHandler(request(query), response() as unknown as VercelResponse);
+      await postHandler(request({ slug: 'missing' }), res as unknown as VercelResponse);
 
-    // Property names as the 📰 Journal CMS data source spells them; Notion rejects any other.
-    // Published means Status is Published and the post is dated: the merged feed is ordered by
-    // publish date.
-    // A post without a slug cannot be opened: the slug route looks posts up by slug.
-    expect(notion.dataSources.query).toHaveBeenCalledWith(
-      expect.objectContaining({
-        sorts: [{ property: 'Published', direction: 'descending' }],
-        filter: {
-          and: [
-            { property: 'Status', status: { equals: 'Published' } },
-            { property: 'Published', date: { is_not_empty: true } },
-            { property: 'Slug', rich_text: { is_not_empty: true } },
-            ...extraFilters,
-          ],
-        },
-      }),
-    );
-  });
+      expect(res.status).toHaveBeenCalledWith(404);
+    });
 
-  const tagsSchema = (...names: string[]) => ({
-    properties: { Tags: { type: 'multi_select', multi_select: { options: names.map(name => ({ name })) } } },
-  });
+    it('answers 502, and logs why, when Notion cannot be queried', async () => {
+      (notionSource.getPostBySlug as Mock).mockRejectedValue(new Error('Notion unavailable'));
+      const res = response();
 
-  it('lists posts carrying the tag by its exact name', async () => {
-    (notion.dataSources.retrieve as Mock).mockResolvedValue(tagsSchema('Decision', 'Framework'));
-    (notion.dataSources.query as Mock).mockResolvedValue({ results: [{ id: 'p1' }], has_more: false, next_cursor: null });
-    const res = response();
+      await postHandler(request({ slug: 'hello' }), res as unknown as VercelResponse);
 
-    await postsHandler(request({ tag: 'Framework' }), res as unknown as VercelResponse);
+      expect(res.status).toHaveBeenCalledWith(502);
+      expect(console.error).toHaveBeenCalledWith('Unable to fetch Notion post', expect.any(Error));
+    });
 
-    const { filter } = (notion.dataSources.query as Mock).mock.calls[0][0];
-    expect(filter.and).toContainEqual({ property: 'Tags', multi_select: { contains: 'Framework' } });
-    expect(res.json).toHaveBeenCalledWith({ results: [{ id: 'p1' }], nextCursor: null });
-  });
+    it('answers 400 without a slug', async () => {
+      const res = response();
 
-  it('answers with no posts, without querying, when the tag is not a Tags option', async () => {
-    (notion.dataSources.retrieve as Mock).mockResolvedValue(tagsSchema('Framework'));
-    const res = response();
+      await postHandler(request({}), res as unknown as VercelResponse);
 
-    await postsHandler(request({ tag: 'framework' }), res as unknown as VercelResponse);
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(notionSource.getPostBySlug).not.toHaveBeenCalled();
+    });
 
-    expect(notion.dataSources.retrieve).toHaveBeenCalledWith({ data_source_id: 'ds-1' });
-    expect(notion.dataSources.query).not.toHaveBeenCalled();
-    expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
-    expect(res.json).toHaveBeenCalledWith({ results: [], nextCursor: null });
-  });
+    // Every source is asked for every slug, so an unconfigured source must not fail the lookup.
+    it('answers 404 when Notion is not configured', async () => {
+      (isNotionConfigured as Mock).mockReturnValue(false);
+      const res = response();
 
-  it('finds a post by slug in the resolved data source', async () => {
-    (notion.dataSources.query as Mock).mockResolvedValue({ results: [{ id: 'p1' }] });
-    const res = response();
+      await postHandler(request({ slug: 'hello' }), res as unknown as VercelResponse);
 
-    await postHandler(request({ slug: 'hello' }), res as unknown as VercelResponse);
-
-    // The same published rule as the listing, so every post listed can be opened and no other.
-    expect(notion.dataSources.query).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data_source_id: 'ds-1',
-        filter: {
-          and: [
-            { property: 'Slug', rich_text: { equals: 'hello' } },
-            { property: 'Status', status: { equals: 'Published' } },
-            { property: 'Published', date: { is_not_empty: true } },
-          ],
-        },
-      }),
-    );
-    expect(res.json).toHaveBeenCalledWith({ page: { id: 'p1' }, body: '# Body' });
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(notionSource.getPostBySlug).not.toHaveBeenCalled();
+    });
   });
 
   it.each([
     ['list', postsHandler, {}],
     ['slug', postHandler, { slug: 'hello' }],
-  ])('answers 502 from the %s route when the data source cannot be resolved', async (_, handler, query) => {
-    (getDataSourceId as Mock).mockRejectedValue(new Error('Notion unavailable'));
+  ])('answers 405 from the %s route for anything but GET', async (_, handler, query) => {
     const res = response();
 
-    await handler(request(query), res as unknown as VercelResponse);
+    await handler(request(query, 'POST'), res as unknown as VercelResponse);
 
-    expect(res.status).toHaveBeenCalledWith(502);
-    expect(notion.dataSources.query).not.toHaveBeenCalled();
-  });
-
-  it('logs why the slug route could not fetch the post', async () => {
-    (notion.dataSources.query as Mock).mockRejectedValue(new Error('Notion unavailable'));
-    const res = response();
-
-    await postHandler(request({ slug: 'hello' }), res as unknown as VercelResponse);
-
-    expect(res.status).toHaveBeenCalledWith(502);
-    expect(console.error).toHaveBeenCalledWith('Unable to fetch Notion post', expect.any(Error));
-  });
-
-  it('answers 400 from the slug route without a slug', async () => {
-    const res = response();
-
-    await postHandler(request({}), res as unknown as VercelResponse);
-
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(notion.dataSources.query).not.toHaveBeenCalled();
-  });
-
-  // Every source is asked for every slug, so an unconfigured source must not fail the lookup.
-  it('answers 404 from the slug route when Notion is not configured', async () => {
-    (isNotionConfigured as Mock).mockReturnValue(false);
-    const res = response();
-
-    await postHandler(request({ slug: 'hello' }), res as unknown as VercelResponse);
-
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(notion.dataSources.query).not.toHaveBeenCalled();
+    expect(res.setHeader).toHaveBeenCalledWith('Allow', 'GET');
+    expect(res.status).toHaveBeenCalledWith(405);
   });
 });

@@ -3,4 +3,3 @@
 export type * from './src/types';
 export type { CMSAdapter } from './src/adapter';
 export { createMergedFeed, findPostBySlug, type MergedFeed, type MergedPosts } from './src/aggregator';
-export { NOTION_PROPERTY, PUBLISHED_STATUS, publishedFilters, listedFilters } from './src/notion/properties';

@@ -1,10 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { NotionToMarkdown } from 'notion-to-md';
+import { notionSource, isNotionConfigured } from '@brianlusina/cms/server';
 import { methodNotAllowed, POSTS_CACHE_CONTROL } from '../../_routes';
-import { NOTION_PROPERTY, publishedFilters } from '@brianlusina/cms';
-import { getDataSourceId, isNotionConfigured, notion } from '../_shared';
-
-const markdown = new NotionToMarkdown({ notionClient: notion });
 
 export default async function handler(
   request: VercelRequest,
@@ -24,28 +20,15 @@ export default async function handler(
   }
 
   try {
-    const result = await notion.dataSources.query({
-      data_source_id: await getDataSourceId(),
-      page_size: 1,
-      filter: {
-        and: [
-          { property: NOTION_PROPERTY.slug, rich_text: { equals: request.query.slug } },
-          ...publishedFilters,
-        ],
-      },
-    });
+    const post = await notionSource.getPostBySlug(request.query.slug);
 
-    if (result.results.length === 0) {
+    if (!post) {
       return response.status(404).json({ error: 'Post not found' });
     }
 
-    const page = result.results[0];
-    const blocks = await markdown.pageToMarkdown(page.id);
-    const body = markdown.toMarkdownString(blocks).parent;
-
     response.setHeader('Cache-Control', POSTS_CACHE_CONTROL);
 
-    return response.status(200).json({ page, body });
+    return response.status(200).json({ post });
   } catch (error) {
     console.error('Unable to fetch Notion post', error);
     return response.status(502).json({ error: 'Unable to fetch Notion post' });

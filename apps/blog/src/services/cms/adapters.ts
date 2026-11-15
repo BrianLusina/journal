@@ -1,7 +1,6 @@
 import features from '@/config/features';
 import CMSAdapter from './CMSAdapter';
 import { createApiAdapter } from './apiAdapter';
-import NotionAdapter from './NotionAdapter';
 
 /**
  * Every content source the site reads posts from. Order is priority order when two sources
@@ -10,7 +9,7 @@ import NotionAdapter from './NotionAdapter';
  */
 const cmsAdapters: CMSAdapter[] = [
   createApiAdapter('contentful'),
-  ...(features.notion ? [new NotionAdapter()] : []),
+  ...(features.notion ? [createApiAdapter('notion')] : []),
 ];
 
 export default cmsAdapters;

@@ -5,8 +5,9 @@ import { bypassHeadersFor } from '../lib/env';
 // this shows the deployed function loads (its imports included, such as @brianlusina/cms) and
 // answers a page of posts.
 const SOURCES = [
-  { source: 'contentful', name: 'Contentful', unified: true },
-  { source: 'notion', name: 'Notion', unified: false },
+  // rawKey: a key the CMS's own shape has and a unified post doesn't.
+  { source: 'contentful', name: 'Contentful', rawKey: 'sys' },
+  { source: 'notion', name: 'Notion', rawKey: 'properties' },
 ] as const;
 
 /** A post as @brianlusina/cms models it, not as the CMS returned it. */
@@ -23,7 +24,7 @@ function expectUnifiedPost(post: Record<string, unknown>, source: string, rawKey
   expect(post).not.toHaveProperty(rawKey);
 }
 
-for (const { source, name, unified } of SOURCES) {
+for (const { source, name, rawKey } of SOURCES) {
   test(`GET /api/${source}/posts?limit=1 answers a page of posts`, async ({ request, baseURL }) => {
     if (!baseURL) throw new Error('E2E_BASE_URL is not set');
     const url = new URL(`/api/${source}/posts?limit=1`, baseURL).toString();
@@ -49,6 +50,6 @@ for (const { source, name, unified } of SOURCES) {
     expect(Array.isArray(body?.results)).toBe(true);
     expect(body).toHaveProperty('nextCursor');
     const [first] = body?.results as Record<string, unknown>[];
-    if (unified && first) expectUnifiedPost(first, source, 'sys');
+    if (first) expectUnifiedPost(first, source, rawKey);
   });
 }
