@@ -40,4 +40,4 @@ jobs:
 
     - name: Deploy Sanity Studio
       working-directory: studio
-      run: bun run deploy --url ${{ secrets.STUDIO_HOSTNAME }}
+      run: bun run deploy --url ${{ secrets.SANITY_STUDIO_HOSTNAME }}
