@@ -4,7 +4,7 @@
  * have. Every Notion query and the Notion mapping read their names from here. docs/ARCHITECTURE.md
  * lists each property's type; change both when the database changes.
  *
- * Constants only, with no client or credentials, so the browser-safe entry may export it.
+ * Constants only, with no client or credentials. Exported from server.ts, next to notionSource.
  */
 export const NOTION_PROPERTY = {
   title: 'Title',
