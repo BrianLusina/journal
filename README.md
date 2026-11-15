@@ -16,12 +16,16 @@ Part of the belief that OSS is the future and also fosters a community of develo
 
 ### Prerequisites
 
-1. [Node.js](https://nodejs.org/) at the version in [.nvmrc](./.nvmrc) (22.x). Jest and the Vite tooling run on Node.
+1. [Node.js](https://nodejs.org/) at the version in [.nvmrc](./.nvmrc) (22.x). Vitest and the Vite tooling run on Node.
 2. [Bun](https://bun.sh), the package manager and script runner. The lockfile is the text `bun.lock`.
 
 ### Package manager
 
-This project uses **[bun](https://bun.sh) only** (version pinned in `packageManager` in [package.json](./package.json)), with the text `bun.lock` as the single lockfile (bun's older binary `bun.lockb` is no longer used, since Dependabot can only update the text format). It moved off yarn during the Vite migration, so `yarn.lock` has been removed and is git-ignored together with `package-lock.json` and `pnpm-lock.yaml`. Install, add and remove dependencies with `bun install`, `bun add` and `bun remove` so `bun.lock` stays in sync. Mixing in npm or yarn would create a second, divergent lockfile. CI installs with `bun install --frozen-lockfile` and fails if `bun.lock` is out of date. `scripts/repo-policy.spec.ts` fails the test suite if any other lockfile is committed.
+This project uses **[bun](https://bun.sh) only** (version pinned in `packageManager` in [package.json](./package.json)), with the text `bun.lock` as the single lockfile (bun's older binary `bun.lockb` is no longer used, since Dependabot can only update the text format). It moved off yarn during the Vite migration, so `yarn.lock` has been removed and is git-ignored together with `package-lock.json` and `pnpm-lock.yaml`. Install, add and remove dependencies with `bun install`, `bun add` and `bun remove` so `bun.lock` stays in sync. Mixing in npm or yarn would create a second, divergent lockfile. CI installs with `bun install --frozen-lockfile` and fails if `bun.lock` is out of date. `apps/blog/scripts/repo-policy.spec.ts` fails the test suite if any other lockfile is committed.
+
+### Repository layout
+
+The repository is a [bun workspace](https://bun.sh/docs/install/workspaces). The blog lives in `apps/blog/`; the root holds the repo-wide tooling (ESLint, husky, lint-staged, commitlint, Danger, Playwright and `e2e/`). Run every command from the root: the root scripts forward to the app (`bun run --filter blog <script>`). Add the app's dependencies to `apps/blog/package.json` with `bun add --cwd apps/blog <package>`; only repo-wide tooling goes in the root `package.json`. There is one `bun.lock`, at the root.
 
 ### Installing
 
@@ -29,10 +33,10 @@ This project uses **[bun](https://bun.sh) only** (version pinned in `packageMana
 git clone https://github.com/BrianLusina/journal.git
 cd journal
 bun install
-cp .env.sample .env.local   # then fill in the values you have
+cp apps/blog/.env.sample apps/blog/.env.local   # then fill in the values you have
 ```
 
-Every variable in `.env.sample` is described in [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md#configuration). Firebase and Sentry settings are optional. Without Contentful settings the app still renders, but with no Contentful posts.
+Every variable in `apps/blog/.env.sample` is described in [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md#configuration). Firebase and Sentry settings are optional. Without Contentful settings the app still renders, but with no Contentful posts.
 
 ### Running locally
 
@@ -45,26 +49,38 @@ vercel dev       # the api/ functions on http://localhost:3000, needed for Conte
 
 ## Running tests
 
-Tests use [Jest](https://jestjs.io/) and [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/), with specs next to the code they test (`*.spec.ts(x)`).
+Tests use [Vitest](https://vitest.dev/) and [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/), with specs next to the code they test (`*.spec.ts(x)`).
 
 ```bash
-bun run test            # Jest
-bun run test:coverage   # Jest with the 85% coverage gate CI enforces
+bun run test            # Vitest, the whole suite once
+bun run test:watch      # Vitest in watch mode
+bun run test:coverage   # Vitest with the 85% coverage gate CI enforces
 ```
 
-Use `bun run test`, not `bun test`. `bun test` starts Bun's own test runner, which ignores `jest.config.js` and fails.
+Use `bun run test`, not `bun test`. `bun test` starts Bun's own test runner, which ignores `vitest.config.mts` and fails.
+
+End-to-end tests ([Playwright](https://playwright.dev/), in `e2e/`) check a running deployment, so they need its URL:
+
+```bash
+bunx playwright install chromium   # once per machine; or set PW_CHROMIUM_PATH to an existing Chromium binary
+E2E_BASE_URL=https://blog.brianlusina.com bun run e2e   # the whole suite against production
+E2E_BASE_URL=https://blog.brianlusina.com bun run e2e:record   # rewrite the recorded baselines
+bun run typecheck:e2e
+```
+
+CI runs them on every Vercel deployment; screenshots are only compared there. See "End-to-end" in [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md#testing).
 
 Linting and building:
 
 ```bash
 bun run lint          # ESLint
 bun run lint:styles   # stylelint
-bun run build         # production build into dist/
+bun run build         # production build into apps/blog/dist/
 ```
 
 ## Deployment
 
-The build output in `dist/` is a static single-page app. Every pull request gets a Vercel preview deployment.
+The build output in `apps/blog/dist/` is a static single-page app. Every pull request gets a Vercel preview deployment. The Vercel project's **Root Directory** is `apps/blog`, so Vercel builds the app and its `api/` functions from there.
 
 ### Vercel and Contentful
 
@@ -98,9 +114,9 @@ Production deploys through the Vercel GitHub integration. On pushes to `staging`
 
 ### Docker
 
-The [Dockerfile](./Dockerfile) builds an image that runs the whole app, including the `api/` functions, on a small Bun server (`server/`). It reads its configuration from the container's environment when it starts, so one image runs in every environment:
+The [Dockerfile](./Dockerfile) builds an image that runs the whole app, including the `api/` functions, on a small Bun server (`apps/blog/server/`). It reads its configuration from the container's environment when it starts, so one image runs in every environment:
 
-- **Client:** the `VITE_*` variables in `.env.sample`, set in the page the server sends. Only an allowlist of the keys the app reads is sent; never put a secret in a `VITE_*` variable.
+- **Client:** the `VITE_*` variables in `apps/blog/.env.sample`, set in the page the server sends. Only an allowlist of the keys the app reads is sent; never put a secret in a `VITE_*` variable.
 - **Server only:** `CONTENTFUL_CMS_API_KEY` with `CONTENTFUL_CMS_SPACE_ID`, `NOTION_API_KEY` with `NOTION_DATA_SOURCE_ID` (or `NOTION_DATABASE_ID`), plus `RESEND_*` and `CONTACT_*` for the contact and newsletter forms. These never reach the browser.
 - `PORT` (optional, default 8080).
 
@@ -117,7 +133,7 @@ docker run --rm -p 8080:8080 \
   journal
 ```
 
-Or pass a file of the same variables with `--env-file`. `/healthz` answers `ok` for health checks. To try the server without Docker, run `bun run build` and then `bun server/index.ts`.
+Or pass a file of the same variables with `--env-file`. `/healthz` answers `ok` for health checks. To try the server without Docker, run `bun run build` and then `bun apps/blog/server/index.ts`.
 
 A static-only host (GitHub Pages) does not run `api/`, so it serves no posts: only authors, About and Social content, which are still read from Contentful in the browser.
 
