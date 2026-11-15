@@ -29,6 +29,15 @@ Authors, About and Social content bypasses `api/`: `hooks/api/*` and the feature
 
 ## Source layout
 
+The repository is a bun workspace (`workspaces: ["apps/*"]` in the root `package.json`):
+
+| Path | Responsibility |
+|---|---|
+| `/` (root) | Repo-wide tooling and its config: ESLint, husky, lint-staged, commitlint, Danger, Playwright and `e2e/`, the Dockerfile and `.make/`, CI. Its scripts forward to the app (`bun run --filter blog <script>`), so every command runs from here. One `bun.lock` for the workspace. |
+| `apps/blog/` | The blog: the app, its `api/` functions, the Docker server and the app's config (Vite, Vitest, TypeScript, Tailwind, Storybook, stylelint, `vercel.json`, `.env.sample`). The Vercel project's Root Directory. |
+
+Unless a path starts at the repository root (`e2e/`, `.github/`, `Dockerfile`), the paths in this document are relative to `apps/blog/`.
+
 | Path | Responsibility |
 |---|---|
 | `src/main.tsx` | Entry point. Mounts the provider tree: Apollo (Contentful client), TanStack Query, Helmet, the theme provider (`src/providers/theme`, built on `next-themes`: the single source of the light/dark choice, stored in `localStorage.theme`), tooltips, toasts, the root `ErrorBoundary`, and the router. |
@@ -232,11 +241,11 @@ Code behind a flag that is off still ships in the bundle, because the value can 
 ## Deployment topology
 
 - The SPA is static (`dist/`). Posts from both CMSs and the contact and newsletter forms **require** a host that runs the `api/` functions: Vercel, which builds every PR as a preview, or the Docker image.
-- Production deploys through the Vercel GitHub integration. GitHub Actions does only what Vercel doesn't on pushes to `staging` and `production`: semantic-release tags (`release.yml`) and the Docker image (`dockerimage.yml`), pushed to `ghcr.io/<owner>/journal` and tagged with the branch and the commit SHA. The Sentry release and source maps come from Vercel's own build (see `SENTRY_*` above), so they match the deployed bundle.
+- Production deploys through the Vercel GitHub integration, with the project's Root Directory set to `apps/blog`. GitHub Actions does only what Vercel doesn't on pushes to `staging` and `production`: semantic-release tags (`release.yml`) and the Docker image (`dockerimage.yml`), pushed to `ghcr.io/<owner>/journal` and tagged with the branch and the commit SHA. The Sentry release and source maps come from Vercel's own build (see `SENTRY_*` above), so they match the deployed bundle.
 - The **Docker image** runs the whole app, `api/` included, on Bun (`server/index.ts`), for hosts with a container runtime:
   - **Static files:** `dist/`, with `index.html` for any other path (the SPA's routes). Files directly in `/assets/`, which Vite content-hashes, are cached for a year (`scripts/repo-policy.spec.ts` keeps unhashed files out of the top of `public/assets/`); `index.html` (with the configuration set) is `no-cache`. A missing `/assets/*` file is a 404, not `index.html`.
   - **Functions:** `/api/...` runs the matching file in `api/` by Vercel's file-system rules: `api/notion/posts.ts` serves `/api/notion/posts`, `api/notion/posts/[slug].ts` serves `/api/notion/posts/:slug`, `api/a/index.ts` serves `/api/a`, and files and directories starting with `_` (such as `api/_forms/`) are not routes. An unknown `/api` path is a JSON 404, and a function that fails to load or throws a JSON 500. `server/adapter.ts` passes a handler the part of `VercelRequest` and `VercelResponse` the functions use: `req.method`, `req.query` (with the dynamic segments), `req.headers`, `req.body` (parsed when it is JSON), `req.socket.remoteAddress` (the client's address), and `res.status`, `res.setHeader`, `res.json`, `res.send` and `res.end`. A function that needs more must have it added there.
-  - **Build:** `bun server/build.ts` bundles the server and each function, with the packages they import, into `dist-server/`, so the image has no `node_modules`.
+  - **Build:** `bun apps/blog/server/build.ts` (from the root) bundles the server and each function, with the packages they import, into `dist-server/`, so the image has no `node_modules`.
   - **Configuration** comes from the container's environment when it starts: the `VITE_*` variables (set in `index.html`, see [Configuration](#configuration)) and the server-only ones (`CONTENTFUL_CMS_*`, `NOTION_*`, `RESEND_*` and `CONTACT_*`). The image is built without build arguments, so one image runs in every environment. `PORT` changes the port (default 8080). Run it behind a proxy that overwrites `X-Forwarded-For`: the form functions rate-limit by the address in that header when it is set, so a client could otherwise send a new one with each request.
   - **Health:** `/healthz` answers `ok`, and the Dockerfile's `HEALTHCHECK` polls it.
 - A static-only host (GitHub Pages) serves the app without any posts: the aggregator degrades gracefully, but both sources fail, and the forms show their error message. Only the Apollo-queried authors, About and Social content appears.

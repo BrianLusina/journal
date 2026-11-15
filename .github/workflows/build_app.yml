@@ -52,7 +52,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: build
-        path: dist/
+        path: apps/blog/dist/
 
     - name: Build Storybook
       run: bun run storybook:build
