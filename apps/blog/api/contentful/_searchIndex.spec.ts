@@ -1,12 +1,11 @@
 import type { Mock } from 'vitest';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { contentfulSource, isContentfulConfigured } from '@brianlusina/cms/server';
 import handler from './search-index';
-import { isContentfulConfigured, queryContentful } from './_shared';
 
-vi.mock('./_shared', () => ({
-  GET_SEARCH_INDEX: 'GET_SEARCH_INDEX',
+vi.mock('@brianlusina/cms/server', () => ({
   isContentfulConfigured: vi.fn(),
-  queryContentful: vi.fn(),
+  contentfulSource: { getSearchIndex: vi.fn() },
 }));
 
 const response = () => {
@@ -18,8 +17,8 @@ const response = () => {
 
 const request = (method = 'GET') => ({ method, query: {} }) as unknown as VercelRequest;
 
-const posts = (from: number, count: number) =>
-  Array.from({ length: count }, (_, index) => ({ sys: { id: `p${from + index}` } }));
+const posts = (count: number) =>
+  Array.from({ length: count }, (_, index) => ({ id: `p${index}`, source: 'contentful', slug: `p${index}` }));
 
 describe('Contentful search index route', () => {
   beforeEach(() => {
@@ -27,51 +26,27 @@ describe('Contentful search index route', () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
   });
 
-  it('reads every dated post, a page of 100 at a time, past the first page', async () => {
-    (queryContentful as Mock)
-      .mockResolvedValueOnce({ blogPostCollection: { total: 230, items: posts(0, 100) } })
-      .mockResolvedValueOnce({ blogPostCollection: { total: 230, items: posts(100, 100) } })
-      .mockResolvedValueOnce({ blogPostCollection: { total: 230, items: posts(200, 30) } });
+  it('answers every listed post, cached, with the document count', async () => {
+    (contentfulSource.getSearchIndex as Mock).mockResolvedValue(posts(230));
     const res = response();
 
     await handler(request(), res as unknown as VercelResponse);
 
-    expect(queryContentful).toHaveBeenCalledTimes(3);
-    [0, 100, 200].forEach((skip, call) =>
-      expect(queryContentful).toHaveBeenNthCalledWith(call + 1, 'GET_SEARCH_INDEX', {
-        skip,
-        limit: 100,
-        order: ['publishDate_DESC'],
-        where: { publishDate_exists: true },
-      }),
-    );
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith({ results: posts(0, 230) });
+    expect(res.json).toHaveBeenCalledWith({ results: posts(230) });
     expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
     expect(res.setHeader).toHaveBeenCalledWith('X-Search-Documents', '230');
   });
 
-  it('answers 502 without caching, rather than a partial index, when a page comes back empty before the total', async () => {
-    (queryContentful as Mock)
-      .mockResolvedValueOnce({ blogPostCollection: { total: 150, items: posts(0, 100) } })
-      .mockResolvedValueOnce({ blogPostCollection: { total: 150, items: [] } });
-    const res = response();
-
-    await handler(request(), res as unknown as VercelResponse);
-
-    expect(queryContentful).toHaveBeenCalledTimes(2);
-    expect(res.status).toHaveBeenCalledWith(502);
-    expect(res.setHeader).not.toHaveBeenCalled();
-  });
-
-  it('answers 502 without caching when Contentful fails', async () => {
-    (queryContentful as Mock).mockRejectedValue(new Error('Unable to query Contentful: 503'));
+  it('answers 502 without caching when the index cannot be read whole', async () => {
+    (contentfulSource.getSearchIndex as Mock).mockRejectedValue(new Error('Contentful returned an empty page before the end of the listing'));
     const res = response();
 
     await handler(request(), res as unknown as VercelResponse);
 
     expect(res.status).toHaveBeenCalledWith(502);
     expect(res.setHeader).not.toHaveBeenCalled();
+    expect(console.error).toHaveBeenCalledWith('Unable to fetch the Contentful search index', expect.any(Error));
   });
 
   it('answers 500 when Contentful is not configured', async () => {
@@ -81,7 +56,7 @@ describe('Contentful search index route', () => {
     await handler(request(), res as unknown as VercelResponse);
 
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(queryContentful).not.toHaveBeenCalled();
+    expect(contentfulSource.getSearchIndex).not.toHaveBeenCalled();
   });
 
   it('answers 405 to anything but GET', async () => {
