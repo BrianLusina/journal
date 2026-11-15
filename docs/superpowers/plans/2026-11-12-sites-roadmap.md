@@ -7,8 +7,8 @@ The spec spans several subsystems, and later ones depend on file paths that only
 | # | Plan | Issue(s) | Needs | Status |
 |---|---|---|---|---|
 | P1 | Blog parity baseline (Playwright, URL inventory, visual, axe, CI on previews, scheduled production smoke) | #925 | — | **Written:** `2026-11-12-blog-parity-baseline.md` |
-| P2 | Bun workspace: move the app to `apps/blog`, root scripts, Vercel root dir, CI, Docker | #926 | P1 merged and green | To write |
-| P3 | `packages/cms` (models, adapters and aggregator server-side; routes return unified models) | #927 | P2 | To write |
+| P2 | Bun workspace: move the app to `apps/blog`, root scripts, Vercel root dir, CI, Docker | #926 | P1 merged and green | **Done:** #948 |
+| P3 | `packages/cms` (models, adapters and aggregator server-side; routes return unified models) | #927 | P2 | **Written:** `2026-11-15-packages-cms.md` |
 | P4 | `packages/ui` (tokens, Tailwind preset, router-agnostic components, theme) | #927 | P2 | To write (can run beside P3) |
 | P5 | `apps/sites` skeleton: Astro, site registry, hostname middleware, preview override, Vercel project, Playwright `home`/`folio` projects | #928 | P3, P4 | To write |
 | P6 | Sanity adapter (posts) + Studio schema | #929 | P3 | To write (beside P5) |
