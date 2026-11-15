@@ -7,10 +7,16 @@ on:
       - '**'
 
 jobs:
-  build:
+  build_deploy:
     name: Build Sanity Studio CMS
-
     runs-on: ubuntu-latest
+    env:
+      SANITY_STUDIO_PROJECT_ID: ${{ secrets.SANITY_STUDIO_PROJECT_ID }}
+      SANITY_STUDIO_DATASET: ${{ vars.SANITY_STUDIO_DATASET }}
+      SANITY_STUDIO_APP_ID: ${{ secrets.SANITY_STUDIO_APP_ID }}
+      SANITY_STUDIO_HOSTNAME: ${{ secrets.SANITY_STUDIO_HOSTNAME }}
+      SANITY_STUDIO_TITLE: ${{ vars.SANITY_STUDIO_TITLE }}
+      SANITY_AUTH_TOKEN: ${{ secrets.SANITY_AUTH_TOKEN }}
 
     steps:
     - name: Checkout
@@ -31,20 +37,7 @@ jobs:
     - name: Run Build
       working-directory: studio
       run: bun run build
-      env:
-        SANITY_STUDIO_PROJECT_ID: ${{ secrets.SANITY_STUDIO_PROJECT_ID }}
-        SANITY_STUDIO_DATASET: ${{ vars.SANITY_STUDIO_DATASET }}
-        SANITY_STUDIO_APP_ID: ${{ secrets.SANITY_STUDIO_APP_ID }}
-        SANITY_STUDIO_HOSTNAME: ${{ secrets.SANITY_STUDIO_HOSTNAME }}
-        SANITY_STUDIO_TITLE: ${{ vars.SANITY_STUDIO_TITLE }}
 
     - name: Deploy Sanity Studio
-      env: 
-        SANITY_STUDIO_PROJECT_ID: ${{ secrets.SANITY_STUDIO_PROJECT_ID }}
-        SANITY_STUDIO_DATASET: ${{ vars.SANITY_STUDIO_DATASET }}
-        SANITY_STUDIO_APP_ID: ${{ secrets.SANITY_STUDIO_APP_ID }}
-        SANITY_STUDIO_HOSTNAME: ${{ secrets.SANITY_STUDIO_HOSTNAME }}
-        SANITY_STUDIO_TITLE: ${{ vars.SANITY_STUDIO_TITLE }}
-        SANITY_AUTH_TOKEN: ${{ secrets.SANITY_AUTH_TOKEN }}
       working-directory: studio
       run: bun run deploy --no-build --url ${{ secrets.SANITY_STUDIO_HOSTNAME }}
