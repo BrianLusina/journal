@@ -1,13 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { contentfulSource, isContentfulConfigured } from '@brianlusina/cms/server';
 import { methodNotAllowed, POSTS_CACHE_CONTROL, SEARCH_DOCUMENTS_HEADER } from '../_routes';
-import { GET_SEARCH_INDEX, isContentfulConfigured, queryContentful } from './_shared';
 
-const PAGE_SIZE = 100;
-
-/**
- * Every listed post, for the search index, without bodies. It reads the posts route's listing
- * (dated posts, newest first) a page of 100 at a time, until it has read them all.
- */
+/** Every listed post, for the search index, without bodies. */
 export default async function handler(
   request: VercelRequest,
   response: VercelResponse,
@@ -21,23 +16,7 @@ export default async function handler(
   }
 
   try {
-    const results: unknown[] = [];
-    let total: number;
-    do {
-      const { blogPostCollection } = await queryContentful(GET_SEARCH_INDEX, {
-        skip: results.length,
-        limit: PAGE_SIZE,
-        order: ['publishDate_DESC'],
-        where: { publishDate_exists: true },
-      });
-      results.push(...blogPostCollection.items);
-      total = blogPostCollection.total;
-      // An empty page before the total means the listing changed mid-read. Stop, so it can never
-      // loop, and fail rather than cache an index missing posts.
-      if (blogPostCollection.items.length === 0 && results.length < total) {
-        throw new Error('Contentful returned an empty page before the end of the listing');
-      }
-    } while (results.length < total);
+    const results = await contentfulSource.getSearchIndex();
 
     response.setHeader('Cache-Control', POSTS_CACHE_CONTROL);
     response.setHeader(SEARCH_DOCUMENTS_HEADER, String(results.length));

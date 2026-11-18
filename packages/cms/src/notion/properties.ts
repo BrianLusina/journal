@@ -1,11 +1,10 @@
 /**
  * Property names of the 📔 Journal CMS data source, spelled exactly as Notion has them: Notion
  * matches names case included, and rejects a whole query that filters on a property it does not
- * have. The posts routes and NotionAdapter read every name from here. docs/ARCHITECTURE.md lists
- * each property's type; change both when the database changes.
+ * have. Every Notion query and the Notion mapping read their names from here. docs/ARCHITECTURE.md
+ * lists each property's type; change both when the database changes.
  *
- * This file is part of the contract shared by api/ and src/ (see shared/tsconfig.json); it holds
- * only constants, so the browser bundle can import it too.
+ * Constants only, with no client or credentials. Exported from server.ts, next to notionSource.
  */
 export const NOTION_PROPERTY = {
   title: 'Title',

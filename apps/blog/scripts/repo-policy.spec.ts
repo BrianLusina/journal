@@ -110,6 +110,24 @@ describe('Docker image', () => {
     expect(images).toEqual([`oven/bun:${bunVersion}-alpine`, `oven/bun:${bunVersion}-alpine`]);
   });
 
+  // A frozen install only resolves workspace:* dependencies whose package.json is on disk, and the
+  // Dockerfile installs before it copies the rest of the repo.
+  it('copies every workspace package.json before the frozen install', () => {
+    const workspaces = ['apps', 'packages'].flatMap(parent =>
+      readdirSync(path.join(repoRoot, parent), { withFileTypes: true })
+        .filter(entry => entry.isDirectory() && existsSync(path.join(repoRoot, parent, entry.name, 'package.json')))
+        .map(entry => `${parent}/${entry.name}`),
+    );
+    const install = dockerfile.indexOf('RUN bun install --frozen-lockfile');
+
+    expect(workspaces).toContain('packages/cms');
+    for (const workspace of workspaces) {
+      const copy = dockerfile.indexOf(`COPY ${workspace}/package.json ${workspace}/\n`);
+      expect(copy, `Dockerfile must COPY ${workspace}/package.json before the install`).toBeGreaterThan(-1);
+      expect(copy).toBeLessThan(install);
+    }
+  });
+
   it('bundles the server and the api/ functions, and runs the server as a non-root user', () => {
     expect(dockerfile).toMatch(/^RUN bun apps\/blog\/server\/build\.ts$/m);
     expect(dockerfile).toMatch(/^COPY --from=builder \/usr\/src\/app\/apps\/blog\/dist \.\/dist$/m);

@@ -1,5 +1,5 @@
-import { NOTION_PROPERTY } from '@shared/notion';
-import CMSAdapter from './CMSAdapter';
+import type { UnifiedAsset, UnifiedAuthor, UnifiedPost } from '../types';
+import { NOTION_PROPERTY } from './properties';
 
 type NotionText = { type?: string; plain_text?: string; mention?: { type: string } }[];
 
@@ -8,10 +8,10 @@ type NotionFile =
   | { type: 'file'; file: { url: string } };
 
 /**
- * The subset of a Notion page object (as returned by the api/notion routes) that the adapter
- * reads. Keys are the 📔 Journal CMS properties named in shared/notion.ts.
+ * The subset of a Notion page object (as dataSources.query returns it) that the mapping reads.
+ * Keys are the 📔 Journal CMS properties named in properties.ts.
  */
-type NotionPage = {
+export type NotionPage = {
   id: string;
   created_time: string;
   properties: {
@@ -43,7 +43,7 @@ function plainText(text: NotionText = []): string {
 /**
  * Maps a Notion Page object to the UnifiedPost domain model.
  */
-function mapNotionPageToUnified(page: NotionPage): UnifiedPost {
+export function mapNotionPage(page: NotionPage): UnifiedPost {
   const properties = page.properties;
 
   const title = plainText(properties[NOTION_PROPERTY.title]?.title) || 'Untitled';
@@ -82,53 +82,4 @@ function mapNotionPageToUnified(page: NotionPage): UnifiedPost {
     tags,
     authors,
   };
-}
-
-export default class NotionAdapter implements CMSAdapter {
-  public readonly source: CMSSource = 'notion';
-
-  async getPosts({ cursor, limit, category, tag }: CMSPageRequest): Promise<CMSPage> {
-    const params = new URLSearchParams({ limit: String(limit) });
-    if (category) params.set('category', category);
-    if (tag) params.set('tag', tag);
-    if (cursor) params.set('cursor', cursor);
-    const response = await fetch(`/api/notion/posts?${params}`);
-
-    if (!response.ok) {
-      throw new Error(`Unable to fetch Notion posts: ${response.status}`);
-    }
-
-    const payload = await response.json();
-
-    return {
-      items: payload.results.map(mapNotionPageToUnified),
-      nextCursor: payload.nextCursor,
-    };
-  }
-
-  async getPostBySlug(slug: string): Promise<UnifiedPost | null> {
-    const response = await fetch(`/api/notion/posts/${encodeURIComponent(slug)}`);
-    if (response.status === 404) return null;
-    if (!response.ok) {
-      throw new Error(`Unable to fetch Notion post: ${response.status}`);
-    }
-
-    const payload = await response.json();
-    const page = payload.page;
-    const post = mapNotionPageToUnified(page);
-    post.body = payload.body;
-
-    return post;
-  }
-
-  async getSearchIndex(): Promise<UnifiedPost[]> {
-    const response = await fetch('/api/notion/search-index');
-    if (!response.ok) {
-      throw new Error(`Unable to fetch the Notion search index: ${response.status}`);
-    }
-
-    const payload = await response.json();
-
-    return payload.results.map(mapNotionPageToUnified);
-  }
 }

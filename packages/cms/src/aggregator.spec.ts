@@ -1,5 +1,6 @@
 import type { Mock } from 'vitest';
-import CMSAdapter from './CMSAdapter';
+import type { CMSAdapter } from './adapter';
+import type { CMSPage, CMSPageRequest, CMSSource, UnifiedPost } from './types';
 import { createMergedFeed, findPostBySlug, type MergedPosts } from './aggregator';
 
 const post = (id: string, source: CMSSource, publishDate: string): UnifiedPost => ({
