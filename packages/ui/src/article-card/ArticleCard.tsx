@@ -1,11 +1,11 @@
 import { FunctionComponent, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '../link/LinkProvider';
 import { ArrowUpRight } from "lucide-react";
-import { getCategoryClass } from '@/lib/utils';
+import { getCategoryClass } from '../lib/utils';
 
-interface ArticleCardProps {
-  id: string;
-  slug: string;
+export interface ArticleCardProps {
+  /** Where the card links: the post on the blog, relative or absolute. */
+  href: string;
   title: string;
   category: string;
   date: string;
@@ -14,14 +14,14 @@ interface ArticleCardProps {
   onClick?: () => void;
 }
 
-const ArticleCard: FunctionComponent<ArticleCardProps> = ({ id, slug, title, category, date, thumbnail: image, size = "small", onClick }: ArticleCardProps) => {
+const ArticleCard: FunctionComponent<ArticleCardProps> = ({ href, title, category, date, thumbnail: image, size = "small", onClick }: ArticleCardProps) => {
   // Remember which URL failed, so a new thumbnail (e.g. a refreshed Notion signed URL) is tried again.
   const [failedSrc, setFailedSrc] = useState<string>();
   const failed = failedSrc === image;
 
   return (
     <Link
-      to={`/article/${id}/${slug}`}
+      href={href}
       onClick={onClick}
       className={`group relative block rounded-[2.5rem] overflow-hidden card-hover ${
         size === "large" ? "col-span-1 md:col-span-2 row-span-2" : ""
