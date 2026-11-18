@@ -16,6 +16,7 @@ export const ThemeToggle: FC<{ className?: string }> = ({ className }) => {
   const toggle = () => {
     const next = !isDark;
     document.documentElement.classList.toggle('dark', next);
+    document.documentElement.style.colorScheme = next ? 'dark' : 'light';
     document.cookie = serializeThemeCookie(next ? 'dark' : 'light', window.location);
     setIsDark(next);
   };

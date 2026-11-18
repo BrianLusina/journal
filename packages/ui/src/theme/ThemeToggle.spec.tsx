@@ -20,10 +20,12 @@ describe('ThemeToggle', () => {
 
     fireEvent.click(button);
     expect(document.documentElement).toHaveClass('dark');
+    expect(document.documentElement.style.colorScheme).toBe('dark');
     expect(written.at(-1)).toMatch(/^theme=dark;/);
 
     fireEvent.click(button);
     expect(document.documentElement).not.toHaveClass('dark');
+    expect(document.documentElement.style.colorScheme).toBe('light');
     expect(written.at(-1)).toMatch(/^theme=light;/);
   });
 
