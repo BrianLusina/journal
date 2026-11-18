@@ -4,25 +4,20 @@ This document describes how the journal site is put together: where content come
 
 ## Overview
 
-The site is a client-rendered React 18 single-page app built with Vite. Posts can come from more than one content management system (CMS): today **Contentful** and **Notion**, both read through serverless functions in `api/` so their tokens stay on the server. Contentful content that is not a post (authors, About, Social) is still queried from the browser.
+The site is a client-rendered React 18 single-page app built with Vite. Posts can come from more than one content management system (CMS): today **Contentful** and **Notion**, both read on the server by `@brianlusina/cms` (`packages/cms`) and served through functions in `api/`, so their tokens stay on the server and the browser only ever receives `UnifiedPost`s. `apps/sites` will read the same sources with the same package, without the HTTP hop. Contentful content that is not a post (authors, About, Social) is still queried from the browser.
 
 ```text
-                   Browser (React SPA)                              Server (Vercel Functions)
-┌──────────────────────────────────────────────────────────┐     ┌──────────────────────────────┐
-│ pages/ & features/                                       │     │ api/contentful/posts.ts      │
-│   │ usePosts / usePost (hooks/cms)                       │     │ api/contentful/posts/[slug].ts│
-│   ▼                                                      │     │   │ fetch                    │
-│ services/cms/aggregator ── merge, sort, page, find       │     │   ▼                          │
-│   │ over cmsAdapters (services/cms/adapters)             │     │ Contentful GraphQL + REST    │
-│   ├── ContentfulAdapter ── fetch('/api/contentful/…') ───────────▶                             │
-│   │                                                      │     │                              │
-│   │                                                      │     │ api/notion/posts.ts          │
-│   │                                                      │     │ api/notion/posts/[slug].ts   │
-│   └── NotionAdapter ───── fetch('/api/notion/…') ──────────────▶   │ @notionhq/client         │
-│                                                          │     │   │ notion-to-md (body)      │
-│                                                          │     │   ▼                          │
-│                                                          │     │ Notion API                   │
-└──────────────────────────────────────────────────────────┘     └──────────────────────────────┘
+             Browser (React SPA)                          Server (Vercel Functions, Docker server)
+┌───────────────────────────────────────────────┐     ┌────────────────────────────────────────────┐
+│ pages/ & features/                            │     │ api/contentful/*  api/notion/*              │
+│   │ usePosts / usePost (hooks/cms)            │     │   HTTP only: method, params, caching       │
+│   ▼                                           │     │   │                                        │
+│ createMergedFeed / findPostBySlug             │     │   ▼  @brianlusina/cms/server               │
+│   (@brianlusina/cms) over cmsAdapters         │     │ contentfulSource ── Contentful GraphQL+REST│
+│   ├── createApiAdapter('contentful') ── fetch('/api/contentful/…') ─▶  map → UnifiedPost        │
+│   └── createApiAdapter('notion') ───── fetch('/api/notion/…') ─────▶ notionSource ── Notion API │
+│         (UnifiedPost JSON, no mapping)        │     │   map → UnifiedPost, notion-to-md (body)   │
+└───────────────────────────────────────────────┘     └────────────────────────────────────────────┘
 ```
 
 Authors, About and Social content bypasses `api/`: `hooks/api/*` and the features that render it query the Contentful GraphQL API directly from the browser with Apollo.
@@ -48,17 +43,17 @@ Unless a path starts at the repository root (`e2e/`, `.github/`, `Dockerfile`), 
 | `src/components/` | Presentational components. `components/ui/<folder>` holds custom design-system pieces. Top-level `components/ui/*.tsx` is where shadcn/ui primitives go (`bunx shadcn add <name>`); add one only when the app imports it, which `scripts/ui-primitives-policy.spec.ts` enforces. |
 | `src/hooks/cms/` | `usePosts` and `usePost`: React state around the CMS aggregator. |
 | `src/hooks/api/` | Thin Apollo hooks for Contentful content that is not a post (authors, About, Social). |
-| `src/services/cms/` | The multi-CMS seam: `CMSAdapter` interface, adapters, adapter registry, aggregator. |
+| `src/services/cms/` | The browser side of the CMS seam: `createApiAdapter` (one thin fetcher per source's `api/` routes) and the adapter registry. The models, the `CMSAdapter` interface and the aggregator come from `@brianlusina/cms` (see [The CMS seam](#the-cms-seam)). |
 | `src/services/search/` | Site search: the search index, MiniSearch ranking and the search analytics rules (see [Search](#search)). |
 | `src/services/monitoring/`, `src/services/analytics/` | Sentry and Firebase Analytics wrappers. Both are no-ops outside production. |
-| `src/integrations/contentful/` | The Contentful Apollo client instance, plus the queries and fragments for authors, About and Social content. Post queries live in `api/contentful/_shared.ts`. |
+| `src/integrations/contentful/` | The Contentful Apollo client instance, plus the queries and fragments for authors, About and Social content. Post queries live in `packages/cms/src/contentful/client.ts`. |
 | `src/clients/graphql/` | Apollo client factory and links (auth, retry, error reporting, HTTP). |
 | `src/config/` | Typed access to the `VITE_*` configuration through `readEnv` (see [Configuration](#configuration)). |
 | `src/types/` | Ambient types: the unified post model (`cms.d.ts`) and Contentful GraphQL shapes (`gql/`). |
-| `api/contentful/`, `api/notion/` | Vercel Functions that hold the CMS credentials. `api/_routes.ts` has what both share: the method check, `limit` and query-parameter parsing, and the cache header. They compile with `api/tsconfig.json` (CommonJS, Node resolution), not the root Vite config: Node loads them as CommonJS because `package.json` has no `"type": "module"`. |
+| `api/contentful/`, `api/notion/` | Vercel Functions that hold the CMS credentials. They only do HTTP (method, parameters, status codes, caching) and call the sources in `@brianlusina/cms/server`, which do the querying and mapping. `api/_routes.ts` has what both share: the method check, `limit` and query-parameter parsing, and the cache header. They compile with `api/tsconfig.json` (CommonJS, Node resolution), not the root Vite config: Node loads them as CommonJS because `package.json` has no `"type": "module"`. |
 | `server/` | The Docker image's Bun server. It serves `dist/`, runs the `api/` functions through a Vercel adapter and sets the runtime configuration in `index.html`. Vercel doesn't use it. |
 | `api/contact.ts`, `api/subscribe.ts`, `api/_forms/` | Vercel Functions behind the contact form and the newsletter signup (see [Forms](#forms)). `shared/forms.ts` holds the zod schemas that the forms in `src/` import too. |
-| `shared/` | The contract between `api/` and `src/`: the Notion property names and listing filters (`notion.ts`) and the form schemas (`forms.ts`). Import it as `@shared/*` from `src/` and relatively from `api/`. Keep it free of Node and DOM APIs, and never put source that the browser imports under `api/`: the dev server proxies `/api/*` to `vercel dev`. |
+| `shared/` | The contract between `api/` and `src/`: the form schemas (`forms.ts`). The Notion property names and listing filters moved to `packages/cms/src/notion/properties.ts`. Import it as `@shared/*` from `src/` and relatively from `api/`. Keep it free of Node and DOM APIs, and never put source that the browser imports under `api/`: the dev server proxies `/api/*` to `vercel dev`. |
 
 ### Path aliases
 
@@ -71,9 +66,17 @@ Add new aliases there only. Before this was consolidated, three hand-copied list
 
 ## The CMS seam
 
+The seam lives in `packages/cms` (`@brianlusina/cms`), in three layers:
+
+1. **Source** (`packages/cms/src/<source>/`): `client.ts` (credentials and the CMS's API), `map.ts` (the CMS's shape → `UnifiedPost`) and `source.ts` (a `CMSAdapter` over both). Exported from `@brianlusina/cms/server`, server-only.
+2. **Route** (`apps/blog/api/<source>/`): HTTP only. It calls the source and answers its result as JSON.
+3. **Browser** (`apps/blog/src/services/cms/`): `createApiAdapter(source)`, a `CMSAdapter` that fetches the routes and returns their JSON as it is.
+
+`@brianlusina/cms` (the root entry, `packages/cms/index.ts`) is browser-safe: the models, `CMSAdapter` and the aggregator. An ESLint rule keeps CMS clients, credentials and Node imports out of it. `apps/sites` (Astro) will call the aggregator over the server sources directly.
+
 ### Unified model
 
-Every source maps its content onto `UnifiedPost` (`src/types/cms.d.ts`): `id`, `source`, `title`, `slug`, `publishDate`, `tags: string[]`, `authors: UnifiedAuthor[]`, and optional `subtitle`, `description`, `category`, `body` (Markdown), `heroImage`, `thumbnail`. UI code that renders posts should depend on this model only, never on a CMS's own types.
+Every source maps its content onto `UnifiedPost` (`packages/cms/src/types.ts`; the blog keeps the names global through aliases in `src/types/cms.d.ts`): `id`, `source`, `title`, `slug`, `publishDate`, `tags: string[]`, `authors: UnifiedAuthor[]`, and optional `subtitle`, `description`, `category`, `body` (Markdown), `heroImage`, `thumbnail`. UI code that renders posts should depend on this model only, never on a CMS's own types.
 
 `UnifiedAuthor` (`id`, `source`, `name`, `avatarUrl`, `shortBio`) carries everything `AuthorBadge` displays, so authors are never fetched again per badge. An author's `id` is only meaningful within its `source`; only Contentful authors link to the authors page. A Notion post has at most one author, named by its `Authors` text property (typed, or a mention of a workspace member), and no avatar. Notion gives a mentioned member's name only when the integration has the **Read user information** capability; without it, type the name instead of mentioning.
 
@@ -90,12 +93,17 @@ interface CMSAdapter {
 }
 ```
 
-- **`ContentfulAdapter`** calls `/api/contentful/posts` and `/api/contentful/posts/:slug`, and maps `BlogPostItem` to `UnifiedPost`. The functions query the Contentful GraphQL API with the delivery token, ordered by `publishDate_DESC`, and answer `{ results, nextCursor }` (the slug route answers `{ post }`). The cursor is the offset of the next post. Listings only include posts that have a `publishDate`, the key the feed merges on.
-- **`NotionAdapter`** calls `/api/notion/posts` and `/api/notion/posts/:slug`, and maps the page properties listed under [Notion schema](#notion-schema). The `[slug]` function converts the page body to Markdown with `notion-to-md`, so both sources produce Markdown for `ArticlePage`. Its cursor is Notion's own `next_cursor`, passed through `/api/notion/posts?cursor=…`; each request reads one Notion page (at most 100 posts), so there is no limit on how far the feed can go. A Notion page is **published** when its `Status` is `Published` **and** `Published` (the date) is set (the feed merges on publish date, so an undated post has no place in it). It is listed only when it is published and its `Slug` is not empty (a post without a slug could never be opened), and opened by slug only when it is published.
+`CMSPage` may also carry `partial: true`: the source answered without everything it should have (Contentful, when its tag list can't be read), so the route doesn't let the edge cache keep it.
+
+- **`contentfulSource`** queries the Contentful GraphQL API with the delivery token, ordered by `publishDate_DESC`, and maps each post onto `UnifiedPost`. `/api/contentful/posts` answers `{ results, nextCursor }` and the slug route answers `{ post }`. The cursor is the offset of the next post; the route answers 400, and the source rejects, for a cursor that isn't a non-negative integer. Listings only include posts that have a `publishDate`, the key the feed merges on.
+- **`notionSource`** queries the data source and maps the page properties listed under [Notion schema](#notion-schema). Its slug lookup converts the page body to Markdown with `notion-to-md`, so both sources produce Markdown for `ArticlePage`, and the slug route answers `{ post }` with the body in it. Its cursor is Notion's own `next_cursor`, passed through `/api/notion/posts?cursor=…`; each request reads one Notion page (at most 100 posts), so there is no limit on how far the feed can go. A Notion page is **published** when its `Status` is `Published` **and** `Published` (the date) is set (the feed merges on publish date, so an undated post has no place in it). It is listed only when it is published and its `Slug` is not empty (a post without a slug could never be opened), and opened by slug only when it is published.
+- **`createApiAdapter(source)`** is the browser's adapter for either source. It builds the route URLs, answers `null` on a 404, and rejects with "Unable to fetch <Source> posts: <status>" (or post, or search index) on any other error.
+
+`e2e/blog/api.spec.ts` checks each posts route on the deployment: it answers 200 with a page whose first post is a `UnifiedPost`, not the CMS's own shape. It checks no post shape when a source answers an empty page, and skips a source the deployment hasn't configured (500 `{ error: '<Source> is not configured' }`); a crashed function still fails it. Neither the slug nor the search-index routes are checked on the deployment.
 
 #### Notion schema
 
-The routes and the adapter read the 📰 Journal CMS data source, whose properties mirror the Contentful blog post fields. Every property name lives in `shared/notion.ts`, shared by both routes and `NotionAdapter`. Notion matches names exactly, case included, and rejects a whole query (the routes then answer 502) when a filter or sort names a property it doesn't have or uses the wrong type. **A rename or type change in the database needs the same change in `shared/notion.ts`, `NotionAdapter` and this table.**
+`notionSource` reads the 📰 Journal CMS data source, whose properties mirror the Contentful blog post fields. Every property name lives in `packages/cms/src/notion/properties.ts`, shared by the queries and the mapping. Notion matches names exactly, case included, and rejects a whole query (the routes then answer 502) when a filter or sort names a property it doesn't have or uses the wrong type. **A rename or type change in the database needs the same change in `properties.ts`, `map.ts` (both in `packages/cms/src/notion/`) and this table.**
 
 | Property | Notion type (API type) | Used for | `UnifiedPost` field |
 |---|---|---|---|
@@ -111,11 +119,11 @@ The routes and the adapter read the 📰 Journal CMS data source, whose properti
 
 `Draft` (checkbox) also exists in the database but isn't read: `Status` decides whether a post is published. Text values are joined across their segments, since Notion splits text wherever its formatting changes.
 
-`src/services/cms/adapters.ts` is the registry: an ordered array of adapter instances. Array order is priority order when two sources publish the same slug. Notion is registered only while the `notion` feature flag is on (see `VITE_FEATURES`); while it is off, the site never calls `/api/notion`, and Notion posts are neither listed nor found by slug.
+`src/services/cms/adapters.ts` is the browser's registry: an ordered array of `createApiAdapter` instances. Array order is priority order when two sources publish the same slug. Notion is registered only while the `notion` feature flag is on (see `VITE_FEATURES`); while it is off, the site never calls `/api/notion`, and Notion posts are neither listed nor found by slug.
 
 ### Aggregator
 
-`src/services/cms/aggregator.ts` holds the multi-source logic as plain async functions, testable without React:
+`packages/cms/src/aggregator.ts` holds the multi-source logic as plain async functions, testable without React:
 
 - **`createMergedFeed(adapters, { category?, tag? })`** returns a feed with `load(count)`, which resolves to the first `count` posts across all sources, newest first.
   - Every adapter returns its posts newest first, so the feed is a k-way merge: it keeps a cursor and a buffer per source and only fetches a source's next page when its buffer runs out. A larger `count` reads on from where the feed stopped and never refetches.
@@ -129,12 +137,11 @@ The hooks are thin. `usePosts({ limit, category, tag })` keeps one feed per cate
 
 ### Adding a content source
 
-1. Add the source name to `CMSSource` in `src/types/cms.d.ts`.
-2. Implement `CMSAdapter` in `src/services/cms/<Name>Adapter.ts`, mapping onto `UnifiedPost`. Body text must be Markdown.
-3. If the source needs a secret, put the calls behind a function in `api/` (as Contentful and Notion do), using the helpers in `api/_routes.ts`. Never use a `VITE_`-prefixed variable for a secret, because Vite inlines those into the browser bundle.
-4. Register an instance in `src/services/cms/adapters.ts`.
-5. Implement `getSearchIndex()`: every listed post, without its body, from a route that reads the source to its end. Search then covers the source with no other change.
-6. Add `<Name>Adapter.spec.ts` covering mapping, fallbacks, pagination and not-found. `ContentfulAdapter.spec.ts` and `NotionAdapter.spec.ts` show the pattern; the functions get specs next to them (`api/contentful/_handlers.spec.ts`).
+1. Add the source name to `CMSSource` in `packages/cms/src/types.ts` (the blog's alias in `src/types/cms.d.ts` follows it).
+2. In `packages/cms/src/<source>/`, add `client.ts` (credentials from server-only variables, never `VITE_`-prefixed: Vite inlines those into the browser bundle), `map.ts` (onto `UnifiedPost`, body as Markdown) and `source.ts` (a `CMSAdapter`, including `getSearchIndex()`: every listed post, without its body, read to the source's end). Give each a spec next to it; `packages/cms/src/notion/` shows the pattern. Export the source and an `is<Source>Configured()` from `packages/cms/server.ts`. Importing `server.ts` must not throw when the source isn't configured (`packages/cms/server.spec.ts`).
+3. Add the three routes in `apps/blog/api/<source>/` (`posts.ts`, `posts/[slug].ts`, `search-index.ts`), copying a sibling: HTTP only, with the helpers in `api/_routes.ts`.
+4. Register `createApiAdapter('<source>')` in `src/services/cms/adapters.ts`, and add the source's name to `SOURCE_NAMES` in `apiAdapter.ts`.
+5. Add the source to `SOURCES` in `e2e/blog/api.spec.ts`.
 
 No hook, page or aggregator change is needed.
 
@@ -142,7 +149,7 @@ No hook, page or aggregator change is needed.
 
 Search runs in the browser over an index of every post's metadata, so results are ranked, consistent across sources, and need no request per keystroke. Post bodies are not searched (see #886 for the options weighed and the decisions behind this).
 
-- **Index routes.** `GET /api/contentful/search-index` and `GET /api/notion/search-index` answer `{ results }` with every listed post of their source, in the same raw shape as the posts routes and by the same listing rules (`publishDate_exists`; `listedFilters` in `shared/notion.ts`). Contentful uses a slim query, `GET_SEARCH_INDEX`, without bodies or hero images; a Notion query never returns bodies. Each route reads 100 posts per CMS request until the source is exhausted, so no post is left out once a source passes one page, and sets `X-Search-Documents` to the number of posts (read it from a response with `curl -i`; request logs don't record response headers). The Sentry breadcrumb below records the size each reader's browser loads. Responses are edge-cached like the posts routes, so the index costs one CMS request per 100 posts per cache refresh.
+- **Index routes.** `GET /api/contentful/search-index` and `GET /api/notion/search-index` answer `{ results }` with every listed post of their source, as `UnifiedPost`s like the posts routes, by the same listing rules (`publishDate_exists`; `listedFilters` in `packages/cms/src/notion/properties.ts`). Contentful uses a slim query, `GET_SEARCH_INDEX`, without bodies or hero images; a Notion query never returns bodies. Each route reads 100 posts per CMS request until the source is exhausted, so no post is left out once a source passes one page, and sets `X-Search-Documents` to the number of posts (read it from a response with `curl -i`; request logs don't record response headers). The Sentry breadcrumb below records the size each reader's browser loads. Responses are edge-cached like the posts routes, so the index costs one CMS request per 100 posts per cache refresh.
 - **Index.** `loadSearchIndex` (`src/services/search/searchIndex.ts`) calls `getSearchIndex()` on every registered adapter, so the adapters' existing mapping applies and the `notion` flag is respected: while it is off, nothing calls `/api/notion`. A failing source is left out and reported to Sentry, as in the feed; loading fails only when every source fails. Documents are `SearchDocument`s: title, subtitle, description, category, tags, author names, slug, date and thumbnail.
 - **Ranking.** `createSearchEngine` (`searchEngine.ts`) indexes them with MiniSearch. Every word of the query must match, as a prefix or with one typo in a word of five characters or more; field boosts rank title over tags, then subtitle and description, then author and category. Queries under two characters return nothing. Both sit behind the `SearchEngine` interface, so moving search to the server (to search bodies, or past a couple of thousand posts) only replaces the index source and this module.
 - **Loading.** `src/services/search/index.ts` holds MiniSearch and is only loaded with `import()`, by `useSearch` (`src/hooks/search`), the first time a search is shown. The loaded engine is shared by the modal and the page for 5 minutes, the routes' edge-cache lifetime, so new posts and Notion's expiring signed thumbnail links don't go stale in a long-open tab; `useSearch` asks for it again on each query and each time the modal opens, which costs nothing while it is fresh. An engine built while a source failed is used but not kept, so the next search retries that source. Load time and document count go to Sentry as a breadcrumb.
@@ -157,8 +164,8 @@ A tag is identified by its **name**, the only identifier every source shares. `T
   - Contentful tags (`contentfulMetadata.tags`), used by newer posts;
   - the legacy `tags` field (`Array<Symbol>`), used by older ones.
 
-  The adapter shows both, de-duplicated, and filters on either: `tags_contains_some: [name]` OR the Contentful tag's ID. Contentful tags can only be filtered by ID, so `getTagId` (`api/contentful/_shared.ts`) looks the name up in the space's tag list, fetched once per function instance from the delivery REST API (`/tags`). The GraphQL API can't list tags. If the tag list can't be fetched, the function still filters the legacy field by name.
-- **Notion** filters `Tags` with `multi_select.contains` on the name. Most tags aren't Notion's, so `/api/notion/posts?tag=` first checks that the name is one of the `Tags` options, and answers with no posts without querying when it isn't.
+  The adapter shows both, de-duplicated, and filters on either: `tags_contains_some: [name]` OR the Contentful tag's ID. Contentful tags can only be filtered by ID, so `getTagId` (`packages/cms/src/contentful/client.ts`) looks the name up in the space's tag list, fetched once per function instance from the delivery REST API (`/tags`). The GraphQL API can't list tags. If the tag list can't be fetched, the source still filters the legacy field by name and marks the answer `partial`, so it isn't edge-cached.
+- **Notion** filters `Tags` with `multi_select.contains` on the name. Most tags aren't Notion's, so `notionSource` first checks that the name is one of the `Tags` options, and answers with no posts without querying when it isn't.
 
 ### Content outside the seam
 
@@ -208,7 +215,7 @@ Each `VITE_*` value is read with `readEnv` (`src/config/runtimeEnv.ts`), which r
 | `VITE_FIREBASE_*` | Firebase Analytics (optional, production only). |
 | `VITE_ENV`, `VITE_APP_NAME`, `VITE_APP_TITLE` | Environment label and site naming. |
 | `VITE_FEATURES` | Feature flag overrides, a comma-separated list such as `newsletter=on,search=off`. See [Feature flags](#feature-flags). |
-| `NOTION_API_KEY`, `NOTION_DATA_SOURCE_ID` (or `NOTION_DATABASE_ID`) | **Server only**, read by `api/notion`. Queries target a data source (Notion API 2025-09-03). `getDataSourceId()` in `api/notion/_shared.ts` uses `NOTION_DATA_SOURCE_ID` as is, or looks up the first data source of `NOTION_DATABASE_ID` once per function instance. |
+| `NOTION_API_KEY`, `NOTION_DATA_SOURCE_ID` (or `NOTION_DATABASE_ID`) | **Server only**, read by `api/notion`. Queries target a data source (Notion API 2025-09-03). `getDataSourceId()` in `packages/cms/src/notion/client.ts` uses `NOTION_DATA_SOURCE_ID` as is, or looks up the first data source of `NOTION_DATABASE_ID` once per function instance. |
 | `RESEND_API_KEY` | **Server only**, read by `api/contact` and `api/subscribe`. A Resend API key that can send emails and manage contacts. |
 | `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL` | **Server only**, read by `api/contact`. The address contact messages go to, and the sender they come from. The sender must be on a domain verified in Resend, and may include a name: `Journal <forms@example.com>`. |
 | `RESEND_AUDIENCE_ID` | **Server only**, read by `api/subscribe`. The ID of the Resend audience (now called a segment) that newsletter subscribers join. |
@@ -222,7 +229,7 @@ Feature flags turn a feature on or off per environment without a code change. Th
 |---|---|---|
 | `newsletter` | off | The newsletter signup: `NewsLetterSection` on the home page, `NewsLetterCTA` after articles, and the "Join Our Community" section on the About page. |
 | `search` | off | Site search (see [Search](#search)): the navbar search button and its shortcuts, and the `/search` page, which is not found while the flag is off. The dialog and the search index load with `lazy()` and `import()` on first use, the dialog inside its own `ErrorBoundary`, so a chunk that fails again after the one reload (see [Error handling and observability](#error-handling-and-observability)) drops the dialog, not the navbar. |
-| `notion` | on | Notion as a post source. While it is off, `NotionAdapter` is not registered, so the site never calls `/api/notion` and Notion posts are neither listed nor found by slug. `api/notion` itself is not gated. |
+| `notion` | on | Notion as a post source. While it is off, `createApiAdapter('notion')` is not registered, so the site never calls `/api/notion` and Notion posts are neither listed nor found by slug. `api/notion` itself is not gated. |
 
 **Setting flags.** `VITE_FEATURES` holds overrides as a comma-separated list, such as `newsletter=on,search=off`. A value is `on`/`off`, `true`/`false` or `1`/`0` (any case), and a bare name means on. A flag the list doesn't name keeps its default. An unknown name, an unknown value or a malformed entry is skipped, with a `console.warn` in development, so a typo never breaks the app. Flags are read once when the page loads.
 

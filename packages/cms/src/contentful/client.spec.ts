@@ -9,7 +9,7 @@ const jsonResponse = (ok: boolean, body: unknown = {}, status = ok ? 200 : 503) 
 // The tag list is cached for the module's lifetime, so each test loads a fresh copy.
 const loadShared = () => {
   vi.resetModules();
-  return import('./_shared');
+  return import('./client');
 };
 
 beforeEach(() => {

@@ -1,4 +1,5 @@
-import CMSAdapter from './CMSAdapter';
+import type { CMSAdapter } from './adapter';
+import type { CMSPostFilter, PaginatedUnifiedPosts, UnifiedPost } from './types';
 
 export type MergedPosts = PaginatedUnifiedPosts & {
   /**
