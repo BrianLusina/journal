@@ -57,7 +57,7 @@ jobs:
         run: |
           # Each Vercel project has its own bypass secret. No fallback: a missing one fails loudly.
           case "$DEPLOYMENT_ENVIRONMENT" in
-            *sites) export VERCEL_AUTOMATION_BYPASS_SECRET="$VERCEL_AUTOMATION_BYPASS_SECRET_SITES" ;;
+            *yggdrasil) export VERCEL_AUTOMATION_BYPASS_SECRET="$VERCEL_AUTOMATION_BYPASS_SECRET_SITES" ;;
           esac
           PROJECTS=$(bun e2e/lib/projects-cli.ts "$DEPLOYMENT_ENVIRONMENT")
           echo "Testing $E2E_BASE_URL ($DEPLOYMENT_ENVIRONMENT): $PROJECTS"

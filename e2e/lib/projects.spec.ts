@@ -12,7 +12,7 @@ test.describe('projectsFor', () => {
     });
   }
 
-  for (const environment of ['Preview – sites', 'Production – sites']) {
+  for (const environment of ['Preview – yggdrasil', 'Production – yggdrasil']) {
     test(`runs the site projects for ${environment}`, () => {
       expect(projectsFor(environment)).toEqual(['lib', 'home', 'folio']);
     });
