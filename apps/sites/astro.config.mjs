@@ -12,4 +12,6 @@ export default defineConfig({
   output: 'server',
   adapter,
   integrations: [react()],
+  // The dev toolbar's module only exists under `astro dev`; off, so local E2E runs see a clean console.
+  devToolbar: { enabled: false },
 });
