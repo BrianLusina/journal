@@ -31,7 +31,7 @@
     "depcheck": "bun run --filter blog depcheck",
     "scan:licenses": "bun run --filter blog scan:licenses",
     "storybook:dev": "bun run --filter blog storybook:dev",
-    "storybook:build": "bun run --filter blog storybook:build",
+    "storybook:build": "bun run --filter './packages/*' --filter './apps/*' storybook:build",
     "prepare": "husky install",
     "pre-commit": "lint-staged",
     "e2e": "playwright test",
