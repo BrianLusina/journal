@@ -9,3 +9,9 @@ include $(ROOT_DIR)/.make/docker.mk
 
 # dev commands
 include $(ROOT_DIR)/.make/dev.mk
+
+# Vercel commands
+include $(ROOT_DIR)/.make/vercel.mk
+
+# sanity commands
+include $(ROOT_DIR)/.make/sanity.mk

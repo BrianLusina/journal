@@ -8,7 +8,7 @@ install: ## Installs dependencies
 	bun install
 
 .PHONY: run.dev
-run.dev: create.envfile # Run the application
+run.dev: create.envfile ## Run the application
 	@echo "Running in dev mode"
 	bun dev
 
@@ -65,8 +65,3 @@ scan.frontend: ## Scans frontend dependencies for vulnerabilities
 .PHONY: scan.licenses
 scan.licenses: ## Scans for license violations
 	bun scan:licenses
-
-# Reference: https://vercel.com/docs/cli/dev
-.PHONY: vercel.dev
-vercel.dev: ## Starts up Vercel in dev mode locally
-	bun vercel:dev
