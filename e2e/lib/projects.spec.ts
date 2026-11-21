@@ -4,7 +4,9 @@ import { projectsFor } from './projects';
 // Both Vercel projects send deployment_status events to the same workflow; each deployment runs
 // only its own app's projects (blog parity on a sites preview, or the reverse, fails for nothing).
 test.describe('projectsFor', () => {
-  for (const environment of ['Preview – journal', 'Production – journal', 'journal']) {
+  // A bare name ("Preview", seen on this repo's deployments) is the journal: Vercel adds the " – <project>"
+  // suffix only once more than one project deploys the repository.
+  for (const environment of ['Preview', 'Production', 'Preview – journal', 'Production – journal', 'journal']) {
     test(`runs the blog projects for ${environment}`, () => {
       expect(projectsFor(environment)).toEqual(['lib', 'setup', 'blog']);
     });

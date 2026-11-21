@@ -29,7 +29,8 @@ jobs:
     env:
       CI: 'true'
       E2E_BASE_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url || inputs.base_url || 'https://blog.brianlusina.com' }}
-      # Vercel names the environment "<Preview|Production> – <project>"; e2e/lib/projects.ts maps it.
+      # Vercel names the environment "<Preview|Production> – <project>", or a bare "Preview" while the
+      # journal is the only project; e2e/lib/projects.ts maps it.
       DEPLOYMENT_ENVIRONMENT: ${{ github.event.deployment.environment || inputs.environment || 'journal' }}
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
     steps:
