@@ -31,9 +31,10 @@ The repository is a bun workspace (`workspaces: ["apps/*", "packages/*"]` in the
 | `/` (root) | Repo-wide tooling and its config: ESLint, husky, lint-staged, commitlint, Danger, Playwright and `e2e/`, the Dockerfile and `.make/`, CI. Its scripts forward to the app (`bun run --filter blog <script>`), so every command runs from here. One `bun.lock` for the workspace. |
 | `packages/cms/` | `@brianlusina/cms`: the post models, the CMS sources and the merged feed (see [The CMS seam](#the-cms-seam)). |
 | `packages/ui/` | `@brianlusina/ui`: the design system, with its tokens, Tailwind preset, shared components and the cross-site theme (see [Design system](#design-system)). |
+| `apps/sites/` | `brianlusina.com` and `folio.brianlusina.com`: one Astro server app that serves each site by hostname (see [apps/sites](#appssites)). The `sites` Vercel project's Root Directory. |
 | `apps/blog/` | The blog: the app, its `api/` functions, the Docker server and the app's config (Vite, Vitest, TypeScript, Tailwind, Storybook, stylelint, `vercel.json`, `.env.sample`). The Vercel project's Root Directory. |
 
-Unless a path starts at the repository root (`e2e/`, `.github/`, `Dockerfile`), the paths in this document are relative to `apps/blog/`.
+Unless a path starts at the repository root (`e2e/`, `.github/`, `Dockerfile`) or is in [apps/sites](#appssites), the paths in this document are relative to `apps/blog/`.
 
 | Path | Responsibility |
 |---|---|
@@ -267,6 +268,26 @@ Code behind a flag that is off still ships in the bundle, because the value can 
 
 **Removing a flag.** Once a feature has been on in production for a release and isn't expected to be turned off again, delete it from `FEATURE_DEFAULTS`, unwrap its `<Feature>` (or remove its check), delete the code for the off state and its tests, and drop it from the table above and from any `VITE_FEATURES` values. A name left in `VITE_FEATURES` after its flag is gone is ignored with a development warning. Flags meant as lasting switches (`notion`) stay.
 
+## apps/sites
+
+`apps/sites` is one Astro app (`output: 'server'`) that serves `brianlusina.com` (the `home` site) and `folio.brianlusina.com` (`folio`). The blog stays in `apps/blog`. Paths in this section are relative to `apps/sites/`. Run it with `bun run dev:sites` from the root, and build it with `bun run build:sites`.
+
+- **Registry:** `sites.config.json` names every host per environment (`production`, `staging`, `development`) and the redirect hosts (`www.brianlusina.com` → `brianlusina.com`). The `SITES_CONFIG` environment variable, a JSON string with the same shape, replaces the file. `src/sites/registry.ts` validates it when the server starts, and an invalid one throws `Invalid SITES_CONFIG`. Hosts are compared lowercased, without a trailing dot or a default port.
+- **Resolution** (`src/sites/resolve.ts`), in this order:
+  1. a redirect host answers 301 to its target, with the same path and query;
+  2. the internal prefixes (`/home/...`, `/folio/...`) are a 404 everywhere, so each page has one URL;
+  3. a production hostname always serves its own site;
+  4. any other registered host serves its site, unless an override applies;
+  5. an unregistered host outside production (a Vercel preview URL) serves the override, or a landing page that links each site;
+  6. anything else is a 404.
+- **Override:** outside production, `?site=home|folio` picks the site and sets an `HttpOnly` `site` cookie, so later links keep it. The cookie applies when there's no query. Vercel gives one preview URL per deployment, not one per site, so this is how a preview shows both. A production hostname refuses the override even when `VERCEL_ENV` is unset (a self-hosted production), so nobody can make `brianlusina.com` serve folio.
+- **Middleware** (`src/middleware.ts`): it rewrites the request to `src/pages/<site>/...` and sets `locals.site`. Astro runs the middleware again for the rewritten request, and `locals.rewritten` lets that pass through.
+- **Caching:** pages resolved by hostname get `Cache-Control: s-maxage=300, stale-while-revalidate=86400`; the CDN's cache key includes the host. Override and landing responses are `private, no-store` with `Vary: Cookie`, since a cached copy would serve the wrong site. There's no ISR yet: the pages are placeholders with nothing to revalidate. It comes with content.
+- **SEO:** canonical URLs always name the production host (`canonicalUrl` in `src/sites/urls.ts`). Each site has its own `robots.txt`, which is open in production and `Disallow: /` elsewhere, and its own `sitemap.xml` built from `src/sites/routes.ts`. Outside production, every response carries `X-Robots-Tag: noindex`.
+- **Links between sites:** `siteUrl` builds them per environment. On a preview, a link to a site is the same origin with `?site=`, and a link to the blog goes to staging.
+- **Styling:** Tailwind 3 through PostCSS with the `@brianlusina/ui` preset. The layout inlines `themeScript`, so the theme matches the blog's before first paint.
+- **Adapter seam:** `astro.config.mjs` names the adapter on one line (`const adapter = vercel()`). Self-hosting changes that line to `@astrojs/node`; nothing else depends on Vercel.
+
 ## Deployment topology
 
 - The SPA is static (`dist/`). Posts from both CMSs and the contact and newsletter forms **require** a host that runs the `api/` functions: Vercel, which builds every PR as a preview, or the Docker image.
@@ -298,8 +319,9 @@ Code behind a flag that is off still ships in the bundle, because the value can 
   - **Tags:** `@smoke` (every route, the 404 paths, the search flag, and the article inventory: every recorded article still opens with the same heading and is still listed on `/articles`), `@visual` (home, an article and About, light and dark, 1440 and 390 wide), `@a11y` (no axe rule beyond the recorded ones per route) and `@record` (rewrites the baselines; only with `E2E_RECORD=1`).
   - **Baselines:** `e2e/baseline/blog-articles.json` and `blog-axe.json` are recorded from a live deployment; screenshots live in `e2e/blog/__screenshots__/` and are only generated and compared in CI's `mcr.microsoft.com/playwright:v1.65.0-noble` container, since fonts render differently per OS (locally they are skipped). To update them, add the **`update-baselines`** label to a PR: `e2e-update-baselines.yml` records them from that PR's Vercel preview and commits them. That commit is pushed with `GITHUB_TOKEN`, which doesn't start the Tests and Lint workflows, so push a later commit before merging.
   - **What fails a test:** console errors, uncaught exceptions and failed requests from the deployment itself (requests the page cancels don't count). Third-party failures (analytics, image CDNs) are ignored. Expected failures (each CMS answering 404 for a slug it doesn't have) and known production defects (`KNOWN_DEFECTS`, each naming its issue) are listed in `e2e/lib/errors.ts`; `/authors` is marked `test.fail` until #946 is fixed.
-  - **CI:** `e2e.yml` runs the whole suite on every successful Vercel `deployment_status` (previews, staging, production) against the deployment's URL, and `@smoke` against production every 30 minutes. `workflow_dispatch` tests any URL.
-  - **Protected previews:** set the GitHub Actions secret `VERCEL_AUTOMATION_BYPASS_SECRET` (Vercel → Project → Settings → Deployment Protection → Protection Bypass for Automation). The tests send it only to the deployment's own origin, never to third-party hosts.
+  - **Sites projects:** `home` and `folio` run `e2e/home/` and `e2e/folio/`. On a host `sites.config.json` doesn't list (a preview), `e2e/sites/fixtures.ts` sets the `site` cookie so the page serves the site under test.
+  - **CI:** `e2e.yml` runs on every successful Vercel `deployment_status` (previews, staging, production) against the deployment's URL, and runs `@smoke` against the production blog every 30 minutes. Vercel names a deployment's environment `<Preview|Production> – <project>`. `e2e/lib/projects.ts` maps it to the Playwright projects: `lib`, `setup` and `blog` for `journal`; `lib`, `home` and `folio` for `sites`. An unknown name fails the run. `workflow_dispatch` tests any URL; its `environment` input (default `journal`) picks the projects.
+  - **Protected previews:** set the GitHub Actions secrets `VERCEL_AUTOMATION_BYPASS_SECRET` (journal) and `VERCEL_AUTOMATION_BYPASS_SECRET_SITES` (sites), from each project's Vercel → Settings → Deployment Protection → Protection Bypass for Automation. A sites run never falls back to the journal's secret. The tests send it only to the deployment's own origin, never to third-party hosts.
   - **Locally:** `E2E_BASE_URL=https://blog.brianlusina.com bun run e2e`, or point it at `vercel dev`. `PW_CHROMIUM_PATH` overrides the browser binary, and `HTTPS_PROXY` is honoured.
 
 ## Known limits and follow-ups
