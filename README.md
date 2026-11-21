@@ -25,7 +25,7 @@ This project uses **[bun](https://bun.sh) only** (version pinned in `packageMana
 
 ### Repository layout
 
-The repository is a [bun workspace](https://bun.sh/docs/install/workspaces). The blog lives in `apps/blog/`. Code shared between sites lives in `packages/`: `packages/cms` (`@brianlusina/cms`) reads posts from Contentful and Notion and maps them onto one model (see [The CMS seam](./docs/ARCHITECTURE.md#the-cms-seam)). The root holds the repo-wide tooling (ESLint, husky, lint-staged, commitlint, Danger, Playwright and `e2e/`). Run every command from the root: the root scripts forward to the app (`bun run --filter blog <script>`). Add the app's dependencies to `apps/blog/package.json` with `bun add --cwd apps/blog <package>`; only repo-wide tooling goes in the root `package.json`. There is one `bun.lock`, at the root.
+The repository is a [bun workspace](https://bun.sh/docs/install/workspaces). The blog lives in `apps/blog/`. Code shared between sites lives in `packages/`: `packages/cms` (`@brianlusina/cms`) reads posts from Contentful and Notion and maps them onto one model (see [The CMS seam](./docs/ARCHITECTURE.md#the-cms-seam)), and `packages/ui` (`@brianlusina/ui`) holds the design system: tokens, the Tailwind preset, shared components and the cross-site theme (see [Design system](./docs/ARCHITECTURE.md#design-system)). The root holds the repo-wide tooling (ESLint, husky, lint-staged, commitlint, Danger, Playwright and `e2e/`). Run every command from the root: the root scripts forward to the app (`bun run --filter blog <script>`). Add the app's dependencies to `apps/blog/package.json` with `bun add --cwd apps/blog <package>`; only repo-wide tooling goes in the root `package.json`. There is one `bun.lock`, at the root.
 
 ### Installing
 

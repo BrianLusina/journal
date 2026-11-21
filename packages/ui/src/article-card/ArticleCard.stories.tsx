@@ -1,5 +1,4 @@
 import { Meta, StoryFn } from '@storybook/react';
-import defaultFeature from '@/assets/images/default_feature_pic.jpg';
 import ArticleCard from './ArticleCard';
 
 export default {
@@ -14,8 +13,7 @@ const Template: StoryFn<typeof ArticleCard> = (args) => (
 );
 
 const props = {
-  id: 'post-1',
-  slug: 'a-trip-north',
+  href: '/article/post-1/a-trip-north',
   title: 'A trip north',
   category: 'Travel',
   date: 'March 3, 2024',
@@ -24,7 +22,9 @@ const props = {
 export const WithThumbnail = Template.bind({});
 WithThumbnail.args = {
   ...props,
-  thumbnail: defaultFeature,
+  // An inline image, so the story needs no network or app asset.
+  thumbnail:
+    'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="400" height="300" fill="%23a3b8a8"/></svg>',
 };
 
 export const WithoutThumbnail = Template.bind({});
