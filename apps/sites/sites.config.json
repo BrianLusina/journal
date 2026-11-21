@@ -1,0 +1,22 @@
+{
+  "environments": {
+    "production": {
+      "home": "brianlusina.com",
+      "folio": "folio.brianlusina.com",
+      "blog": "blog.brianlusina.com"
+    },
+    "staging": {
+      "home": "staging.brianlusina.com",
+      "folio": "staging.folio.brianlusina.com",
+      "blog": "staging.blog.brianlusina.com"
+    },
+    "development": {
+      "home": "localhost:4321",
+      "folio": "folio.localhost:4321",
+      "blog": "localhost:8080"
+    }
+  },
+  "redirects": {
+    "www.brianlusina.com": "brianlusina.com"
+  }
+}

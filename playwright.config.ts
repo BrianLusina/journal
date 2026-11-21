@@ -22,5 +22,8 @@ export default defineConfig({
     // Checks the deployment is reachable before anything else runs against it.
     { name: 'setup', testDir: 'e2e/setup', testMatch: /.*\.setup\.ts/ },
     { name: 'blog', testDir: 'e2e/blog', dependencies: ['setup'], use: { ...devices['Desktop Chrome'] } },
+    // apps/sites: on a preview URL, the site fixture picks the site with the `site` cookie.
+    { name: 'home', testDir: 'e2e/home', use: { ...devices['Desktop Chrome'] } },
+    { name: 'folio', testDir: 'e2e/folio', use: { ...devices['Desktop Chrome'] } },
   ],
 });

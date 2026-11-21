@@ -1,0 +1,14 @@
+---
+import Site from '../../layouts/Site.astro';
+import { ThemeToggle } from '@brianlusina/ui';
+---
+
+<Site site="home" title="Brian Lusina">
+  <main class="max-w-7xl mx-auto px-4 py-24">
+    <div class="flex items-center justify-between">
+      <h1 class="text-4xl font-bold">Brian Lusina</h1>
+      <ThemeToggle client:load />
+    </div>
+    <p class="mt-4 text-muted-foreground">Coming soon.</p>
+  </main>
+</Site>

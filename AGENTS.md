@@ -32,7 +32,7 @@ Journal is a personal blog and journal website. It displays blog posts from more
 
 ## Commands
 
-The repository is a bun workspace: the blog is in `apps/blog/` and the paths below are relative to it. Run every command from the repository root; the root scripts forward to the app (`bun run --filter blog <script>`). App dependencies go in `apps/blog/package.json` (`bun add --cwd apps/blog <package>`); only repo-wide tooling (lint, hooks, Playwright) goes in the root `package.json`. Content models, CMS clients and the mapping onto `UnifiedPost` live in `packages/cms` (`@brianlusina/cms`); the blog's `api/` routes only do HTTP around them. Components and styles that more than one site needs live in `packages/ui` (`@brianlusina/ui`), each with its spec and story; app-only components stay in the app.
+The repository is a bun workspace: the blog is in `apps/blog/` and the paths below are relative to it. Run every command from the repository root; the root scripts forward to the app (`bun run --filter blog <script>`). App dependencies go in `apps/blog/package.json` (`bun add --cwd apps/blog <package>`); only repo-wide tooling (lint, hooks, Playwright) goes in the root `package.json`. Content models, CMS clients and the mapping onto `UnifiedPost` live in `packages/cms` (`@brianlusina/cms`); the blog's `api/` routes only do HTTP around them. Components and styles that more than one site needs live in `packages/ui` (`@brianlusina/ui`), each with its spec and story; app-only components stay in the app. `apps/sites` (Astro) serves `brianlusina.com` and `folio.brianlusina.com` by hostname. Its pages live under `src/pages/<site>/`, and its hosts are in `sites.config.json` (see "apps/sites" in `docs/ARCHITECTURE.md`).
 
 
 - **Run dev server**: `bun dev`
