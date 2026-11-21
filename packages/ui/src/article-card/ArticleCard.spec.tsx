@@ -1,9 +1,8 @@
-import { fireEvent, render, screen } from '@testUtils/rtlUtils';
+import { fireEvent, render, screen } from '@testing-library/react';
 import ArticleCard from './ArticleCard';
 
 const props = {
-  id: 'post-1',
-  slug: 'a-trip-north',
+  href: '/article/post-1/a-trip-north',
   title: 'A trip north',
   category: 'Travel',
   date: 'March 3, 2024',

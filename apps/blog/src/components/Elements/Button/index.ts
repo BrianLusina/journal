@@ -1,6 +1,5 @@
-import Button from './Button';
-import { buttonVariants, ButtonProps } from './Button.types';
+import { Button, buttonVariants, type ButtonProps } from '@brianlusina/ui';
 
-export { buttonVariants };    
+export { buttonVariants };
 export type { ButtonProps };
 export default Button;

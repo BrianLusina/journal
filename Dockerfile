@@ -6,6 +6,7 @@ WORKDIR /usr/src/app
 COPY package.json bun.lock ./
 COPY apps/blog/package.json apps/blog/
 COPY packages/cms/package.json packages/cms/
+COPY packages/ui/package.json packages/ui/
 RUN bun install --frozen-lockfile
 
 COPY . /usr/src/app

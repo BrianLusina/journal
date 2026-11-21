@@ -99,6 +99,25 @@ describe('toolchain left over from Create React App', () => {
   });
 });
 
+// @brianlusina/ui is shared with apps/sites (Astro), which has no React Router. Links go through its
+// LinkProvider instead; the blog binds React Router there.
+describe('@brianlusina/ui', () => {
+  const sourceFiles = (dir: string): string[] =>
+    readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) return entry.name === 'node_modules' ? [] : sourceFiles(full);
+      return /\.(ts|tsx)$/.test(entry.name) ? [full] : [];
+    });
+
+  it('has no react-router import', () => {
+    const offenders = sourceFiles(path.join(repoRoot, 'packages/ui')).filter(file =>
+      /from\s+['"]react-router/.test(readFileSync(file, 'utf8')),
+    );
+
+    expect(offenders.map(file => path.relative(repoRoot, file))).toEqual([]);
+  });
+});
+
 // The image runs the whole app, api/ included, on the Bun server in server/ (#839).
 describe('Docker image', () => {
   const dockerfile = read('Dockerfile');
