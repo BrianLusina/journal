@@ -2,6 +2,7 @@ import type { MiddlewareHandler } from 'astro';
 import type { RegistryConfig } from './sites/registry';
 import { registry } from './sites/current';
 import { resolveRequest, SITE_COOKIE } from './sites/resolve';
+import { robotsTxt } from './seo/robots';
 
 const EDGE_CACHE = 's-maxage=300, stale-while-revalidate=86400';
 const NO_STORE = 'private, no-store';
@@ -16,8 +17,9 @@ function withHeaders(response: Response, headers: Record<string, string>, status
 /**
  * Serves each request as the site its host (or, outside production, the ?site= override) names,
  * by rewriting to that site's routes under src/pages/<site>/. Hostname-resolved pages may be cached
- * at the edge: the CDN's cache key includes the host. Anything that depends on the override cookie,
- * or on its absence, is never cached, since it would otherwise be served for the wrong site.
+ * at the edge in production: the CDN's cache key includes the host. Anything that depends on the
+ * override cookie, or on its absence (every page outside production), is never cached, since it
+ * would otherwise be served for the wrong site.
  */
 export function createSiteMiddleware(registry: RegistryConfig, vercelEnv: () => string | undefined): MiddlewareHandler {
   return async (context, next) => {
@@ -39,15 +41,23 @@ export function createSiteMiddleware(registry: RegistryConfig, vercelEnv: () => 
       case 'not-found':
         return withHeaders(await rewrite('/404'), { 'Cache-Control': NO_STORE }, 404);
       case 'landing':
+        // Crawlers send no cookie, so a preview's robots.txt is answered here, closed.
+        if (url.pathname === '/robots.txt') {
+          return new Response(robotsTxt('home', false, registry), {
+            headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': NO_STORE, 'X-Robots-Tag': 'noindex' },
+          });
+        }
         return withHeaders(await rewrite('/'), { 'Cache-Control': NO_STORE, Vary: 'Cookie', 'X-Robots-Tag': 'noindex' });
       case 'site': {
         const { site, env, via, setCookie } = resolution;
         context.locals.site = { id: site, env, via };
         if (setCookie) context.cookies.set(SITE_COOKIE, setCookie, { path: '/', httpOnly: true, sameSite: 'lax', secure: true });
         const response = await rewrite(`/${site}${url.pathname}${url.search}`);
+        // Outside production the cookie can change any page, so only production pages are cached.
+        const cookieDependent = via === 'override' || env !== 'production';
         return withHeaders(response, {
-          'Cache-Control': via === 'override' ? NO_STORE : EDGE_CACHE,
-          ...(via === 'override' ? { Vary: 'Cookie' } : {}),
+          'Cache-Control': cookieDependent ? NO_STORE : EDGE_CACHE,
+          ...(cookieDependent ? { Vary: 'Cookie' } : {}),
           ...(env === 'production' ? {} : { 'X-Robots-Tag': 'noindex' }),
         });
       }

@@ -28,7 +28,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          statuses=$(gh api "repos/${{ github.repository }}/deployments?sha=$SHA&per_page=1" --jq '.[0].statuses_url // empty')
+          # Both Vercel projects deploy each commit; the baselines are the journal's ("<Preview|Production> – journal").
+          statuses=$(gh api "repos/${{ github.repository }}/deployments?sha=$SHA&per_page=100" \
+            --jq '[.[] | select(.environment | test("(^|\\s)journal$"; "i"))][0].statuses_url // empty')
           url=""
           if [ -n "$statuses" ]; then
             url=$(gh api "$statuses" --jq '[.[] | select(.state == "success")][0].environment_url // empty')

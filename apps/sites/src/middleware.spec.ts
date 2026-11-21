@@ -98,4 +98,21 @@ describe('the sites middleware', () => {
 
     expect(response.headers.get('X-Robots-Tag')).toBe('noindex');
   });
+
+  it('closes a preview to crawlers even without an override cookie', async () => {
+    const { response, rewrites } = await call('https://journal-x.vercel.app/robots.txt', { vercelEnv: 'preview' });
+
+    expect(rewrites).toEqual([]);
+    expect(response.headers.get('Content-Type')).toBe('text/plain; charset=utf-8');
+    expect(await response.text()).toBe('User-agent: *\nDisallow: /\n');
+    expect(response.headers.get('X-Robots-Tag')).toBe('noindex');
+  });
+
+  it('keeps hostname-resolved staging pages out of the edge cache, since the cookie can change them', async () => {
+    const { response, locals } = await call('https://staging.brianlusina.com/', { vercelEnv: 'preview' });
+
+    expect(locals.site).toEqual({ id: 'home', env: 'staging', via: 'host' });
+    expect(response.headers.get('Cache-Control')).toBe('private, no-store');
+    expect(response.headers.get('Vary')).toBe('Cookie');
+  });
 });
