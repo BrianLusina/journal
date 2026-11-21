@@ -13,6 +13,8 @@
     "vercel:dev": "bun run --filter blog vercel:dev",
     "dev": "bun run --filter blog dev",
     "build": "bun run --filter blog build",
+    "dev:sites": "bun run --filter sites dev",
+    "build:sites": "bun run --filter sites build",
     "build:dev": "bun run --filter blog build:dev",
     "check:bundle-size": "bun run --filter blog check:bundle-size",
     "preview": "bun run --filter blog preview",

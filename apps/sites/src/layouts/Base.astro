@@ -1,0 +1,33 @@
+---
+import '@brianlusina/ui/styles.css';
+import { themeScript } from '@brianlusina/ui';
+
+interface Props {
+  title: string;
+  description?: string;
+  canonical: string;
+  noindex: boolean;
+}
+
+const { title, description, canonical, noindex } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Before any stylesheet paints: the shared theme, without a flash of the wrong one (#829). -->
+    <script is:inline set:html={themeScript} />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
