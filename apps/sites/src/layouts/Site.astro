@@ -1,0 +1,21 @@
+---
+// The layout of every page a site serves: canonical URL and indexing come from the resolved site.
+import Base from './Base.astro';
+import { registry } from '../sites/current';
+import { canonicalUrl } from '../sites/urls';
+import type { SiteId } from '../sites/registry';
+
+interface Props {
+  site: SiteId;
+  title: string;
+  description?: string;
+}
+
+const { site, title, description } = Astro.props;
+// The path within the site: /folio/p is served as /p.
+const path = Astro.url.pathname.replace(new RegExp(`^/${site}(?=/|$)`), '') || '/';
+---
+
+<Base title={title} description={description} canonical={canonicalUrl(site, path, registry)} noindex={Astro.locals.site?.env !== 'production'}>
+  <slot />
+</Base>

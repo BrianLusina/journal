@@ -1,0 +1,22 @@
+---
+// The preview landing page: a preview has one URL for every site, so it links to each with ?site=.
+// The middleware only serves this outside production, with no override set.
+import Base from '../layouts/Base.astro';
+import { registry } from '../sites/current';
+import { SITE_IDS } from '../sites/registry';
+import { siteUrl } from '../sites/urls';
+---
+
+<Base title="Preview" canonical={Astro.url.origin + '/'} noindex={true}>
+  <main class="max-w-3xl mx-auto px-4 py-24">
+    <h1 class="text-3xl font-bold">Preview</h1>
+    <p class="mt-4 text-muted-foreground">Choose a site to preview. Your choice is kept in a cookie until you choose another.</p>
+    <ul class="mt-8 space-y-3">
+      {SITE_IDS.map(id => (
+        <li>
+          <a class="underline" href={siteUrl(id, '/', { env: 'preview', origin: Astro.url.origin }, registry)}>{id}</a>
+        </li>
+      ))}
+    </ul>
+  </main>
+</Base>

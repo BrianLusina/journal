@@ -1,9 +1,9 @@
 ---
-import Base from '../../layouts/Base.astro';
+import Site from '../../layouts/Site.astro';
 import { ThemeToggle } from '@brianlusina/ui';
 ---
 
-<Base title="Folio" canonical="https://folio.brianlusina.com/" noindex={true}>
+<Site site="folio" title="Folio">
   <main class="max-w-7xl mx-auto px-4 py-24">
     <div class="flex items-center justify-between">
       <h1 class="text-4xl font-bold">Folio</h1>
@@ -11,4 +11,4 @@ import { ThemeToggle } from '@brianlusina/ui';
     </div>
     <p class="mt-4 text-muted-foreground">Coming soon.</p>
   </main>
-</Base>
+</Site>
