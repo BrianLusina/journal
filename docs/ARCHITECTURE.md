@@ -24,11 +24,13 @@ Authors, About and Social content bypasses `api/`: `hooks/api/*` and the feature
 
 ## Source layout
 
-The repository is a bun workspace (`workspaces: ["apps/*"]` in the root `package.json`):
+The repository is a bun workspace (`workspaces: ["apps/*", "packages/*"]` in the root `package.json`):
 
 | Path | Responsibility |
 |---|---|
 | `/` (root) | Repo-wide tooling and its config: ESLint, husky, lint-staged, commitlint, Danger, Playwright and `e2e/`, the Dockerfile and `.make/`, CI. Its scripts forward to the app (`bun run --filter blog <script>`), so every command runs from here. One `bun.lock` for the workspace. |
+| `packages/cms/` | `@brianlusina/cms`: the post models, the CMS sources and the merged feed (see [The CMS seam](#the-cms-seam)). |
+| `packages/ui/` | `@brianlusina/ui`: the design system, with its tokens, Tailwind preset, shared components and the cross-site theme (see [Design system](#design-system)). |
 | `apps/blog/` | The blog: the app, its `api/` functions, the Docker server and the app's config (Vite, Vitest, TypeScript, Tailwind, Storybook, stylelint, `vercel.json`, `.env.sample`). The Vercel project's Root Directory. |
 
 Unless a path starts at the repository root (`e2e/`, `.github/`, `Dockerfile`), the paths in this document are relative to `apps/blog/`.
@@ -63,6 +65,26 @@ Unless a path starts at the repository root (`e2e/`, `.github/`, `Dockerfile`), 
 - Vitest reuses `vite.config.mts`, and with it those aliases (`vitest.config.mts`).
 
 Add new aliases there only. Before this was consolidated, three hand-copied lists drifted apart and broke most of the test suite.
+
+## Design system
+
+`packages/ui` (`@brianlusina/ui`) is the look every site shares. It holds:
+
+- **`styles.css`**: the design tokens (the `:root` and `.dark` HSL variables), base styles, utilities such as `card-hover`, `pill-nav` and `floating-button`, the keyframes, and the `tag-*` category colours.
+- **`tailwind-preset.ts`**: the tokens as a Tailwind 3 preset, with `darkMode: ['class']`, plus `uiContent`, the globs of the package's own files.
+- **`index.ts`**: the React components (`Button`, `ArticleCard`, `Tag`/`Tags`, `ThemeToggle`), `cn`, `getCategoryClass`, `LinkProvider` and the theme helpers.
+
+**Using it in an app:**
+1. Import `@brianlusina/ui/styles.css` once.
+2. Set `presets: [preset]` and `content: [...yourGlobs, ...uiContent]` in the app's Tailwind config. Tailwind only generates the classes it finds in `content`, so without `uiContent` the package's components render unstyled.
+
+The blog does both in `src/styles/css/index.css` and `tailwind.config.ts`. Its built CSS is byte-identical to what it was before the extraction.
+
+**Links.** Components link through `Link`. With no `LinkProvider`, that is a plain `<a href>`, which is what Astro pages want. An app with a client-side router passes its own link component. The blog's `ArticleCard` and `Tag` entry points (`src/components/ArticleCard`, `src/components/ui/tag`) bind React Router's link inside themselves, so they navigate client-side under any router, tests included. They also build the blog's own URLs from `id`/`slug` and from the tag name. `scripts/repo-policy.spec.ts` keeps `react-router` out of the package.
+
+**Theme across sites.** The sites store the reader's light/dark choice in a `theme` cookie with `Domain=.brianlusina.com`, so a choice made on one site carries to the others. On any other host (Vercel previews, localhost, Docker), the cookie stays on that host, because a browser drops a Domain the host doesn't match (`themeCookieDomain`). An app inlines `themeScript` in `<head>`. It applies the `dark` class before paint, from the cookie or else the system preference, so there is no flash of the wrong theme (#829). `ThemeToggle` flips the class and writes the cookie. **The blog doesn't use this yet.** It keeps `next-themes` and `localStorage.theme` (`src/providers/theme`) until it adopts the shared pieces after cutover, as a separately approved change.
+
+**Adding to it.** Put a component in `packages/ui` only when a second app needs it, with its spec and story next to it. App-only components stay in the app. shadcn/ui primitives arrive with the first page that imports them (`scripts/ui-primitives-policy.spec.ts`). The package's Storybook (`bun run --filter @brianlusina/ui storybook:dev`) builds Tailwind from the preset and `uiContent` alone, so it shows what any app will get.
 
 ## The CMS seam
 
