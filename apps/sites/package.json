@@ -10,7 +10,6 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "typecheck": "astro check",

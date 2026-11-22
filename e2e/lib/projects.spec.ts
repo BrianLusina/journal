@@ -12,11 +12,15 @@ test.describe('projectsFor', () => {
     });
   }
 
-  for (const environment of ['Preview – yggdrasil', 'Production – yggdrasil']) {
+  for (const environment of ['Preview – yggdrasil', 'Production – yggdrasil', 'yggdrasil']) {
     test(`runs the site projects for ${environment}`, () => {
       expect(projectsFor(environment)).toEqual(['lib', 'home', 'folio']);
     });
   }
+
+  test('treats only Preview and Production as bare journal names', () => {
+    expect(() => projectsFor('Staging')).toThrow('Unknown deployment environment: Staging');
+  });
 
   test('fails loudly for a deployment it does not know, rather than run nothing', () => {
     expect(() => projectsFor('Preview – other')).toThrow('Unknown deployment environment: Preview – other');

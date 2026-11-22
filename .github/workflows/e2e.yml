@@ -55,11 +55,12 @@ jobs:
         env:
           VERCEL_AUTOMATION_BYPASS_SECRET_SITES: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET_SITES }}
         run: |
-          # Each Vercel project has its own bypass secret. No fallback: a missing one fails loudly.
-          case "$DEPLOYMENT_ENVIRONMENT" in
-            *yggdrasil) export VERCEL_AUTOMATION_BYPASS_SECRET="$VERCEL_AUTOMATION_BYPASS_SECRET_SITES" ;;
-          esac
           PROJECTS=$(bun e2e/lib/projects-cli.ts "$DEPLOYMENT_ENVIRONMENT")
+          # Each Vercel project has its own bypass secret, picked from the same routing as the
+          # projects. No fallback: a missing one fails loudly.
+          case " $PROJECTS " in
+            *" --project=home "*) export VERCEL_AUTOMATION_BYPASS_SECRET="$VERCEL_AUTOMATION_BYPASS_SECRET_SITES" ;;
+          esac
           echo "Testing $E2E_BASE_URL ($DEPLOYMENT_ENVIRONMENT): $PROJECTS"
           bunx playwright test $PROJECTS
 

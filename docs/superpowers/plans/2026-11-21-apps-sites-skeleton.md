@@ -40,7 +40,7 @@
 
 ## Brian's out-of-repo steps (Task 4 needs them; spec §9)
 
-1. **Create a Vercel project `sites`** in the same team:
+1. **Create a Vercel project `sites`** in the same team (it was created as **`yggdrasil`**, so its environments are `Preview – yggdrasil` and `Production – yggdrasil`; the routing in `e2e/lib/projects.ts` keys on that name, and the `sites` names below read as `yggdrasil`):
    - Root Directory `apps/sites`, framework Astro, Node 22.x;
    - production branch `production`;
    - "Include files outside the root directory" on, as for `journal`.

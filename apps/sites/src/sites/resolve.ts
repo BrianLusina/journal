@@ -1,4 +1,4 @@
-import { SITE_IDS, normalizeHost, type EnvName, type RegistryConfig, type SiteId } from './registry';
+import { ENV_NAMES, SITE_IDS, normalizeHost, type EnvName, type RegistryConfig, type SiteId } from './registry';
 
 export type Resolution =
   | { kind: 'site'; site: SiteId; env: EnvName | 'preview'; via: 'host' | 'override'; setCookie?: SiteId }
@@ -19,7 +19,9 @@ const cookieValue = (cookie: string, name: string) =>
 
 /** The site a host serves, and in which environment. The blog's hosts are not served here. */
 function siteForHost(host: string, registry: RegistryConfig): { site: SiteId; env: EnvName } | undefined {
-  for (const [env, hosts] of Object.entries(registry.environments) as [EnvName, Record<string, string>][]) {
+  // Production first: a host listed in two environments must never lose production's protections.
+  for (const env of ENV_NAMES) {
+    const hosts: Record<string, string> = registry.environments[env];
     const site = SITE_IDS.find(id => hosts[id] === host);
     if (site) return { site, env };
   }

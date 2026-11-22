@@ -7,7 +7,7 @@
  */
 export function projectsFor(environment: string): string[] {
   const name = environment.trim();
-  if (/^\w+$/.test(name) || /(^|\s)journal$/i.test(name)) return ['lib', 'setup', 'blog'];
+  if (/^(preview|production)$/i.test(name) || /(^|\s)journal$/i.test(name)) return ['lib', 'setup', 'blog'];
   if (/(^|\s)yggdrasil$/i.test(name)) return ['lib', 'home', 'folio'];
   throw new Error(`Unknown deployment environment: ${environment}`);
 }

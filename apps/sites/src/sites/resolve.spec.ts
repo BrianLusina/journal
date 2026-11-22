@@ -1,4 +1,4 @@
-import { loadRegistry } from './registry';
+import { loadRegistry, type RegistryConfig } from './registry';
 import { resolveRequest } from './resolve';
 
 const registry = loadRegistry({});
@@ -114,5 +114,26 @@ describe('resolveRequest for internal prefixes', () => {
 
   it('does not mistake a path that only starts with the same letters', () => {
     expect(resolve('https://brianlusina.com/homepage', { vercelEnv: 'production' })).toMatchObject({ kind: 'site' });
+  });
+});
+
+describe('a host listed in more than one environment', () => {
+  it('resolves as production, whatever order the environments are written in', () => {
+    const overlapping = {
+      environments: {
+        staging: { home: 's.example.org', folio: 'example.org', blog: 's.blog.example.org' },
+        production: { home: 'example.org', folio: 'folio.example.org', blog: 'blog.example.org' },
+        development: { home: 'localhost:4321', folio: 'folio.localhost:4321', blog: 'localhost:8080' },
+      },
+      redirects: {},
+    } as unknown as RegistryConfig;
+    const url = new URL('https://example.org/?site=folio');
+
+    expect(resolveRequest({ host: 'example.org', url, cookie: '' }, overlapping)).toEqual({
+      kind: 'site',
+      site: 'home',
+      env: 'production',
+      via: 'host',
+    });
   });
 });

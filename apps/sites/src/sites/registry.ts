@@ -6,7 +6,7 @@ export type SiteId = (typeof SITE_IDS)[number];
 export type LinkTarget = SiteId | 'blog';
 export type EnvName = 'production' | 'staging' | 'development';
 
-const ENV_NAMES: EnvName[] = ['production', 'staging', 'development'];
+export const ENV_NAMES: EnvName[] = ['production', 'staging', 'development'];
 const LINK_TARGETS: LinkTarget[] = [...SITE_IDS, 'blog'];
 
 /**
@@ -29,10 +29,26 @@ function validate(value: unknown): RegistryConfig {
   if (!environments || !ENV_NAMES.every(name => isHostMap(environments[name]))) {
     throw new Error(`Invalid SITES_CONFIG: every environment (${ENV_NAMES.join(', ')}) needs a host for ${LINK_TARGETS.join(', ')}`);
   }
-  if (typeof config?.redirects !== 'object' || config.redirects === null) {
-    throw new Error('Invalid SITES_CONFIG: redirects must be an object');
+  const redirects = config?.redirects as unknown;
+  if (
+    typeof redirects !== 'object' ||
+    redirects === null ||
+    Array.isArray(redirects) ||
+    !Object.values(redirects).every(target => typeof target === 'string')
+  ) {
+    throw new Error('Invalid SITES_CONFIG: redirects must map each host to a host');
   }
-  return config as RegistryConfig;
+  // Requests are compared normalized, so the configured hosts are too.
+  const normalizeMap = (hosts: Record<string, string>) =>
+    Object.fromEntries(Object.entries(hosts).map(([key, host]) => [key, normalizeHost(host)]));
+  return {
+    environments: Object.fromEntries(
+      ENV_NAMES.map(name => [name, normalizeMap(environments[name] as Record<string, string>)]),
+    ) as RegistryConfig['environments'],
+    redirects: Object.fromEntries(
+      Object.entries(redirects as Record<string, string>).map(([from, to]) => [normalizeHost(from), to]),
+    ),
+  };
 }
 
 /**
