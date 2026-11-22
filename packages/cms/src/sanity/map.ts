@@ -1,6 +1,6 @@
-import { portableTextToMarkdown } from '@portabletext/markdown';
 import type { UnifiedAsset, UnifiedAuthor, UnifiedPost } from '../types';
-import type { SanityBodyNode, SanityPost } from './projection';
+import { toMarkdown } from './markdown';
+import type { SanityPost } from './projection';
 
 /** Copies only the keys whose value is set, so a missing Sanity field is an absent key, not null. */
 function defined<T extends Record<string, unknown>>(values: T): Partial<{ [K in keyof T]: NonNullable<T[K]> }> {
@@ -13,17 +13,9 @@ function asset(image: SanityPost['heroImage']): UnifiedAsset | undefined {
   return image?.url ? { url: image.url, ...defined({ description: image.alt }) } : undefined;
 }
 
-/** Code blocks (@sanity/code-input) and image blocks have no Markdown form of their own. */
-const renderers = {
-  types: {
-    code: ({ value }: { value: SanityBodyNode }) => `\`\`\`${(value.language as string | undefined) ?? ''}\n${value.code ?? ''}\n\`\`\``,
-    image: ({ value }: { value: SanityBodyNode }) => (value.url ? `![${(value.alt as string | undefined) ?? ''}](${value.url})` : ''),
-  },
-};
-
 function markdown(body: SanityPost['body']): string | undefined {
   if (!body?.length) return undefined;
-  return portableTextToMarkdown(body, renderers);
+  return toMarkdown(body) || undefined;
 }
 
 /** A Sanity blogPost, as the projections answer it, as a unified post. */
