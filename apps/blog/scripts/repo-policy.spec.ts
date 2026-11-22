@@ -31,7 +31,9 @@ describe('package manager policy', () => {
       match => match[1],
     );
 
-    expect(ecosystems).toEqual(['bun']);
+    // One entry per lockfile (the workspace and Studio), every one on bun.
+    expect(ecosystems.length).toBeGreaterThan(0);
+    expect(new Set(ecosystems)).toEqual(new Set(['bun']));
   });
 });
 
