@@ -59,18 +59,20 @@ jobs:
     concurrency:
       group: sanity-studio-deploy-${{ github.ref_name }}
       cancel-in-progress: false
+    # GitHub fills anything an Environment lacks from the repository's own variables and secrets, which
+    # could point at the other branch's Studio. So the deploy reads STUDIO_DEPLOY_* names, which exist
+    # only in the Environments (never set them at repository level), and the dataset must be named after
+    # the branch.
     env:
       SANITY_STUDIO_PROJECT_ID: ${{ secrets.SANITY_STUDIO_PROJECT_ID }}
       SANITY_STUDIO_DATASET: ${{ vars.SANITY_STUDIO_DATASET }}
-      SANITY_STUDIO_APP_ID: ${{ secrets.SANITY_STUDIO_APP_ID }}
-      SANITY_STUDIO_HOSTNAME: ${{ secrets.SANITY_STUDIO_HOSTNAME }}
       SANITY_STUDIO_TITLE: ${{ vars.SANITY_STUDIO_TITLE }}
-      SANITY_AUTH_TOKEN: ${{ secrets.SANITY_AUTH_TOKEN }}
+      SANITY_STUDIO_APP_ID: ${{ secrets.STUDIO_DEPLOY_APP_ID }}
+      SANITY_STUDIO_HOSTNAME: ${{ secrets.STUDIO_DEPLOY_HOSTNAME }}
+      SANITY_AUTH_TOKEN: ${{ secrets.STUDIO_DEPLOY_TOKEN }}
 
     steps:
-    # Without its own Environment, a branch would fall back to the repository's values and could deploy
-    # over the other branch's Studio. The dataset must be named after the branch.
-    - name: Check the Environment targets this branch's dataset
+    - name: Check the Environment targets this branch's Studio and dataset
       env:
         BRANCH: ${{ github.ref_name }}
       run: |
@@ -78,8 +80,8 @@ jobs:
           echo "::error::The '$BRANCH' Environment must set SANITY_STUDIO_DATASET=$BRANCH (it is '${SANITY_STUDIO_DATASET:-unset}')."
           exit 1
         fi
-        if [ -z "$SANITY_STUDIO_HOSTNAME" ] || [ -z "$SANITY_AUTH_TOKEN" ]; then
-          echo "::error::The '$BRANCH' Environment needs SANITY_STUDIO_HOSTNAME and SANITY_AUTH_TOKEN."
+        if [ -z "$SANITY_STUDIO_APP_ID" ] || [ -z "$SANITY_STUDIO_HOSTNAME" ] || [ -z "$SANITY_AUTH_TOKEN" ]; then
+          echo "::error::The '$BRANCH' Environment needs the secrets STUDIO_DEPLOY_APP_ID, STUDIO_DEPLOY_HOSTNAME and STUDIO_DEPLOY_TOKEN."
           exit 1
         fi
 

@@ -290,6 +290,7 @@
    - `SANITY_DATASET=staging` for Preview and `production` for Production.
 3. In GitHub:
    - a repository variable `SANITY_STUDIO_PROJECT_ID=7924v9hl`;
-   - Environments `staging` and `production`, each with the variable `SANITY_STUDIO_DATASET` and the secrets `SANITY_STUDIO_HOSTNAME`, `SANITY_STUDIO_APP_ID` and `SANITY_AUTH_TOKEN` (a deploy token).
+   - Environments `staging` and `production`, each with the variable `SANITY_STUDIO_DATASET` (the branch name) and the secrets `STUDIO_DEPLOY_APP_ID`, `STUDIO_DEPLOY_HOSTNAME` and `STUDIO_DEPLOY_TOKEN` (a deploy token);
+   - delete the repository-level `SANITY_STUDIO_APP_ID`, `SANITY_STUDIO_HOSTNAME` and `SANITY_AUTH_TOKEN`, which nothing reads any more (final review, Important #1).
    - Each Environment's hostname and app ID must be its own Studio. The `production` Environment can reuse the existing one.
 4. Turn the flag on with `VITE_FEATURES=sanity=on`, on Preview first. Publish one post, so a recorded response can replace the hand-written fixture.

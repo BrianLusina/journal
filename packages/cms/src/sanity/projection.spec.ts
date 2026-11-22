@@ -5,7 +5,8 @@ import { POST_PROJECTION, SEARCH_PROJECTION, projectedFields } from './projectio
 // The schema Studio extracts (studio/schema.json, from `bun run schema:extract` in studio/). Read as
 // data, so this package never imports `sanity`.
 type ExtractedType = { name: string; attributes?: Record<string, unknown> };
-const schema: ExtractedType[] = JSON.parse(readFileSync(resolve(__dirname, '../../../../studio/schema.json'), 'utf8'));
+const schemaPath = process.env.STUDIO_SCHEMA_PATH ?? resolve(__dirname, '../../../../studio/schema.json');
+const schema: ExtractedType[] = JSON.parse(readFileSync(schemaPath, 'utf8'));
 const fieldsOf = (type: string) => Object.keys(schema.find(entry => entry.name === type)?.attributes ?? {});
 
 describe('the Sanity projections', () => {
@@ -19,8 +20,13 @@ describe('the Sanity projections', () => {
     expect(fields.filter(field => !fieldsOf('blogPost').includes(field))).toEqual([]);
   });
 
-  it('reads author fields the Studio schema declares on author', () => {
-    expect(['name', 'shortBio', 'image'].filter(field => !fieldsOf('author').includes(field))).toEqual([]);
+  // Fields read through references (`tags[]->name`, `authors[]->{…}`) live on the referenced types.
+  it.each([
+    ['tag', ['name']],
+    ['author', ['name', 'shortBio', 'image']],
+  ])('reads only fields the Studio schema declares on %s', (type, fields) => {
+    expect(POST_PROJECTION).toContain(type === 'tag' ? 'tags[]->name' : 'authors[]->{');
+    expect(fields.filter(field => !fieldsOf(type).includes(field))).toEqual([]);
   });
 
   it('takes the source field of an aliased projection, not the alias', () => {

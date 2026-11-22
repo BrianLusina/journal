@@ -35,4 +35,4 @@ Commit the new `schema.json`, and update `packages/cms/src/sanity/projection.ts`
 | `staging` | `staging` | `staging` |
 | `production` | `production` | `production` |
 
-Each Environment holds that Studio's `SANITY_STUDIO_DATASET` (a variable, equal to the branch name), plus `SANITY_STUDIO_HOSTNAME`, `SANITY_STUDIO_APP_ID` and `SANITY_AUTH_TOKEN` (secrets). The repository secret `SANITY_STUDIO_PROJECT_ID` is shared. The deploy refuses to run when the Environment's dataset isn't the branch name.
+Each Environment holds that Studio's `SANITY_STUDIO_DATASET` (a variable, equal to the branch name) and three secrets: `STUDIO_DEPLOY_APP_ID`, `STUDIO_DEPLOY_HOSTNAME` and `STUDIO_DEPLOY_TOKEN` (a deploy token). **Set those three only in the Environments, never at repository level**: GitHub fills an Environment's missing values from the repository's, which would point one branch at the other's Studio. The repository secret `SANITY_STUDIO_PROJECT_ID` is shared. The deploy refuses to run when any of the three is missing, or when the Environment's dataset isn't the branch name.
