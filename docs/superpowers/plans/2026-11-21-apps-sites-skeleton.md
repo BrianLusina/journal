@@ -40,14 +40,14 @@
 
 ## Brian's out-of-repo steps (Task 4 needs them; spec §9)
 
-1. **Create a Vercel project `sites`** in the same team (it was created as **`yggdrasil`**, so its environments are `Preview – yggdrasil` and `Production – yggdrasil`; the routing in `e2e/lib/projects.ts` keys on that name, and the `sites` names below read as `yggdrasil`):
+1. **Create a Vercel project `yggdrasil`** in the same team (its environments are `Preview – yggdrasil` and `Production – yggdrasil`; the routing in `e2e/lib/projects.ts` keys on that name):
    - Root Directory `apps/sites`, framework Astro, Node 22.x;
    - production branch `production`;
    - "Include files outside the root directory" on, as for `journal`.
 2. **Add the domains** to the project: `brianlusina.com`, `www.brianlusina.com` and `folio.brianlusina.com` on `production`, and `staging.brianlusina.com` and `staging.folio.brianlusina.com` on `staging`. Change no DNS for the apex or `folio`.
 3. **Add Namecheap CNAMEs** for `staging` and `staging.folio`, with the values Vercel shows. These are new hostnames, so nothing live changes.
-4. **Enable Protection Bypass for Automation** on `sites`, and store its value as the repo secret `VERCEL_AUTOMATION_BYPASS_SECRET_SITES`. The bypass secret is per project.
-5. Tell me the exact `deployment_status` environment names GitHub shows for the two projects (e.g. `Preview – journal`, `Preview – sites`). Task 4's project routing keys on them.
+4. **Enable Protection Bypass for Automation** on `yggdrasil`, and store its value as the repo secret `VERCEL_AUTOMATION_BYPASS_SECRET_SITES`. The bypass secret is per project.
+5. Tell me the exact `deployment_status` environment names GitHub shows for the two projects (e.g. `Preview – journal`, `Preview – yggdrasil`). Task 4's project routing keys on them.
 
 ## Review Focus
 
@@ -60,7 +60,7 @@
    - `folio.localhost:4321` (port kept locally).
    Tested in Task 2.
 4. **Previews and staging indexed by search engines.** Outside production, `robots.txt` disallows everything and pages carry `X-Robots-Tag: noindex`. Canonical URLs always point at the production hostname. Tested in Task 3.
-5. **The blog suite running against a `sites` deployment, or the reverse.** `e2e.yml` picks Playwright projects by the deployment's environment name, and an unknown name runs nothing and fails loudly. Tested in Task 4.
+5. **The blog suite running against a `yggdrasil` deployment, or the reverse.** `e2e.yml` picks Playwright projects by the deployment's environment name, and an unknown name runs nothing and fails loudly. Tested in Task 4.
 
 ---
 
@@ -226,13 +226,13 @@
 
 **Interfaces:**
 - Produces:
-  - `projectsFor(environment: string): string[]`: environments naming the `journal` project → `['lib', 'setup', 'blog']`; `sites` → `['lib', 'home', 'folio']`; anything else throws `Error('Unknown deployment environment: …')`. The exact strings come from Brian's step 5.
+  - `projectsFor(environment: string): string[]`: environments naming the `journal` project → `['lib', 'setup', 'blog']`; `yggdrasil` → `['lib', 'home', 'folio']`; anything else throws `Error('Unknown deployment environment: …')`. The exact strings come from Brian's step 5.
   - `bypassSecretName(environment: string): 'VERCEL_AUTOMATION_BYPASS_SECRET' | 'VERCEL_AUTOMATION_BYPASS_SECRET_SITES'`.
   - The `e2e/sites` fixture: when `E2E_BASE_URL`'s host is not a registered hostname (a preview), each test adds the cookie `site=<project's site>` for the base URL before navigating.
 
 - [ ] **Step 1: Failing tests.** `projects.spec.ts` (Review Focus 5):
   - `Preview – journal` → the blog projects;
-  - `Preview – sites` and `Production – sites` → the site projects;
+  - `Preview – yggdrasil` and `Production – yggdrasil` → the site projects;
   - `Preview – other` throws.
 
   Run `bunx playwright test --project=lib`. Expected: FAIL.
@@ -248,7 +248,7 @@
   - no console errors (reuse the `pageErrors` fixture).
 - [ ] **Step 4: Verify** with the root `test`, `typecheck` (including `typecheck:e2e`) and `lint`, plus `bunx playwright test --project=lib`. Commit (`test(e2e): home and folio projects; route deployments to their projects`, `Refs #928`). Push.
 - [ ] **Step 5: Preview gate (needs Brian's steps 1–5).**
-  - The `sites` preview for this commit is Ready, and its E2E run executes `home` and `folio` and passes.
+  - The `yggdrasil` preview for this commit is Ready, and its E2E run executes `home` and `folio` and passes.
   - The `journal` preview's E2E run still executes only the blog projects and passes with no baseline changes.
   - If Brian's steps are not done yet, stop here, ledger the blocker, and ask.
 
