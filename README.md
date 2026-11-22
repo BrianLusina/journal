@@ -53,6 +53,20 @@ The other sites (`brianlusina.com` and `folio.brianlusina.com`) are one Astro ap
 bun run dev:sites   # http://localhost:4321 (home) and http://folio.localhost:4321 (folio)
 ```
 
+### Sanity Studio
+
+Sanity posts are written in Studio, in `studio/`. It is outside the bun workspace (it needs React 19), so install it there:
+
+```bash
+cd studio && bun install
+```
+
+```bash
+SANITY_STUDIO_PROJECT_ID=<project id> make sanity.run.studio.dev   # http://localhost:3333, staging dataset
+```
+
+After changing `studio/schemaTypes/`, run `bun run schema:extract` in `studio/` and commit `schema.json`; see `studio/README.md`.
+
 ## Running tests
 
 Tests use [Vitest](https://vitest.dev/) and [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/), with specs next to the code they test (`*.spec.ts(x)`).

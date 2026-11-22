@@ -12,7 +12,7 @@
     "dev": "sanity dev",
     "start": "sanity start",
     "typecheck": "tsc --noEmit",
-    "schema:extract": "sanity schema extract --path schema.json"
+    "schema:extract": "sanity schema extract --path schema.json --force"
   },
   "keywords": [
     "sanity"
