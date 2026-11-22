@@ -1,0 +1,46 @@
+# Handles the build, release and deployment of Sanity Studio
+name: CI Sanity Studio
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  build_deploy:
+    concurrency:
+      group: sanity-studio-deploy
+      cancel-in-progress: false
+    name: Build Sanity Studio CMS
+    runs-on: ubuntu-latest
+    env:
+      SANITY_STUDIO_PROJECT_ID: ${{ secrets.SANITY_STUDIO_PROJECT_ID }}
+      SANITY_STUDIO_DATASET: ${{ vars.SANITY_STUDIO_DATASET }}
+      SANITY_STUDIO_APP_ID: ${{ secrets.SANITY_STUDIO_APP_ID }}
+      SANITY_STUDIO_HOSTNAME: ${{ secrets.SANITY_STUDIO_HOSTNAME }}
+      SANITY_STUDIO_TITLE: ${{ vars.SANITY_STUDIO_TITLE }}
+      SANITY_AUTH_TOKEN: ${{ secrets.SANITY_AUTH_TOKEN }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Use NodeJS
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: .nvmrc
+
+    - name: Use Bun
+      uses: oven-sh/setup-bun@v2
+
+    - name: Install dependencies
+      working-directory: studio
+      run: bun install --frozen-lockfile
+
+    - name: Run Build
+      working-directory: studio
+      run: bun run build
+
+    - name: Deploy Sanity Studio
+      working-directory: studio
+      run: bun run deploy --no-build --url ${{ secrets.SANITY_STUDIO_HOSTNAME }}
