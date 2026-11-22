@@ -8,6 +8,9 @@ on:
 
 jobs:
   build_deploy:
+    concurrency:
+      group: sanity-studio-deploy
+      cancel-in-progress: false
     name: Build Sanity Studio CMS
     runs-on: ubuntu-latest
     env:
