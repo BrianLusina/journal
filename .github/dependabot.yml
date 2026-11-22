@@ -19,3 +19,20 @@ updates:
       - dependabot
     reviewers:
       - "BrianLusina"
+  # Sanity Studio is outside the workspace (it needs React 19), with its own bun.lock.
+  - package-ecosystem: "bun"
+    versioning-strategy: "lockfile-only"
+    open-pull-requests-limit: 5
+    directory: "/studio"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Africa/Nairobi"
+    labels:
+      - "dependencies"
+      - "studio"
+    assignees:
+      - dependabot
+    reviewers:
+      - "BrianLusina"
