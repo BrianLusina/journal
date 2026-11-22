@@ -13,12 +13,13 @@ const readApp = (file: string) => readFileSync(path.join(appRoot, file), 'utf8')
 const LOCKFILES = ['bun.lock', 'bun.lockb', 'yarn.lock', 'package-lock.json', 'pnpm-lock.yaml'];
 
 describe('package manager policy', () => {
-  it('commits bun.lock as the only lockfile, at the repository root', () => {
+  it('commits only bun lockfiles: the workspace one at the root, and Sanity Studio\'s', () => {
     const trackedFiles = execSync('git ls-files', { cwd: root, encoding: 'utf8' }).split('\n');
     const lockfiles = trackedFiles.filter(file => LOCKFILES.includes(path.basename(file)));
 
-    // A merge from a branch still on another package manager can bring its lockfile back.
-    expect(lockfiles).toEqual(['bun.lock']);
+    // A merge from a branch still on another package manager can bring its lockfile back. Studio is
+    // outside the workspace (it needs React 19), so it keeps a bun.lock of its own.
+    expect(lockfiles).toEqual(['bun.lock', 'studio/bun.lock']);
   });
 
   it('pins bun in package.json', () => {

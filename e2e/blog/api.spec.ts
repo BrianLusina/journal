@@ -8,6 +8,7 @@ const SOURCES = [
   // rawKey: a key the CMS's own shape has and a unified post doesn't.
   { source: 'contentful', name: 'Contentful', rawKey: 'sys' },
   { source: 'notion', name: 'Notion', rawKey: 'properties' },
+  { source: 'sanity', name: 'Sanity', rawKey: '_type' },
 ] as const;
 
 /** A post as @brianlusina/cms models it, not as the CMS returned it. */

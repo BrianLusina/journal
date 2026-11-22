@@ -8,6 +8,8 @@ export const FEATURE_DEFAULTS = {
   newsletter: false,
   search: false,
   notion: true,
+  // Sanity posts: off until the source is configured and its datasets are private.
+  sanity: false,
   legal: false,
   explore: false,
 } as const satisfies Record<string, boolean>;

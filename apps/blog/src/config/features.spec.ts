@@ -13,6 +13,12 @@ describe('parseFeatures', () => {
     delete window.__ENV__;
   });
 
+  // Sanity posts stay off until the source is configured and its datasets are private.
+  it('keeps the sanity source off unless VITE_FEATURES turns it on', () => {
+    expect(FEATURE_DEFAULTS).toHaveProperty('sanity', false);
+    expect(parseFeatures('sanity=on')).toHaveProperty('sanity', true);
+  });
+
   it.each([undefined, '', ' , '])('is the defaults when VITE_FEATURES is %p', raw => {
     expect(parseFeatures(raw)).toEqual(FEATURE_DEFAULTS);
     expect(warn).not.toHaveBeenCalled();
