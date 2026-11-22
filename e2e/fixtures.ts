@@ -1,5 +1,5 @@
 import { test as base, expect } from '@playwright/test';
-import { routeWithBypass } from './lib/bypass';
+import { routeWithBypass, unrouteBypass } from './lib/bypass';
 import { isExpectedFailure, isFirstPartyFailure, isRelevantConsoleError } from './lib/errors';
 
 type Options = {
@@ -34,6 +34,7 @@ export const test = base.extend<Options & Fixtures>({
     if (secret && baseURL) await routeWithBypass(page, baseURL, secret);
 
     await use(page);
+    if (secret && baseURL) await unrouteBypass(page);
   },
 
   pageErrors: [
