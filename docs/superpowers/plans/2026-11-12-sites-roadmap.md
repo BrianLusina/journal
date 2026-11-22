@@ -10,8 +10,8 @@ The spec spans several subsystems, and later ones depend on file paths that only
 | P2 | Bun workspace: move the app to `apps/blog`, root scripts, Vercel root dir, CI, Docker | #926 | P1 merged and green | **Done:** #948 |
 | P3 | `packages/cms` (models, adapters and aggregator server-side; routes return unified models) | #927 | P2 | **Done:** #951 |
 | P4 | `packages/ui` (tokens, Tailwind preset, router-agnostic components, theme) | #927 | P2 (+ #951 merged: shared root wiring) | **Done:** #964 |
-| P5 | `apps/sites` skeleton: Astro, site registry, hostname middleware, preview override, Vercel project, Playwright `home`/`folio` projects | #928 | P3, P4 | **Written:** `2026-11-21-apps-sites-skeleton.md` |
-| P6 | Sanity adapter (posts) + Studio schema | #929 | P3 | To write (beside P5) |
+| P5 | `apps/sites` skeleton: Astro, site registry, hostname middleware, preview override, Vercel project, Playwright `home`/`folio` projects | #928 | P3, P4 | **Done:** #965 |
+| P6 | Sanity adapter (posts) + Studio schema | #929 | P3 | **Written:** `2026-11-22-sanity-posts.md` |
 | P7 | Platform packages: `packages/flags` (env + Edge Config), `packages/analytics` (Vercel WA + GA4) + consent banner, `packages/media` (Cloudinary) | #931, #932, #933 | P5 | To write |
 | P8 | Shared chrome and forms for sites: header, footer, 404, privacy, contact handler + form | #934, #935 | P5, P7 | To write |
 | P9 | Projects: `UnifiedProject`, `.portfolio.md` schema + template + reusable workflow, GitHub adapter, Sanity project adapter, revalidate endpoint | #936 (do early: unblocks Brian), #937, #938 | P3, P6, P7 | To write |
