@@ -12,6 +12,10 @@ on:
         description: Deployment to test
         required: true
         default: https://blog.brianlusina.com
+      environment:
+        description: Vercel project the deployment belongs to (picks the Playwright projects)
+        required: true
+        default: journal
 
 permissions:
   contents: read
@@ -25,6 +29,9 @@ jobs:
     env:
       CI: 'true'
       E2E_BASE_URL: ${{ github.event.deployment_status.environment_url || github.event.deployment_status.target_url || inputs.base_url || 'https://blog.brianlusina.com' }}
+      # Vercel names the environment "<Preview|Production> – <project>", or a bare "Preview" while the
+      # journal is the only project; e2e/lib/projects.ts maps it.
+      DEPLOYMENT_ENVIRONMENT: ${{ github.event.deployment.environment || inputs.environment || 'journal' }}
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
     steps:
       - name: Checkout
@@ -45,9 +52,17 @@ jobs:
 
       - name: Full suite
         if: github.event_name != 'schedule'
+        env:
+          VERCEL_AUTOMATION_BYPASS_SECRET_SITES: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET_SITES }}
         run: |
-          echo "Testing $E2E_BASE_URL"
-          bunx playwright test
+          PROJECTS=$(bun e2e/lib/projects-cli.ts "$DEPLOYMENT_ENVIRONMENT")
+          # Each Vercel project has its own bypass secret, picked from the same routing as the
+          # projects. No fallback: a missing one fails loudly.
+          case " $PROJECTS " in
+            *" --project=home "*) export VERCEL_AUTOMATION_BYPASS_SECRET="$VERCEL_AUTOMATION_BYPASS_SECRET_SITES" ;;
+          esac
+          echo "Testing $E2E_BASE_URL ($DEPLOYMENT_ENVIRONMENT): $PROJECTS"
+          bunx playwright test $PROJECTS
 
       - name: Upload report
         uses: actions/upload-artifact@v4

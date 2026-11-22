@@ -47,6 +47,12 @@ vercel dev       # the api/ functions on http://localhost:3000, needed for Conte
 
 `bun dev` does not run the `api/` functions itself. It forwards `/api/*` to `vercel dev` on port 3000 (override with `API_PROXY_TARGET`), so run both and open http://localhost:8080 (see BrianLusina/journal#802).
 
+The other sites (`brianlusina.com` and `folio.brianlusina.com`) are one Astro app in `apps/sites`:
+
+```bash
+bun run dev:sites   # http://localhost:4321 (home) and http://folio.localhost:4321 (folio)
+```
+
 ## Running tests
 
 Tests use [Vitest](https://vitest.dev/) and [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/), with specs next to the code they test (`*.spec.ts(x)`).

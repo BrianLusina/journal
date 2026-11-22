@@ -1,0 +1,38 @@
+{
+  "name": "sites",
+  "version": "0.0.0",
+  "private": true,
+  "description": "brianlusina.com (home) and folio.brianlusina.com (folio) from one Astro app, routed by hostname.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.23.4"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "astro check",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@astrojs/react": "^7.1.9",
+    "@astrojs/vercel": "^11.0.22",
+    "@brianlusina/ui": "workspace:*",
+    "astro": "^7.4.13",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@types/node": "^22.16.5",
+    "@types/react": "^18.3.23",
+    "@types/react-dom": "^18.3.7",
+    "@vitest/coverage-v8": "^3.2.4",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

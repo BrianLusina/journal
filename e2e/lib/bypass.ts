@@ -20,3 +20,12 @@ export async function routeWithBypass(page: Page, baseURL: string, secret: strin
     },
   );
 }
+
+/**
+ * Removes the route at the end of a test. A request still in flight then (an island's lazily
+ * loaded script, say) is dropped, instead of its route.fetch failing with "Test ended" and
+ * failing the run after every test passed.
+ */
+export async function unrouteBypass(page: Page): Promise<void> {
+  await page.unrouteAll({ behavior: 'ignoreErrors' });
+}

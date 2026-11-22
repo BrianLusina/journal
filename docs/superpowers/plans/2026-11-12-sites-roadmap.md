@@ -8,9 +8,9 @@ The spec spans several subsystems, and later ones depend on file paths that only
 |---|---|---|---|---|
 | P1 | Blog parity baseline (Playwright, URL inventory, visual, axe, CI on previews, scheduled production smoke) | #925 | — | **Written:** `2026-11-12-blog-parity-baseline.md` |
 | P2 | Bun workspace: move the app to `apps/blog`, root scripts, Vercel root dir, CI, Docker | #926 | P1 merged and green | **Done:** #948 |
-| P3 | `packages/cms` (models, adapters and aggregator server-side; routes return unified models) | #927 | P2 | **Written:** `2026-11-15-packages-cms.md` |
-| P4 | `packages/ui` (tokens, Tailwind preset, router-agnostic components, theme) | #927 | P2 (+ #951 merged: shared root wiring) | **Written:** `2026-11-18-packages-ui.md` |
-| P5 | `apps/sites` skeleton: Astro, site registry, hostname middleware, preview override, Vercel project, Playwright `home`/`folio` projects | #928 | P3, P4 | To write |
+| P3 | `packages/cms` (models, adapters and aggregator server-side; routes return unified models) | #927 | P2 | **Done:** #951 |
+| P4 | `packages/ui` (tokens, Tailwind preset, router-agnostic components, theme) | #927 | P2 (+ #951 merged: shared root wiring) | **Done:** #964 |
+| P5 | `apps/sites` skeleton: Astro, site registry, hostname middleware, preview override, Vercel project, Playwright `home`/`folio` projects | #928 | P3, P4 | **Written:** `2026-11-21-apps-sites-skeleton.md` |
 | P6 | Sanity adapter (posts) + Studio schema | #929 | P3 | To write (beside P5) |
 | P7 | Platform packages: `packages/flags` (env + Edge Config), `packages/analytics` (Vercel WA + GA4) + consent banner, `packages/media` (Cloudinary) | #931, #932, #933 | P5 | To write |
 | P8 | Shared chrome and forms for sites: header, footer, 404, privacy, contact handler + form | #934, #935 | P5, P7 | To write |
