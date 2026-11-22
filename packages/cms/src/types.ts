@@ -1,7 +1,7 @@
 /**
  * The source of the content.
  */
-export type CMSSource = 'contentful' | 'notion';
+export type CMSSource = 'contentful' | 'notion' | 'sanity';
 
 /**
  * A unified author model. It carries everything needed to display the author, so the UI never

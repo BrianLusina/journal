@@ -10,12 +10,15 @@
     "undeploy": "sanity undeploy",
     "deploy-graphql": "sanity graphql deploy",
     "dev": "sanity dev",
-    "start": "sanity start"
+    "start": "sanity start",
+    "typecheck": "tsc --noEmit",
+    "schema:extract": "sanity schema extract --path schema.json"
   },
   "keywords": [
     "sanity"
   ],
   "dependencies": {
+    "@sanity/code-input": "7.3.15",
     "@sanity/vision": "^6.23.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

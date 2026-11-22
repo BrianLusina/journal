@@ -11,8 +11,8 @@ export const authorType = defineType({
             validation: (rule) => rule.required(),
         }),
         defineField({
-            name: 'avatarUrl',
-            type: 'url',
+            name: 'image',
+            type: 'image',
         }),
         defineField({
             name: 'shortBio',
