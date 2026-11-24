@@ -1,6 +1,6 @@
 import CMSAdapter from './CMSAdapter';
 
-const SOURCE_NAMES: Record<CMSSource, string> = { contentful: 'Contentful', notion: 'Notion' };
+const SOURCE_NAMES: Record<CMSSource, string> = { contentful: 'Contentful', notion: 'Notion', sanity: 'Sanity' };
 
 /**
  * The browser's view of one content source: its api/<source>/ routes, which hold the credentials

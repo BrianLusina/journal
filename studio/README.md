@@ -1,9 +1,38 @@
-# Sanity Clean Content Studio
+# Sanity Studio
 
-Congratulations, you have now installed the Sanity Content Studio, an open-source real-time content editing environment connected to the Sanity backend.
+Where Sanity posts are written. It reads and writes the `Yggdrasil` project; the blog reads published posts through `packages/cms` (see "Sanity schema" in `docs/ARCHITECTURE.md`).
 
-Now you can do the following things:
+Studio is outside the repository's bun workspace, because it needs React 19 and the blog is on React 18. Run everything here, in `studio/`.
 
-- [Read “getting started” in the docs](https://www.sanity.io/docs/introduction/getting-started?utm_source=readme)
-- [Join the Sanity community](https://www.sanity.io/community/join?utm_source=readme)
-- [Extend and build plugins](https://www.sanity.io/docs/content-studio/extending?utm_source=readme)
+## Run it locally
+
+```bash
+bun install
+```
+
+```bash
+SANITY_STUDIO_PROJECT_ID=<project id> bun run dev
+```
+
+`SANITY_STUDIO_DATASET` picks the dataset (default `staging`). From the repository root, `make sanity.run.studio.dev` does the same.
+
+## Change the schema
+
+The types are in `schemaTypes/`. `packages/cms` can't import them, so it reads `schema.json` instead. After any change:
+
+```bash
+SANITY_STUDIO_PROJECT_ID=<project id> bun run schema:extract
+```
+
+Commit the new `schema.json`, and update `packages/cms/src/sanity/projection.ts`, `map.ts` and the schema table in `docs/ARCHITECTURE.md` with it. CI fails when `schema.json` is out of date, and `packages/cms` fails when a projection reads a field the schema doesn't declare.
+
+## Deploys
+
+`.github/workflows/ci_sanity_studio.yml` type-checks and builds Studio on every push, and deploys only from two branches:
+
+| Branch | GitHub Environment | Dataset |
+|---|---|---|
+| `staging` | `staging` | `staging` |
+| `production` | `production` | `production` |
+
+Each Environment holds that Studio's `SANITY_STUDIO_DATASET` (a variable, equal to the branch name) and three secrets: `STUDIO_DEPLOY_APP_ID`, `STUDIO_DEPLOY_HOSTNAME` and `STUDIO_DEPLOY_TOKEN` (a deploy token). **Set those three only in the Environments, never at repository level**: GitHub fills an Environment's missing values from the repository's, which would point one branch at the other's Studio. The repository secret `SANITY_STUDIO_PROJECT_ID` is shared. The deploy refuses to run when any of the three is missing, or when the Environment's dataset isn't the branch name.

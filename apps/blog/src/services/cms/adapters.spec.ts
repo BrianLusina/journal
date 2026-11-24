@@ -16,6 +16,11 @@ describe('cmsAdapters', () => {
     expect((await loadAdapters('notion=on')).map(adapter => adapter.source)).toEqual(['contentful', 'notion']);
   });
 
+  it('reads Sanity last, and only while the sanity feature is on', async () => {
+    expect((await loadAdapters('notion=on,sanity=on')).map(adapter => adapter.source)).toEqual(['contentful', 'notion', 'sanity']);
+    expect((await loadAdapters('notion=on')).map(adapter => adapter.source)).toEqual(['contentful', 'notion']);
+  });
+
   it('leaves Notion out while the notion feature is off', async () => {
     expect((await loadAdapters('notion=off')).map(adapter => adapter.source)).toEqual(['contentful']);
   });
