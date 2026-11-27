@@ -23,13 +23,14 @@ export function createAnalytics(options: {
   window?: Window;
 }): SiteAnalytics {
   const { site, isProduction, measurementId } = options;
-  const win = (options.window ?? window) as GtagWindow;
   const enabled = isProduction && Boolean(measurementId);
   let gtag: Gtag | undefined;
 
   return {
     grant() {
       if (!enabled || gtag) return;
+      // Read here, not when created: the server renders an island before it hydrates, and has no window.
+      const win = (options.window ?? window) as GtagWindow;
       win.dataLayer = win.dataLayer ?? [];
       // gtag.js reads the queued `arguments` objects, exactly as Google's snippet pushes them.
       gtag = function gtag() {
