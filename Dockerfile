@@ -6,6 +6,7 @@ WORKDIR /usr/src/app
 COPY package.json bun.lock ./
 COPY apps/blog/package.json apps/blog/
 COPY packages/cms/package.json packages/cms/
+COPY packages/analytics/package.json packages/analytics/
 COPY packages/flags/package.json packages/flags/
 COPY apps/sites/package.json apps/sites/
 COPY packages/ui/package.json packages/ui/

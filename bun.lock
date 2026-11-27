@@ -20,6 +20,7 @@
       "version": "3.0.0",
       "dependencies": {
         "@apollo/client": "^3.4.16",
+        "@brianlusina/analytics": "workspace:*",
         "@brianlusina/cms": "workspace:*",
         "@brianlusina/flags": "workspace:*",
         "@brianlusina/ui": "workspace:*",
@@ -133,6 +134,16 @@
         "autoprefixer": "^10.4.21",
         "postcss": "^8.5.6",
         "tailwindcss": "^3.4.17",
+        "typescript": "^5.8.3",
+        "vitest": "^3.2.4",
+      },
+    },
+    "packages/analytics": {
+      "name": "@brianlusina/analytics",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@vitest/coverage-v8": "^3.2.4",
+        "jsdom": "^26.1.0",
         "typescript": "^5.8.3",
         "vitest": "^3.2.4",
       },
@@ -303,6 +314,8 @@
     "@babel/types": ["@babel/types@7.29.11", "", { "dependencies": { "@babel/helper-string-parser": "^7.29.11", "@babel/helper-validator-identifier": "^7.29.7" } }, "sha512-WCsemW40Cpc6gouC1SrY6PBaZ+oLRlEVY9XBvZBI7il/HyUrb2nJ505wE1MHEFyDZNnrWDEuy4jL50WVHfTTSQ=="],
 
     "@bcoe/v8-coverage": ["@bcoe/v8-coverage@1.0.2", "", {}, "sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA=="],
+
+    "@brianlusina/analytics": ["@brianlusina/analytics@workspace:packages/analytics"],
 
     "@brianlusina/cms": ["@brianlusina/cms@workspace:packages/cms"],
 

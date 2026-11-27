@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.4.16",
+    "@brianlusina/analytics": "workspace:*",
     "@brianlusina/cms": "workspace:*",
     "@brianlusina/flags": "workspace:*",
     "@brianlusina/ui": "workspace:*",
