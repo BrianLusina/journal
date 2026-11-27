@@ -1,6 +1,9 @@
 ---
 // The layout of every page a site serves: canonical URL and indexing come from the resolved site.
+import Analytics from '@vercel/analytics/astro';
 import Base from './Base.astro';
+import { SiteAnalytics } from '../components/SiteAnalytics';
+import { siteFlags } from '../flags';
 import { registry } from '../sites/current';
 import { canonicalUrl } from '../sites/urls';
 import type { SiteId } from '../sites/registry';
@@ -14,8 +17,15 @@ interface Props {
 const { site, title, description } = Astro.props;
 // The path within the site: /folio/p is served as /p.
 const path = Astro.url.pathname.replace(new RegExp(`^/${site}(?=/|$)`), '') || '/';
+const isProduction = Astro.locals.site?.env === 'production';
+const flags = await siteFlags(site);
 ---
 
 <Base title={title} description={description} canonical={canonicalUrl(site, path, registry)} noindex={Astro.locals.site?.env !== 'production'}>
   <slot />
+  <!-- Cookieless page views; Vercel only collects them in production. -->
+  <Analytics />
+  {flags.analytics && (
+    <SiteAnalytics client:idle site={site} isProduction={isProduction} measurementId={import.meta.env.PUBLIC_GA_MEASUREMENT_ID} />
+  )}
 </Base>
