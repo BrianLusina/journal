@@ -15,3 +15,6 @@ export {
 } from './src/theme/themeCookie';
 export { themeScript } from './src/theme/themeScript';
 export { ThemeToggle } from './src/theme/ThemeToggle';
+export { ConsentBanner, type ConsentBannerProps } from './src/consent/ConsentBanner';
+export { CONSENT_COOKIE, readConsentCookie, serializeConsentCookie, type Consent } from './src/consent/consentCookie';
+export { sharedCookieDomain } from './src/lib/sharedCookieDomain';

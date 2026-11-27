@@ -1,18 +1,14 @@
+import { sharedCookieDomain } from '../lib/sharedCookieDomain';
+
 export type Theme = 'light' | 'dark';
 
 /** The reader's light/dark choice, shared by every site on brianlusina.com. */
 export const THEME_COOKIE = 'theme';
 
 const ONE_YEAR_SECONDS = 365 * 24 * 60 * 60;
-const SHARED_DOMAIN = 'brianlusina.com';
-
-/**
- * The cookie's Domain: the whole of brianlusina.com, so a choice made on one site carries to the
- * others. Anywhere else (previews on vercel.app, localhost, a Docker host) a browser rejects that
- * Domain and drops the cookie, so it stays on the current host instead.
- */
+/** The cookie's Domain: see sharedCookieDomain. */
 export function themeCookieDomain(hostname: string): string | undefined {
-  return hostname === SHARED_DOMAIN || hostname.endsWith(`.${SHARED_DOMAIN}`) ? `.${SHARED_DOMAIN}` : undefined;
+  return sharedCookieDomain(hostname);
 }
 
 export function serializeThemeCookie(theme: Theme, location: { hostname: string; protocol: string }): string {
