@@ -1,5 +1,5 @@
 import path from 'node:path';
-import preset, { uiContent } from './tailwind-preset';
+import preset, { uiContent, uiContentWithoutConsent } from './tailwind-preset';
 
 describe('the Tailwind preset', () => {
   it('switches dark mode on the dark class, as the theme scripts set it', () => {
@@ -19,10 +19,15 @@ describe('the Tailwind preset', () => {
   });
 
   it("names the package's own files for every app's content, wherever the app is", () => {
-    expect(uiContent.length).toBeGreaterThan(0);
-    for (const glob of uiContent) {
-      expect(path.isAbsolute(glob)).toBe(true);
-      expect(glob.endsWith(path.join('src', '**', '*.{ts,tsx}'))).toBe(true);
-    }
+    const [files] = uiContent;
+    expect(path.isAbsolute(files)).toBe(true);
+    expect(files.endsWith(path.join('src', '**', '*.{ts,tsx}'))).toBe(true);
+  });
+
+  // The blog doesn't render the consent banner until it adopts it after cutover, so its CSS must not
+  // gain the banner's classes; apps/sites uses the whole of uiContent.
+  it('offers the blog the same files without the consent banner', () => {
+    expect(uiContentWithoutConsent).toEqual([...uiContent, `!${path.join(__dirname, 'src', 'consent', '**')}`]);
+    expect(uiContent.some(glob => glob.startsWith('!'))).toBe(false);
   });
 });
