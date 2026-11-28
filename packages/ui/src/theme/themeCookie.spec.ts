@@ -37,3 +37,14 @@ describe('readThemeCookie', () => {
     expect(readThemeCookie(cookie)).toBeUndefined();
   });
 });
+
+describe('sharedCookieDomain', () => {
+  it('is the whole of brianlusina.com on its hosts, and nothing elsewhere', async () => {
+    const { sharedCookieDomain } = await import('../lib/sharedCookieDomain');
+
+    expect(sharedCookieDomain('brianlusina.com')).toBe('.brianlusina.com');
+    expect(sharedCookieDomain('blog.brianlusina.com')).toBe('.brianlusina.com');
+    expect(sharedCookieDomain('notbrianlusina.com')).toBeUndefined();
+    expect(sharedCookieDomain('localhost')).toBeUndefined();
+  });
+});

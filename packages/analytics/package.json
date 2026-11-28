@@ -1,0 +1,20 @@
+{
+  "name": "@brianlusina/analytics",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Site analytics: GA4 over gtag.js, production-only and consent-gated, plus the search-term sanitisers. No runtime dependencies.",
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^3.2.4",
+    "jsdom": "^26.1.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

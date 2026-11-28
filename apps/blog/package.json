@@ -30,9 +30,11 @@
     "storybook:build": "storybook build"
   },
   "dependencies": {
-    "@brianlusina/cms": "workspace:*",
-    "@brianlusina/ui": "workspace:*",
     "@apollo/client": "^3.4.16",
+    "@brianlusina/analytics": "workspace:*",
+    "@brianlusina/cms": "workspace:*",
+    "@brianlusina/flags": "workspace:*",
+    "@brianlusina/ui": "workspace:*",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-dialog": "1.1.15",
     "@radix-ui/react-slot": "^1.2.3",

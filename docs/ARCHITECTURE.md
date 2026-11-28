@@ -30,6 +30,8 @@ The repository is a bun workspace (`workspaces: ["apps/*", "packages/*"]` in the
 |---|---|
 | `/` (root) | Repo-wide tooling and its config: ESLint, husky, lint-staged, commitlint, Danger, Playwright and `e2e/`, the Dockerfile and `.make/`, CI. Its scripts forward to the app (`bun run --filter blog <script>`), so every command runs from here. One `bun.lock` for the workspace. |
 | `packages/cms/` | `@brianlusina/cms`: the post models, the CMS sources and the merged feed (see [The CMS seam](#the-cms-seam)). |
+| `packages/flags/` | `@brianlusina/flags`: typed feature flags, resolved remote → env → default (see [its README](../packages/flags/README.md)). |
+| `packages/analytics/` | `@brianlusina/analytics`: GA4 for the sites, production-only and consent-gated, and the search-term sanitisers (see [Analytics and consent](#analytics-and-consent)). |
 | `packages/ui/` | `@brianlusina/ui`: the design system, with its tokens, Tailwind preset, shared components and the cross-site theme (see [Design system](#design-system)). |
 | `apps/sites/` | `brianlusina.com` and `folio.brianlusina.com`: one Astro server app that serves each site by hostname (see [apps/sites](#appssites)). The `yggdrasil` Vercel project's Root Directory. |
 | `studio/` | Sanity Studio, where Sanity posts are written. **Outside the bun workspace**, with its own `bun.lock`: Studio needs React 19, and the blog is on React 18. Its schema (`schemaTypes/`) is extracted to `schema.json`, which `packages/cms` reads (see [Sanity schema](#sanity-schema)). |
@@ -260,6 +262,8 @@ Each `VITE_*` value is read with `readEnv` (`src/config/runtimeEnv.ts`), which r
 | `VITE_FEATURES` | Feature flag overrides, a comma-separated list such as `newsletter=on,search=off`. See [Feature flags](#feature-flags). |
 | `NOTION_API_KEY`, `NOTION_DATA_SOURCE_ID` (or `NOTION_DATABASE_ID`) | **Server only**, read by `api/notion`. Queries target a data source (Notion API 2025-09-03). `getDataSourceId()` in `packages/cms/src/notion/client.ts` uses `NOTION_DATA_SOURCE_ID` as is, or looks up the first data source of `NOTION_DATABASE_ID` once per function instance. |
 | `SANITY_PROJECT_ID`, `SANITY_API_TOKEN`, `SANITY_DATASET` (default `production`), `SANITY_API_VERSION` (default `2025-02-19`) | **Server only**, read by `api/sanity`. The token (a Viewer token) is required: the datasets are private. Vercel's Preview environment reads `staging`, Production reads `production`. |
+| `SITES_FEATURES`, `EDGE_CONFIG` | `apps/sites` flags: a `VITE_FEATURES`-style list, and the Edge Config connection string Vercel sets when a store is connected. Both server-side (see [packages/flags](../packages/flags/README.md)). |
+| `PUBLIC_GA_MEASUREMENT_ID` | `apps/sites`: the blog's GA4 measurement ID. Public by design; GA4 only loads in production, after consent. |
 | `RESEND_API_KEY` | **Server only**, read by `api/contact` and `api/subscribe`. A Resend API key that can send emails and manage contacts. |
 | `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL` | **Server only**, read by `api/contact`. The address contact messages go to, and the sender they come from. The sender must be on a domain verified in Resend, and may include a name: `Journal <forms@example.com>`. |
 | `RESEND_AUDIENCE_ID` | **Server only**, read by `api/subscribe`. The ID of the Resend audience (now called a segment) that newsletter subscribers join. |
@@ -267,28 +271,7 @@ Each `VITE_*` value is read with `readEnv` (`src/config/runtimeEnv.ts`), which r
 
 ### Feature flags
 
-Feature flags turn a feature on or off per environment without a code change. They ride on the same `readEnv` path as the rest of the configuration, so they are known before the first render: no extra request, no flicker, and nothing that can be down.
-
-| Flag | Default | Gates |
-|---|---|---|
-| `newsletter` | off | The newsletter signup: `NewsLetterSection` on the home page, `NewsLetterCTA` after articles, and the "Join Our Community" section on the About page. |
-| `search` | off | Site search (see [Search](#search)): the navbar search button and its shortcuts, and the `/search` page, which is not found while the flag is off. The dialog and the search index load with `lazy()` and `import()` on first use, the dialog inside its own `ErrorBoundary`, so a chunk that fails again after the one reload (see [Error handling and observability](#error-handling-and-observability)) drops the dialog, not the navbar. |
-| `sanity` | off | Sanity as a post source, like `notion`: while it is off, `/api/sanity` is never called. Turn it on only once `SANITY_*` is set and the datasets are private. |
-| `notion` | on | Notion as a post source. While it is off, `createApiAdapter('notion')` is not registered, so the site never calls `/api/notion` and Notion posts are neither listed nor found by slug. `api/notion` itself is not gated. |
-
-**Setting flags.** `VITE_FEATURES` holds overrides as a comma-separated list, such as `newsletter=on,search=off`. A value is `on`/`off`, `true`/`false` or `1`/`0` (any case), and a bare name means on. A flag the list doesn't name keeps its default. An unknown name, an unknown value or a malformed entry is skipped, with a `console.warn` in development, so a typo never breaks the app. Flags are read once when the page loads.
-
-- **Vercel:** set `VITE_FEATURES` in the project's environment variables, separately for Production and Preview, then redeploy. Vite inlines it at build time, so a change only takes effect with the next deployment.
-- **Docker:** pass `-e VITE_FEATURES=...` (or put it in the `--env-file`) and restart the container. No rebuild is needed.
-- **Locally:** set it in `.env.local` and restart `bun dev`.
-
-**Reading a flag.** Wrap UI in `<Feature name="search" fallback={...}>` (`src/components/Feature`), which renders its children only while the flag is on, or call `useFeatureFlag('search')` (`src/hooks/features`). Code outside React imports the parsed flags from `src/config/features.ts` (`import features from '@/config/features'`), as `src/services/cms/adapters.ts` does. Names are checked by TypeScript, so a misspelt flag fails `bun run typecheck`.
-
-Code behind a flag that is off still ships in the bundle, because the value can change at runtime in the Docker image. Load anything sizeable behind a flag with `lazy()` from `@/lib/chunkReload`, as `SearchLauncher` does for the search dialog, to keep it out of the initial bundle.
-
-**Adding a flag.** Add it to `FEATURE_DEFAULTS` in `src/config/features.ts`, which is the only place flags are declared. A new or unfinished feature defaults to `false`, so an environment without `VITE_FEATURES` hides it. Gate the feature with `<Feature>`, `useFeatureFlag` or `features.<name>`. Test both states: render under `<FeaturesProvider value={{ ...FEATURE_DEFAULTS, <name>: true }}>` (`src/providers/features`), or set `window.__ENV__ = { VITE_FEATURES: '...' }` and reload the module for code outside React (`src/services/cms/adapters.spec.ts`). Add the flag to the table above. `VITE_FEATURES` is already in `CLIENT_ENV_KEYS`, so no server change is needed.
-
-**Removing a flag.** Once a feature has been on in production for a release and isn't expected to be turned off again, delete it from `FEATURE_DEFAULTS`, unwrap its `<Feature>` (or remove its check), delete the code for the off state and its tests, and drop it from the table above and from any `VITE_FEATURES` values. A name left in `VITE_FEATURES` after its flag is gone is ignored with a development warning. Flags meant as lasting switches (`notion`) stay.
+Flags live in `packages/flags` (`@brianlusina/flags`): one typed registry per app, resolved remote → env → default. **[packages/flags/README.md](../packages/flags/README.md)** has the syntax, the flag tables for both apps, and how to add, set and remove a flag. The blog keeps env flags (`VITE_FEATURES`, read once at page load); `apps/sites` also reads Vercel Edge Config, at render only.
 
 ## apps/sites
 
@@ -309,6 +292,17 @@ Code behind a flag that is off still ships in the bundle, because the value can 
 - **Links between sites:** `siteUrl` builds them per environment. On a preview, a link to a site is the same origin with `?site=`, and a link to the blog goes to staging.
 - **Styling:** Tailwind 3 through PostCSS with the `@brianlusina/ui` preset. The layout inlines `themeScript`, so the theme matches the blog's before first paint.
 - **Adapter seam:** `astro.config.mjs` names the adapter on one line (`const adapter = vercel()`). Self-hosting changes that line to `@astrojs/node`; nothing else depends on Vercel.
+
+### Analytics and consent
+
+On `apps/sites` (spec §6.4), two tools each do one job:
+- **Vercel Web Analytics** counts traffic per site. It's cookieless, so it runs for everyone, including readers who decline. `Site.astro` renders `<Analytics />` from `@vercel/analytics/astro`, and Vercel collects only in production.
+- **GA4** covers journeys across sites and custom events. It runs only behind the consent banner, and only while the `analytics` flag is on.
+  - **Consent first:** `src/components/SiteAnalytics.tsx` renders `ConsentBanner` (`packages/ui`). Only once the reader accepts does `createAnalytics` (`packages/analytics`) load `gtag.js`, set Consent Mode (everything denied by default, then `analytics_storage` granted), and send a `page_view` with a `site` parameter. Before that nothing loads, so a reader who declines makes no request to Google ("basic" Consent Mode).
+  - **The choice is remembered** in the `consent` cookie, which is shared across `.brianlusina.com` like the theme cookie (`sharedCookieDomain`). Anything but exactly `granted` or `denied`, two conflicting cookies included, counts as no choice, and the reader is asked again.
+  - **Production only:** outside production (`locals.site.env`), or without `PUBLIC_GA_MEASUREMENT_ID`, accepting loads nothing. `e2e/sites/consent.spec.ts` runs wherever the flag is on. It checks that no Google request happens before accepting, and that none happens after it, except on a production host. There it blocks Google, so CI never records a hit, and checks that `gtag.js` was asked for. A production run with the flag on but no measurement ID fails.
+  - **Custom events** (`SiteEvent`): `resume_download`, `contact_submit` (with `outcome`), `outbound_click` (origin and path only) and `project_filter`. P7 defines them, and later pages send them.
+- **Not yet:** the privacy page that lists both trackers comes with the shared pages in P8. The blog keeps Firebase Analytics, without a banner, until it adopts these pieces after cutover.
 
 ## Deployment topology
 

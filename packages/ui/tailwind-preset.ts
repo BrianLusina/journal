@@ -9,6 +9,13 @@ import tailwindcssAnimate from "tailwindcss-animate";
 export const uiContent = [path.join(__dirname, "src", "**", "*.{ts,tsx}")];
 
 /**
+ * uiContent without the consent banner, for the blog: it adopts the banner after cutover, and until
+ * then its CSS must not change. (Tailwind applies a `!` pattern to the whole list, so the opt-out has
+ * to be its own list rather than something apps/sites adds back.)
+ */
+export const uiContentWithoutConsent = [...uiContent, `!${path.join(__dirname, "src", "consent", "**")}`];
+
+/**
  * The design system as a Tailwind preset: the tokens in styles.css mapped onto Tailwind's theme.
  * Apps use it with `presets: [preset]` and set their own `content`.
  */

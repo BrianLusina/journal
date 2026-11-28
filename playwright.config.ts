@@ -2,7 +2,8 @@ import { defineConfig, devices } from '@playwright/test';
 import { resolveBaseURL } from './e2e/lib/env';
 
 // End-to-end tests live in e2e/, which Vitest's include globs never match (see scripts/repo-policy.spec.ts).
-export default defineConfig({
+// `site` is the e2e/sites fixture's option: which site a project's specs expect.
+export default defineConfig<{ site: 'home' | 'folio' }>({
   testDir: 'e2e',
   snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}{ext}',
   fullyParallel: true,
@@ -23,7 +24,8 @@ export default defineConfig({
     { name: 'setup', testDir: 'e2e/setup', testMatch: /.*\.setup\.ts/ },
     { name: 'blog', testDir: 'e2e/blog', dependencies: ['setup'], use: { ...devices['Desktop Chrome'] } },
     // apps/sites: on a preview URL, the site fixture picks the site with the `site` cookie.
-    { name: 'home', testDir: 'e2e/home', use: { ...devices['Desktop Chrome'] } },
-    { name: 'folio', testDir: 'e2e/folio', use: { ...devices['Desktop Chrome'] } },
+    // Each also runs the specs shared by both sites, in e2e/sites/.
+    { name: 'home', testDir: 'e2e', testMatch: /e2e\/(home|sites)\/.*\.spec\.ts$/, use: { ...devices['Desktop Chrome'], site: 'home' } },
+    { name: 'folio', testDir: 'e2e', testMatch: /e2e\/(folio|sites)\/.*\.spec\.ts$/, use: { ...devices['Desktop Chrome'], site: 'folio' } },
   ],
 });
