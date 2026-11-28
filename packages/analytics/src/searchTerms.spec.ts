@@ -14,4 +14,20 @@ describe('search terms', () => {
   it.each(['react hooks', 'top 10 of 2024', 'es2020'])('does not treat %p as personal', term => {
     expect(mayBePersonal(term)).toBe(false);
   });
+
+  it.each([
+    ['a@b.c', true],
+    ['x a@@b.c y', true],
+    ['@b.c', false],
+    ['a@.c', false],
+    ['a@b.', false],
+    ['a @b.c', false],
+  ])('spots an email address in %p: %p', (term, expected) => {
+    expect(mayBePersonal(term)).toBe(expected);
+  });
+
+  // CodeQL: the old /\S+@\S+\.\S+/ took seconds on a pasted run of "!@", freezing the reader's tab.
+  it('checks a long run of "!@" quickly', { timeout: 500 }, () => {
+    expect(mayBePersonal('!@'.repeat(5_000))).toBe(false);
+  });
 });
